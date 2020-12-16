@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  cool:
+    build:
+      context: ""
+      dockerfile: Dockerfile.local
+    image: cool:latest
+    volumes:
+      - type: bind
+        source: ./p1
+        target: /usr/class/p1
