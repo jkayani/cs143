@@ -3,6 +3,7 @@
  */
 
 import java_cup.runtime.Symbol;
+import java.lang.reflect.*;
 
 %%
 
@@ -16,22 +17,49 @@ import java_cup.runtime.Symbol;
     // Max size of string constants
     static int MAX_STR_CONST = 1025;
 
-    // For assembling string constants
-    StringBuffer string_buf = new StringBuffer();
+    static int integer_count = 0;
+    int get_integer_count() {
+        return integer_count;
+    }
+    void inc_integer_count() {
+        integer_count++;
+    }
+
+    static int type_count = 0;
+    int get_type_count() {
+        return type_count;
+    }
+    void inc_type_count() {
+        type_count++;
+    }
+
+    static int object_count = 0;
+    int get_object_count() {
+        return object_count;
+    }
+    void inc_object_count() {
+        object_count++;
+    }
 
     private int curr_lineno = 1;
     int get_curr_lineno() {
-	return curr_lineno;
+        return curr_lineno;
     }
+    void inc_curr_lineno() {
+        curr_lineno++;
+    }
+
+    // For assembling string constants
+    StringBuffer string_buf = new StringBuffer();
 
     private AbstractSymbol filename;
 
     void set_filename(String fname) {
-	filename = AbstractTable.stringtable.addString(fname);
+        filename = AbstractTable.stringtable.addString(fname);
     }
 
     AbstractSymbol curr_filename() {
-	return filename;
+        return filename;
     }
 %}
 
@@ -75,6 +103,51 @@ import java_cup.runtime.Symbol;
                                      Further lexical rules should be defined
                                      here, after the last %% separator */
                                   return new Symbol(TokenConstants.DARROW); }
+
+[\40\n\f\r\t\v] {
+    if (yytext().equals("\n")) {
+        inc_curr_lineno();
+    }
+
+    // TODO: What symbol is supposed to represent whitespace?
+    return new Symbol(TokenConstants.MULT);
+}
+
+[0-9]+ {
+    // Digits
+    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
+    inc_integer_count();
+    return new Symbol(TokenConstants.INT_CONST, sym);
+}
+
+(class|else|fi|if|in|inherits|isvoid|let|loop|pool|then|while|case|esac|new|of|not|CLASS|ELSE|FI|IF|IN|INHERITS|ISVOID|LET|LOOP|POOL|THEN|WHILE|CASE|ESAC|NEW|OF|NOT) {
+    // Non-boolean Keywords
+    Field[] tokens = TokenConstants.class.getDeclaredFields();
+    for (Field f : tokens) {
+        if (f.getName().equals(yytext().toUpperCase())) {
+            try {
+                return new Symbol((Integer) f.get(TokenConstants.class));
+            } catch (Exception e) {
+                // whatever
+                System.out.println("error");
+            }
+        }
+    }
+}
+
+[a-z][a-zA-Z0-9]* {
+    // Object identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+    inc_object_count();
+    return new Symbol(TokenConstants.OBJECTID, sym);
+}
+
+(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9]*)) {
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 
 .                               { /* This rule should be the very last
                                      in your lexical specification and
