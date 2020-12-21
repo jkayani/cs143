@@ -18,5 +18,3 @@ class Foo2Class INHERITS IO {
   err : String <- "Hello\0" 
   err2 : String <- "Hello, 
   World"
-  
-}

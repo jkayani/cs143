@@ -100,14 +100,10 @@ import java.lang.reflect.*;
  *  work.  */
 
     switch(yy_lexical_state) {
-    case YYINITIAL:
-	/* nothing special to do in the initial state */
-	break;
-	/* If necessary, add code for other states here, e.g:
-	   case COMMENT:
-	   ...
-	   break;
-	*/
+    case IN_MULTI_COMMENT:
+        return new Symbol(TokenConstants.ERROR, "EOF in comment");
+    case IN_STRING:
+        return new Symbol(TokenConstants.ERROR, "EOF in string constant");
     }
     return new Symbol(TokenConstants.EOF);
 %eofval}
@@ -124,6 +120,9 @@ import java.lang.reflect.*;
 }
 <IN_MULTI_COMMENT>"*)" {
     yybegin(YYINITIAL);
+}
+<YYINITIAL>"*)" {
+    return new Symbol(TokenConstants.ERROR, "Unmatched *)");
 }
 "--" {
     if (!curr_in_comment()) {

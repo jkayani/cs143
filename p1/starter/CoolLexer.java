@@ -122,9 +122,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
 	private final int IN_MULTI_COMMENT = 2;
 	private final int yy_state_dtrans[] = {
 		0,
-		30,
-		44,
-		56
+		31,
+		45,
+		57
 	};
 	private void yybegin (int state) {
 		yy_lexical_state = state;
@@ -295,8 +295,8 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 27 */ YY_NO_ANCHOR,
 		/* 28 */ YY_NO_ANCHOR,
 		/* 29 */ YY_NO_ANCHOR,
-		/* 30 */ YY_NOT_ACCEPT,
-		/* 31 */ YY_NO_ANCHOR,
+		/* 30 */ YY_NO_ANCHOR,
+		/* 31 */ YY_NOT_ACCEPT,
 		/* 32 */ YY_NO_ANCHOR,
 		/* 33 */ YY_NO_ANCHOR,
 		/* 34 */ YY_NO_ANCHOR,
@@ -309,8 +309,8 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 41 */ YY_NO_ANCHOR,
 		/* 42 */ YY_NO_ANCHOR,
 		/* 43 */ YY_NO_ANCHOR,
-		/* 44 */ YY_NOT_ACCEPT,
-		/* 45 */ YY_NO_ANCHOR,
+		/* 44 */ YY_NO_ANCHOR,
+		/* 45 */ YY_NOT_ACCEPT,
 		/* 46 */ YY_NO_ANCHOR,
 		/* 47 */ YY_NO_ANCHOR,
 		/* 48 */ YY_NO_ANCHOR,
@@ -321,8 +321,8 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 53 */ YY_NO_ANCHOR,
 		/* 54 */ YY_NO_ANCHOR,
 		/* 55 */ YY_NO_ANCHOR,
-		/* 56 */ YY_NOT_ACCEPT,
-		/* 57 */ YY_NO_ANCHOR,
+		/* 56 */ YY_NO_ANCHOR,
+		/* 57 */ YY_NOT_ACCEPT,
 		/* 58 */ YY_NO_ANCHOR,
 		/* 59 */ YY_NO_ANCHOR,
 		/* 60 */ YY_NO_ANCHOR,
@@ -572,7 +572,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 304 */ YY_NO_ANCHOR,
 		/* 305 */ YY_NO_ANCHOR,
 		/* 306 */ YY_NO_ANCHOR,
-		/* 307 */ YY_NO_ANCHOR
+		/* 307 */ YY_NO_ANCHOR,
+		/* 308 */ YY_NO_ANCHOR,
+		/* 309 */ YY_NO_ANCHOR
 	};
 	private int yy_cmap[] = unpackFromString(1,130,
 "8,52:8,7,6,52,7:2,52:18,7,52,5,52:5,1,3,2,50:2,4,50:2,48:10,50:2,49,51,52:2" +
@@ -580,118 +582,118 @@ class CoolLexer implements java_cup.runtime.Scanner {
 "3,52,50,52:2,42,52,11,43,9,22,13,14,45,17,15,44,41,10,41,16,21,23,41,18,12," +
 "19,41,20,24,41:3,50,52,50:2,52,0:2")[0];
 
-	private int yy_rmap[] = unpackFromString(1,308,
-"0,1,2,1:3,3,4,5,1:2,6,1:4,7,8,9,1:4,10,11,12,1:4,13,1,6,14,15,16,17,18,19,2" +
-"0,21,22,23,24,25,17,24,26,27,18,28,29,30,17,31,32,33,34,35,36,37,38,39,40,4" +
-"1,42,43,44,24,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,6" +
+	private int yy_rmap[] = unpackFromString(1,310,
+"0,1,2,1:3,3,4,5,1:3,6,1:4,7,8,9,1:4,10,11,12,1:4,13,14,6,15,16,17,18,19,20," +
+"21,22,23,24,25,26,1,25,27,28,19,29,30,31,18,32,33,34,18,35,36,37,38,39,40,4" +
+"1,42,43,44,45,25,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,6" +
 "5,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,9" +
 "0,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,11" +
 "1,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,1" +
 "30,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148," +
-"149,150,151,152,16,153,37,154,51,155,156,157,158,159,160,161,162,163,164,16" +
+"149,150,151,152,153,17,154,37,155,52,156,157,158,159,160,161,162,163,164,16" +
 "5,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,1" +
 "84,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202," +
 "203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221" +
-",222,223,224,225,226,227,228,229,230,231,232,141,143,145,233,234,235,6,16,1" +
-"8,37,24,51,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251," +
+",222,223,224,225,226,227,228,229,230,231,232,233,142,144,146,234,235,236,6," +
+"17,19,37,25,52,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251," +
 "252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270" +
-",271")[0];
+",271,272")[0];
 
-	private int yy_nxt[][] = unpackFromString(272,53,
-"1,2,31:2,45,3,4:2,5,6,122,266:2,272,33,47,134,266:2,278,32,58,266,284,290,7" +
-",123,267,273,279,34,48,135,267:2,285,267,59,267,291,297,266,5,266:3,302,267" +
-",8,57,31:2,5,-1:55,9,-1:59,266,296,140,266:37,-1:13,267:17,305,141,267:21,-" +
-"1:52,8,-1:13,266:40,-1:13,268,298,142,268:37,-1:13,269:17,306,143,269:21,-1" +
-":52,18,-1:13,270,300,144,270:37,-1:13,271:17,307,145,271:21,-1:52,25,-1:4,1" +
-",13:3,36,3,14:2,15,16,125,268:2,274,38,51,136,268:2,280,37,61,268,286,292,1" +
-"7,126,269,275,281,39,52,137,269:2,287,269,62,269,293,299,268,5,268:3,303,26" +
-"9,18,50,13:2,5,-1:9,266:6,11,266:33,-1:13,267:22,35,267:17,-1:13,267:40,-1:" +
-"8,10,-1:57,268:40,-1:13,268:6,49,268:33,-1:13,269:22,60,269:17,-1:7,26,-1:5" +
-"8,270:6,68,270:33,-1:13,271:22,75,271:17,-1:13,270:40,-1:4,1,20,40,20,53,21" +
-",4:2,22,23,127,270:2,276,41,54,138,270:2,282,46,64,270,288,294,24,128,271,2" +
-"77,283,42,55,139,271:2,289,271,65,271,295,301,270,22,270:3,304,271,25,63,20" +
-":2,22,-1:9,266:3,158,266,11,266,124,266:32,-1:13,267:7,165,267:11,171,267,3" +
-"5,267,129,267:4,177,267:11,-1:8,19,-1:46,31,-1:10,268:3,160,268,49,268,130," +
-"268:32,-1:13,269:7,167,269:11,173,269,60,269,131,269:4,179,269:11,-1:13,270" +
-":3,162,270,68,270,132,270:32,-1:13,271:7,169,271:11,175,271,75,271,133,271:" +
-"4,181,271:11,-1:4,1,20:3,53,21,28,29,22,23,127,270:2,276,41,54,138,270:2,28" +
-"2,43,64,270,288,294,24,128,271,277,283,42,55,139,271:2,289,271,65,271,295,3" +
-"01,270,22,270:3,304,271,25,63,20:2,22,-1:4,12,-1:46,31,-1:10,266:5,11,266:3" +
-"4,-1:13,267:21,35,267:12,189,267:5,-1:13,269:40,-1:13,268:5,49,268:34,-1:13" +
-",269:21,60,269:12,191,269:5,-1:8,27,-1:46,31,-1:10,270:5,68,270:34,-1:13,27" +
-"1:21,75,271:12,193,271:5,-1:13,266:10,11,266:29,-1:13,267:26,35,267:13,-1:1" +
-"3,268:10,49,268:29,-1:13,269:26,60,269:13,-1:13,270:10,68,270:29,-1:13,271:" +
-"26,75,271:13,-1:13,266:15,11,266:24,-1:13,267:31,35,267:8,-1:13,271:40,-1:1" +
-"3,268:15,49,268:24,-1:13,269:31,60,269:8,-1:13,270:15,68,270:24,-1:13,271:3" +
-"1,75,271:8,-1:13,266:4,11,266:35,-1:13,267:20,35,267:19,-1:13,268:4,49,268:" +
-"35,-1:13,269:20,60,269:19,-1:13,270:4,68,270:35,-1:13,271:20,75,271:19,-1:1" +
-"3,266:14,11,266:25,-1:13,267:30,35,267:9,-1:13,268:14,49,268:25,-1:13,269:3" +
-"0,60,269:9,-1:13,270:14,68,270:25,-1:13,271:30,75,271:9,-1:13,11,266:39,-1:" +
-"13,267:16,35,267:23,-1:13,49,268:39,-1:13,269:16,60,269:23,-1:13,68,270:39," +
-"-1:13,271:16,75,271:23,-1:13,266:7,11,266:32,-1:13,267:23,35,267:16,-1:13,2" +
-"68:7,49,268:32,-1:13,269:23,60,269:16,-1:13,270:7,68,270:32,-1:13,271:23,75" +
-",271:16,-1:13,266,11,266:38,-1:13,267:17,35,267:22,-1:13,268,49,268:38,-1:1" +
-"3,269:17,60,269:22,-1:13,270,68,270:38,-1:13,271:17,75,271:22,-1:13,266:3,1" +
-"1,266:36,-1:13,267:19,35,267:20,-1:13,268:3,49,268:36,-1:13,269:19,60,269:2" +
-"0,-1:13,270:3,68,270:36,-1:13,271:19,75,271:20,-1:13,266:13,11,266:26,-1:13" +
-",267:29,35,267:10,-1:13,268:13,49,268:26,-1:13,269:29,60,269:10,-1:13,270:1" +
-"3,68,270:26,-1:13,271:29,75,271:10,-1:13,266:4,66,266:7,146,266:27,-1:13,26" +
-"7:20,67,267:7,147,267:11,-1:13,266:8,194,266:31,-1:13,268:4,69,268:7,148,26" +
-"8:27,-1:13,269:20,70,269:7,149,269:11,-1:13,270:4,71,270:7,150,270:27,-1:13" +
-",271:20,72,271:7,151,271:11,-1:13,267:24,230,267:15,-1:13,268:8,196,268:31," +
-"-1:13,269:24,231,269:15,-1:13,270:8,198,270:31,-1:13,271:24,232,271:15,-1:1" +
-"3,266:4,73,266:7,66,266:27,-1:13,267:20,74,267:7,67,267:11,-1:13,268:4,76,2" +
-"68:7,69,268:27,-1:13,269:20,77,269:7,70,269:11,-1:13,270:4,78,270:7,71,270:" +
-"27,-1:13,271:20,79,271:7,72,271:11,-1:13,266:3,80,266:36,-1:13,267:19,81,26" +
-"7:20,-1:13,268:3,82,268:36,-1:13,269:19,83,269:20,-1:13,270:3,84,270:36,-1:" +
-"13,271:19,85,271:20,-1:13,266:12,86,266:27,-1:13,267:28,87,267:11,-1:13,268" +
-":12,88,268:27,-1:13,269:28,89,269:11,-1:13,270:12,90,270:27,-1:13,271:28,91" +
-",271:11,-1:13,266:2,92,266:37,-1:13,267:9,219,267:30,-1:13,268:2,94,268:37," +
-"-1:13,269:9,221,269:30,-1:13,270:2,96,270:37,-1:13,271:9,223,271:30,-1:13,2" +
-"66:11,188,266:28,-1:13,267:18,93,267:21,-1:13,268:11,190,268:28,-1:13,269:1" +
-"8,95,269:21,-1:13,270:11,192,270:28,-1:13,271:18,97,271:21,-1:13,266:4,98,2" +
-"66:35,-1:13,267:10,177,267:29,-1:13,268:4,100,268:35,-1:13,269:10,179,269:2" +
-"9,-1:13,270:4,102,270:35,-1:13,271:10,181,271:29,-1:13,266:12,104,266:27,-1" +
-":13,267:27,225,267:12,-1:13,268:12,106,268:27,-1:13,269:27,227,269:12,-1:13" +
-",270:12,108,270:27,-1:13,271:27,229,271:12,-1:13,266:6,200,266:33,-1:13,268" +
-":6,202,268:33,-1:13,270:6,204,270:33,-1:13,266:3,110,266:36,-1:13,267:20,99" +
-",267:19,-1:13,268:3,112,268:36,-1:13,269:20,101,269:19,-1:13,270:3,114,270:" +
-"36,-1:13,271:20,103,271:19,-1:13,266:12,206,266:27,-1:13,267:35,233,267:4,-" +
-"1:13,268:12,208,268:27,-1:13,269:35,234,269:4,-1:13,270:12,210,270:27,-1:13" +
-",271:35,235,271:4,-1:13,266:4,212,266:35,-1:13,267:28,105,267:11,-1:13,268:" +
-"4,214,268:35,-1:13,269:28,107,269:11,-1:13,270:4,216,270:35,-1:13,271:28,10" +
-"9,271:11,-1:13,266,80,266:38,-1:13,267:22,236,267:17,-1:13,268,82,268:38,-1" +
-":13,269:22,237,269:17,-1:13,270,84,270:38,-1:13,271:22,238,271:17,-1:13,266" +
-":6,116,266:33,-1:13,267:12,239,267:27,-1:13,268:6,118,268:33,-1:13,269:12,2" +
-"40,269:27,-1:13,270:6,120,270:33,-1:13,271:12,241,271:27,-1:13,266:9,218,26" +
-"6:30,-1:13,267:19,111,267:20,-1:13,268:9,220,268:30,-1:13,269:19,113,269:20" +
-",-1:13,270:9,222,270:30,-1:13,271:19,115,271:20,-1:13,266:6,224,266:33,-1:1" +
-"3,267:6,242,267:33,-1:13,268:6,226,268:33,-1:13,269:6,243,269:33,-1:13,270:" +
-"6,228,270:33,-1:13,271:6,244,271:33,-1:13,266:10,110,266:29,-1:13,267:28,24" +
-"5,267:11,-1:13,268:10,112,268:29,-1:13,269:28,246,269:11,-1:13,270:10,114,2" +
-"70:29,-1:13,271:28,247,271:11,-1:13,267:20,248,267:19,-1:13,269:20,249,269:" +
-"19,-1:13,271:20,250,271:19,-1:13,267:4,251,267:35,-1:13,269:4,252,269:35,-1" +
-":13,271:4,253,271:35,-1:13,267:17,81,267:22,-1:13,269:17,83,269:22,-1:13,27" +
-"1:17,85,271:22,-1:13,267,177,267:38,-1:13,269,179,269:38,-1:13,271,181,271:" +
-"38,-1:13,267:7,254,267:32,-1:13,269:7,255,269:32,-1:13,271:7,256,271:32,-1:" +
-"13,267:22,117,267:17,-1:13,269:22,119,269:17,-1:13,271:22,121,271:17,-1:13," +
-"267:25,257,267:14,-1:13,269:25,258,269:14,-1:13,271:25,259,271:14,-1:13,260" +
-",267:39,-1:13,261,269:39,-1:13,262,271:39,-1:13,267:36,177,267:3,-1:13,269:" +
-"36,179,269:3,-1:13,271:36,181,271:3,-1:13,267:22,263,267:17,-1:13,269:22,26" +
-"4,269:17,-1:13,271:22,265,271:17,-1:13,267:26,111,267:13,-1:13,269:26,113,2" +
-"69:13,-1:13,271:26,115,271:13,-1:13,266,140,266,152,266:36,-1:13,267:10,153" +
-",267:29,-1:13,268,142,268,154,268:36,-1:13,269:10,155,269:29,-1:13,270,144," +
-"270,156,270:36,-1:13,271:10,157,271:29,-1:13,266:8,164,266:31,-1:13,267:17," +
-"141,267,159,267:20,-1:13,268:8,166,268:31,-1:13,269:17,143,269,161,269:20,-" +
-"1:13,270:8,168,270:31,-1:13,271:17,145,271,163,271:20,-1:13,266:12,170,266:" +
-"27,-1:13,267:24,183,267:15,-1:13,268:12,172,268:27,-1:13,269:24,185,269:15," +
-"-1:13,270:12,174,270:27,-1:13,271:24,187,271:15,-1:13,266:8,176,266:31,-1:1" +
-"3,267:28,195,267:11,-1:13,268:8,178,268:31,-1:13,269:28,197,269:11,-1:13,27" +
-"0:8,180,270:31,-1:13,271:28,199,271:11,-1:13,266:2,182,266:37,-1:13,267:24," +
-"201,267:15,-1:13,268:2,184,268:37,-1:13,269:24,203,269:15,-1:13,270:2,186,2" +
-"70:37,-1:13,271:24,205,271:15,-1:13,267:12,207,267:27,-1:13,269:12,209,269:" +
-"27,-1:13,271:12,211,271:27,-1:13,267:18,213,267:21,-1:13,269:18,215,269:21," +
-"-1:13,271:18,217,271:21,-1:4");
+	private int yy_nxt[][] = unpackFromString(273,53,
+"1,2,32,46,58,3,4:2,5,6,124,268:2,274,34,48,136,268:2,280,33,59,268,286,292," +
+"7,125,269,275,281,35,49,137,269:2,287,269,60,269,293,299,268,5,268:3,304,26" +
+"9,8,67,46:2,5,-1:55,9,-1:59,268,298,142,268:37,-1:13,269:17,307,143,269:21," +
+"-1:52,8,-1:13,268:40,-1:13,270,300,144,270:37,-1:13,271:17,308,145,271:21,-" +
+"1:52,19,-1:13,272,302,146,272:37,-1:13,273:17,309,147,273:21,-1:52,26,-1:4," +
+"1,14:3,37,3,15:2,16,17,127,270:2,276,39,52,138,270:2,282,38,62,270,288,294," +
+"18,128,271,277,283,40,53,139,271:2,289,271,63,271,295,301,270,5,270:3,305,2" +
+"71,19,51,14:2,5,-1:3,10,-1:58,268:6,12,268:33,-1:13,269:22,36,269:17,-1:13," +
+"269:40,-1:8,11,-1:57,270:40,-1:13,270:6,50,270:33,-1:13,271:22,61,271:17,-1" +
+":7,27,-1:58,272:6,70,272:33,-1:13,273:22,77,273:17,-1:13,272:40,-1:4,1,21,4" +
+"1,21,54,22,4:2,23,24,129,272:2,278,42,55,140,272:2,284,47,65,272,290,296,25" +
+",130,273,279,285,43,56,141,273:2,291,273,66,273,297,303,272,23,272:3,306,27" +
+"3,26,64,21:2,23,-1:9,268:3,160,268,12,268,126,268:32,-1:13,269:7,167,269:11" +
+",173,269,36,269,131,269:4,179,269:11,-1:8,20,-1:46,46,-1:10,270:3,162,270,5" +
+"0,270,132,270:32,-1:13,271:7,169,271:11,175,271,61,271,133,271:4,181,271:11" +
+",-1:13,272:3,164,272,70,272,134,272:32,-1:13,273:7,171,273:11,177,273,77,27" +
+"3,135,273:4,183,273:11,-1:4,1,21:3,54,22,29,30,23,24,129,272:2,278,42,55,14" +
+"0,272:2,284,44,65,272,290,296,25,130,273,279,285,43,56,141,273:2,291,273,66" +
+",273,297,303,272,23,272:3,306,273,26,64,21:2,23,-1:9,268:5,12,268:34,-1:13," +
+"269:21,36,269:12,191,269:5,-1:13,271:40,-1:13,270:5,50,270:34,-1:13,271:21," +
+"61,271:12,193,271:5,-1:8,28,-1:46,46,-1:10,272:5,70,272:34,-1:13,273:21,77," +
+"273:12,195,273:5,-1:8,13,-1:46,46,-1:10,268:10,12,268:29,-1:13,269:26,36,26" +
+"9:13,-1:13,270:10,50,270:29,-1:13,271:26,61,271:13,-1:13,272:10,70,272:29,-" +
+"1:13,273:26,77,273:13,-1:13,268:15,12,268:24,-1:13,269:31,36,269:8,-1:13,27" +
+"3:40,-1:13,270:15,50,270:24,-1:13,271:31,61,271:8,-1:13,272:15,70,272:24,-1" +
+":13,273:31,77,273:8,-1:13,268:4,12,268:35,-1:13,269:20,36,269:19,-1:13,270:" +
+"4,50,270:35,-1:13,271:20,61,271:19,-1:13,272:4,70,272:35,-1:13,273:20,77,27" +
+"3:19,-1:13,268:14,12,268:25,-1:13,269:30,36,269:9,-1:13,270:14,50,270:25,-1" +
+":13,271:30,61,271:9,-1:13,272:14,70,272:25,-1:13,273:30,77,273:9,-1:13,12,2" +
+"68:39,-1:13,269:16,36,269:23,-1:13,50,270:39,-1:13,271:16,61,271:23,-1:13,7" +
+"0,272:39,-1:13,273:16,77,273:23,-1:13,268:7,12,268:32,-1:13,269:23,36,269:1" +
+"6,-1:13,270:7,50,270:32,-1:13,271:23,61,271:16,-1:13,272:7,70,272:32,-1:13," +
+"273:23,77,273:16,-1:13,268,12,268:38,-1:13,269:17,36,269:22,-1:13,270,50,27" +
+"0:38,-1:13,271:17,61,271:22,-1:13,272,70,272:38,-1:13,273:17,77,273:22,-1:1" +
+"3,268:3,12,268:36,-1:13,269:19,36,269:20,-1:13,270:3,50,270:36,-1:13,271:19" +
+",61,271:20,-1:13,272:3,70,272:36,-1:13,273:19,77,273:20,-1:13,268:13,12,268" +
+":26,-1:13,269:29,36,269:10,-1:13,270:13,50,270:26,-1:13,271:29,61,271:10,-1" +
+":13,272:13,70,272:26,-1:13,273:29,77,273:10,-1:13,268:4,68,268:7,148,268:27" +
+",-1:13,269:20,69,269:7,149,269:11,-1:13,268:8,196,268:31,-1:13,270:4,71,270" +
+":7,150,270:27,-1:13,271:20,72,271:7,151,271:11,-1:13,272:4,73,272:7,152,272" +
+":27,-1:13,273:20,74,273:7,153,273:11,-1:13,269:24,232,269:15,-1:13,270:8,19" +
+"8,270:31,-1:13,271:24,233,271:15,-1:13,272:8,200,272:31,-1:13,273:24,234,27" +
+"3:15,-1:13,268:4,75,268:7,68,268:27,-1:13,269:20,76,269:7,69,269:11,-1:13,2" +
+"70:4,78,270:7,71,270:27,-1:13,271:20,79,271:7,72,271:11,-1:13,272:4,80,272:" +
+"7,73,272:27,-1:13,273:20,81,273:7,74,273:11,-1:13,268:3,82,268:36,-1:13,269" +
+":19,83,269:20,-1:13,270:3,84,270:36,-1:13,271:19,85,271:20,-1:13,272:3,86,2" +
+"72:36,-1:13,273:19,87,273:20,-1:13,268:12,88,268:27,-1:13,269:28,89,269:11," +
+"-1:13,270:12,90,270:27,-1:13,271:28,91,271:11,-1:13,272:12,92,272:27,-1:13," +
+"273:28,93,273:11,-1:13,268:2,94,268:37,-1:13,269:9,221,269:30,-1:13,270:2,9" +
+"6,270:37,-1:13,271:9,223,271:30,-1:13,272:2,98,272:37,-1:13,273:9,225,273:3" +
+"0,-1:13,268:11,190,268:28,-1:13,269:18,95,269:21,-1:13,270:11,192,270:28,-1" +
+":13,271:18,97,271:21,-1:13,272:11,194,272:28,-1:13,273:18,99,273:21,-1:13,2" +
+"68:4,100,268:35,-1:13,269:10,179,269:29,-1:13,270:4,102,270:35,-1:13,271:10" +
+",181,271:29,-1:13,272:4,104,272:35,-1:13,273:10,183,273:29,-1:13,268:12,106" +
+",268:27,-1:13,269:27,227,269:12,-1:13,270:12,108,270:27,-1:13,271:27,229,27" +
+"1:12,-1:13,272:12,110,272:27,-1:13,273:27,231,273:12,-1:13,268:6,202,268:33" +
+",-1:13,270:6,204,270:33,-1:13,272:6,206,272:33,-1:13,268:3,112,268:36,-1:13" +
+",269:20,101,269:19,-1:13,270:3,114,270:36,-1:13,271:20,103,271:19,-1:13,272" +
+":3,116,272:36,-1:13,273:20,105,273:19,-1:13,268:12,208,268:27,-1:13,269:35," +
+"235,269:4,-1:13,270:12,210,270:27,-1:13,271:35,236,271:4,-1:13,272:12,212,2" +
+"72:27,-1:13,273:35,237,273:4,-1:13,268:4,214,268:35,-1:13,269:28,107,269:11" +
+",-1:13,270:4,216,270:35,-1:13,271:28,109,271:11,-1:13,272:4,218,272:35,-1:1" +
+"3,273:28,111,273:11,-1:13,268,82,268:38,-1:13,269:22,238,269:17,-1:13,270,8" +
+"4,270:38,-1:13,271:22,239,271:17,-1:13,272,86,272:38,-1:13,273:22,240,273:1" +
+"7,-1:13,268:6,118,268:33,-1:13,269:12,241,269:27,-1:13,270:6,120,270:33,-1:" +
+"13,271:12,242,271:27,-1:13,272:6,122,272:33,-1:13,273:12,243,273:27,-1:13,2" +
+"68:9,220,268:30,-1:13,269:19,113,269:20,-1:13,270:9,222,270:30,-1:13,271:19" +
+",115,271:20,-1:13,272:9,224,272:30,-1:13,273:19,117,273:20,-1:13,268:6,226," +
+"268:33,-1:13,269:6,244,269:33,-1:13,270:6,228,270:33,-1:13,271:6,245,271:33" +
+",-1:13,272:6,230,272:33,-1:13,273:6,246,273:33,-1:13,268:10,112,268:29,-1:1" +
+"3,269:28,247,269:11,-1:13,270:10,114,270:29,-1:13,271:28,248,271:11,-1:13,2" +
+"72:10,116,272:29,-1:13,273:28,249,273:11,-1:13,269:20,250,269:19,-1:13,271:" +
+"20,251,271:19,-1:13,273:20,252,273:19,-1:13,269:4,253,269:35,-1:13,271:4,25" +
+"4,271:35,-1:13,273:4,255,273:35,-1:13,269:17,83,269:22,-1:13,271:17,85,271:" +
+"22,-1:13,273:17,87,273:22,-1:13,269,179,269:38,-1:13,271,181,271:38,-1:13,2" +
+"73,183,273:38,-1:13,269:7,256,269:32,-1:13,271:7,257,271:32,-1:13,273:7,258" +
+",273:32,-1:13,269:22,119,269:17,-1:13,271:22,121,271:17,-1:13,273:22,123,27" +
+"3:17,-1:13,269:25,259,269:14,-1:13,271:25,260,271:14,-1:13,273:25,261,273:1" +
+"4,-1:13,262,269:39,-1:13,263,271:39,-1:13,264,273:39,-1:13,269:36,179,269:3" +
+",-1:13,271:36,181,271:3,-1:13,273:36,183,273:3,-1:13,269:22,265,269:17,-1:1" +
+"3,271:22,266,271:17,-1:13,273:22,267,273:17,-1:13,269:26,113,269:13,-1:13,2" +
+"71:26,115,271:13,-1:13,273:26,117,273:13,-1:13,268,142,268,154,268:36,-1:13" +
+",269:10,155,269:29,-1:13,270,144,270,156,270:36,-1:13,271:10,157,271:29,-1:" +
+"13,272,146,272,158,272:36,-1:13,273:10,159,273:29,-1:13,268:8,166,268:31,-1" +
+":13,269:17,143,269,161,269:20,-1:13,270:8,168,270:31,-1:13,271:17,145,271,1" +
+"63,271:20,-1:13,272:8,170,272:31,-1:13,273:17,147,273,165,273:20,-1:13,268:" +
+"12,172,268:27,-1:13,269:24,185,269:15,-1:13,270:12,174,270:27,-1:13,271:24," +
+"187,271:15,-1:13,272:12,176,272:27,-1:13,273:24,189,273:15,-1:13,268:8,178," +
+"268:31,-1:13,269:28,197,269:11,-1:13,270:8,180,270:31,-1:13,271:28,199,271:" +
+"11,-1:13,272:8,182,272:31,-1:13,273:28,201,273:11,-1:13,268:2,184,268:37,-1" +
+":13,269:24,203,269:15,-1:13,270:2,186,270:37,-1:13,271:24,205,271:15,-1:13," +
+"272:2,188,272:37,-1:13,273:24,207,273:15,-1:13,269:12,209,269:27,-1:13,271:" +
+"12,211,271:27,-1:13,273:12,213,273:27,-1:13,269:18,215,269:21,-1:13,271:18," +
+"217,271:21,-1:13,273:18,219,273:21,-1:4");
 
 	public java_cup.runtime.Symbol next_token ()
 		throws java.io.IOException {
@@ -723,14 +725,10 @@ class CoolLexer implements java_cup.runtime.Scanner {
  *  Ultimately, you should return the EOF symbol, or your lexer won't
  *  work.  */
     switch(yy_lexical_state) {
-    case YYINITIAL:
-	/* nothing special to do in the initial state */
-	break;
-	/* If necessary, add code for other states here, e.g:
-	   case COMMENT:
-	   ...
-	   break;
-	*/
+    case IN_MULTI_COMMENT:
+        return new Symbol(TokenConstants.ERROR, "EOF in comment");
+    case IN_STRING:
+        return new Symbol(TokenConstants.ERROR, "EOF in string constant");
     }
     return new Symbol(TokenConstants.EOF);
 			}
@@ -876,13 +874,19 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 10:
 						{
-    if (!curr_in_comment()) {
-        yybegin(IN_SINGLE_COMMENT);
-    }
+    return new Symbol(TokenConstants.ERROR, "Unmatched *)");
 }
 					case -11:
 						break;
 					case 11:
+						{
+    if (!curr_in_comment()) {
+        yybegin(IN_SINGLE_COMMENT);
+    }
+}
+					case -12:
+						break;
+					case 12:
 						{
     if (curr_in_string()) {
         curr_string.append(yytext());
@@ -901,21 +905,21 @@ class CoolLexer implements java_cup.runtime.Scanner {
         }
     }
 }
-					case -12:
-						break;
-					case 12:
-						{
-    return new Symbol(TokenConstants.ASSIGN);
-}
 					case -13:
 						break;
 					case 13:
 						{
-    curr_string.append(yytext());
+    return new Symbol(TokenConstants.ASSIGN);
 }
 					case -14:
 						break;
 					case 14:
+						{
+    curr_string.append(yytext());
+}
+					case -15:
+						break;
+					case 15:
 						{
     if (yytext().equals("\n")) {
         reset_string();
@@ -924,18 +928,12 @@ class CoolLexer implements java_cup.runtime.Scanner {
     }
     curr_string.append(yytext());
 }
-					case -15:
-						break;
-					case 15:
-						{
-    reset_string();
-    return new Symbol(TokenConstants.ERROR, "String contains null character");
-}
 					case -16:
 						break;
 					case 16:
 						{
-    curr_string.append(yytext());
+    reset_string();
+    return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 					case -17:
 						break;
@@ -958,7 +956,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -20:
 						break;
 					case 20:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -21:
 						break;
 					case 21:
@@ -982,27 +982,31 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -26:
 						break;
 					case 26:
-						{
-    yybegin(YYINITIAL);
-}
+						{}
 					case -27:
 						break;
 					case 27:
-						{}
+						{
+    yybegin(YYINITIAL);
+}
 					case -28:
 						break;
 					case 28:
+						{}
+					case -29:
+						break;
+					case 29:
 						{
     yybegin(YYINITIAL);
     inc_curr_lineno();
 }
-					case -29:
-						break;
-					case 29:
-						{}
 					case -30:
 						break;
-					case 31:
+					case 30:
+						{}
+					case -31:
+						break;
+					case 32:
 						{
     // Special symbols
     switch (yytext()) {
@@ -1045,17 +1049,17 @@ class CoolLexer implements java_cup.runtime.Scanner {
             return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
     }
 }
-					case -31:
+					case -32:
 						break;
-					case 32:
+					case 33:
 						{
     if (yytext().indexOf("\n") > -1) {
         inc_curr_lineno();
     }
 }
-					case -32:
+					case -33:
 						break;
-					case 33:
+					case 34:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -1068,18 +1072,18 @@ class CoolLexer implements java_cup.runtime.Scanner {
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
 }
-					case -33:
+					case -34:
 						break;
-					case 34:
+					case 35:
 						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -34:
+					case -35:
 						break;
-					case 35:
+					case 36:
 						{
     if (curr_in_string()) {
         curr_string.append(yytext());
@@ -1098,27 +1102,21 @@ class CoolLexer implements java_cup.runtime.Scanner {
         }
     }
 }
-					case -35:
-						break;
-					case 36:
-						{
-    curr_string.append(yytext());
-}
 					case -36:
 						break;
 					case 37:
 						{
-    if (yytext().equals("\n")) {
-        reset_string();
-        inc_curr_lineno();
-        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
-    }
     curr_string.append(yytext());
 }
 					case -37:
 						break;
 					case 38:
 						{
+    if (yytext().equals("\n")) {
+        reset_string();
+        inc_curr_lineno();
+        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+    }
     curr_string.append(yytext());
 }
 					case -38:
@@ -1130,7 +1128,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -39:
 						break;
 					case 40:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -40:
 						break;
 					case 41:
@@ -1145,7 +1145,11 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						{}
 					case -43:
 						break;
-					case 45:
+					case 44:
+						{}
+					case -44:
+						break;
+					case 46:
 						{
     // Special symbols
     switch (yytext()) {
@@ -1188,17 +1192,17 @@ class CoolLexer implements java_cup.runtime.Scanner {
             return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
     }
 }
-					case -44:
+					case -45:
 						break;
-					case 46:
+					case 47:
 						{
     if (yytext().indexOf("\n") > -1) {
         inc_curr_lineno();
     }
 }
-					case -45:
+					case -46:
 						break;
-					case 47:
+					case 48:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -1211,18 +1215,18 @@ class CoolLexer implements java_cup.runtime.Scanner {
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
 }
-					case -46:
+					case -47:
 						break;
-					case 48:
+					case 49:
 						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -47:
+					case -48:
 						break;
-					case 49:
+					case 50:
 						{
     if (curr_in_string()) {
         curr_string.append(yytext());
@@ -1240,12 +1244,6 @@ class CoolLexer implements java_cup.runtime.Scanner {
             }
         }
     }
-}
-					case -48:
-						break;
-					case 50:
-						{
-    curr_string.append(yytext());
 }
 					case -49:
 						break;
@@ -1262,7 +1260,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -51:
 						break;
 					case 53:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -52:
 						break;
 					case 54:
@@ -1273,7 +1273,11 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						{}
 					case -54:
 						break;
-					case 57:
+					case 56:
+						{}
+					case -55:
+						break;
+					case 58:
 						{
     // Special symbols
     switch (yytext()) {
@@ -1316,9 +1320,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
             return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
     }
 }
-					case -55:
+					case -56:
 						break;
-					case 58:
+					case 59:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -1331,18 +1335,18 @@ class CoolLexer implements java_cup.runtime.Scanner {
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
 }
-					case -56:
+					case -57:
 						break;
-					case 59:
+					case 60:
 						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -57:
+					case -58:
 						break;
-					case 60:
+					case 61:
 						{
     if (curr_in_string()) {
         curr_string.append(yytext());
@@ -1361,12 +1365,6 @@ class CoolLexer implements java_cup.runtime.Scanner {
         }
     }
 }
-					case -58:
-						break;
-					case 61:
-						{
-    curr_string.append(yytext());
-}
 					case -59:
 						break;
 					case 62:
@@ -1376,7 +1374,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -60:
 						break;
 					case 63:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -61:
 						break;
 					case 64:
@@ -1388,6 +1388,55 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -63:
 						break;
 					case 66:
+						{}
+					case -64:
+						break;
+					case 67:
+						{
+    // Special symbols
+    switch (yytext()) {
+        case ":":
+            return new Symbol(TokenConstants.COLON);
+        case ";":
+            return new Symbol(TokenConstants.SEMI);
+        case "{": 
+            return new Symbol(TokenConstants.LBRACE);
+        case "}":
+            return new Symbol(TokenConstants.RBRACE);
+        case "(": 
+            return new Symbol(TokenConstants.LPAREN);
+        case ")":
+            return new Symbol(TokenConstants.RPAREN);
+        case "<": 
+            return new Symbol(TokenConstants.LT);
+        case "<=": 
+            return new Symbol(TokenConstants.LE);
+        case "+": 
+            return new Symbol(TokenConstants.PLUS);
+        case "-": 
+            return new Symbol(TokenConstants.MINUS);
+        case "*":
+            return new Symbol(TokenConstants.MULT);
+        case "/":
+            return new Symbol(TokenConstants.DIV);
+        case "=":
+            return new Symbol(TokenConstants.EQ);
+        case "~":
+            return new Symbol(TokenConstants.NEG);
+        case ",":
+            return new Symbol(TokenConstants.COMMA);
+        case "@":
+            return new Symbol(TokenConstants.AT);
+        case ".":
+            return new Symbol(TokenConstants.DOT);
+        default: 
+            // TODO: what happens on backslash?
+            return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
+    }
+}
+					case -65:
+						break;
+					case 68:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -1398,85 +1447,20 @@ class CoolLexer implements java_cup.runtime.Scanner {
         AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -64:
-						break;
-					case 67:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -65:
-						break;
-					case 68:
-						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    }
-    else if (!curr_in_comment()) {
-        // Non-boolean Keywords
-        Field[] tokens = TokenConstants.class.getDeclaredFields();
-        for (Field f : tokens) {
-            if (f.getName().equals(yytext().toUpperCase())) {
-                try {
-                    return new Symbol((Integer) f.get(TokenConstants.class));
-                } catch (Exception e) {
-                    System.out.println("error");
-                }
-            }
-        }
     }
 }
 					case -66:
 						break;
 					case 69:
 						{
-    curr_string.append(yytext());
-}
-					case -67:
-						break;
-					case 70:
-						{
-    curr_string.append(yytext());
-}
-					case -68:
-						break;
-					case 71:
-						{}
-					case -69:
-						break;
-					case 72:
-						{}
-					case -70:
-						break;
-					case 73:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -71:
-						break;
-					case 74:
-						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -72:
+					case -67:
 						break;
-					case 75:
+					case 70:
 						{
     if (curr_in_string()) {
         curr_string.append(yytext());
@@ -1493,363 +1477,55 @@ class CoolLexer implements java_cup.runtime.Scanner {
                 }
             }
         }
+    }
+}
+					case -68:
+						break;
+					case 71:
+						{
+    curr_string.append(yytext());
+}
+					case -69:
+						break;
+					case 72:
+						{
+    curr_string.append(yytext());
+}
+					case -70:
+						break;
+					case 73:
+						{}
+					case -71:
+						break;
+					case 74:
+						{}
+					case -72:
+						break;
+					case 75:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
     }
 }
 					case -73:
 						break;
 					case 76:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -74:
 						break;
 					case 77:
-						{
-    curr_string.append(yytext());
-}
-					case -75:
-						break;
-					case 78:
-						{}
-					case -76:
-						break;
-					case 79:
-						{}
-					case -77:
-						break;
-					case 80:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -78:
-						break;
-					case 81:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -79:
-						break;
-					case 82:
-						{
-    curr_string.append(yytext());
-}
-					case -80:
-						break;
-					case 83:
-						{
-    curr_string.append(yytext());
-}
-					case -81:
-						break;
-					case 84:
-						{}
-					case -82:
-						break;
-					case 85:
-						{}
-					case -83:
-						break;
-					case 86:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -84:
-						break;
-					case 87:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -85:
-						break;
-					case 88:
-						{
-    curr_string.append(yytext());
-}
-					case -86:
-						break;
-					case 89:
-						{
-    curr_string.append(yytext());
-}
-					case -87:
-						break;
-					case 90:
-						{}
-					case -88:
-						break;
-					case 91:
-						{}
-					case -89:
-						break;
-					case 92:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -90:
-						break;
-					case 93:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -91:
-						break;
-					case 94:
-						{
-    curr_string.append(yytext());
-}
-					case -92:
-						break;
-					case 95:
-						{
-    curr_string.append(yytext());
-}
-					case -93:
-						break;
-					case 96:
-						{}
-					case -94:
-						break;
-					case 97:
-						{}
-					case -95:
-						break;
-					case 98:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -96:
-						break;
-					case 99:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -97:
-						break;
-					case 100:
-						{
-    curr_string.append(yytext());
-}
-					case -98:
-						break;
-					case 101:
-						{
-    curr_string.append(yytext());
-}
-					case -99:
-						break;
-					case 102:
-						{}
-					case -100:
-						break;
-					case 103:
-						{}
-					case -101:
-						break;
-					case 104:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -102:
-						break;
-					case 105:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -103:
-						break;
-					case 106:
-						{
-    curr_string.append(yytext());
-}
-					case -104:
-						break;
-					case 107:
-						{
-    curr_string.append(yytext());
-}
-					case -105:
-						break;
-					case 108:
-						{}
-					case -106:
-						break;
-					case 109:
-						{}
-					case -107:
-						break;
-					case 110:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -108:
-						break;
-					case 111:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -109:
-						break;
-					case 112:
-						{
-    curr_string.append(yytext());
-}
-					case -110:
-						break;
-					case 113:
-						{
-    curr_string.append(yytext());
-}
-					case -111:
-						break;
-					case 114:
-						{}
-					case -112:
-						break;
-					case 115:
-						{}
-					case -113:
-						break;
-					case 116:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -114:
-						break;
-					case 117:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -115:
-						break;
-					case 118:
-						{
-    curr_string.append(yytext());
-}
-					case -116:
-						break;
-					case 119:
-						{
-    curr_string.append(yytext());
-}
-					case -117:
-						break;
-					case 120:
-						{}
-					case -118:
-						break;
-					case 121:
-						{}
-					case -119:
-						break;
-					case 122:
-						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
-}
-					case -120:
-						break;
-					case 123:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -121:
-						break;
-					case 124:
 						{
     if (curr_in_string()) {
         curr_string.append(yytext());
@@ -1866,70 +1542,401 @@ class CoolLexer implements java_cup.runtime.Scanner {
                 }
             }
         }
+    }
+}
+					case -75:
+						break;
+					case 78:
+						{
+    curr_string.append(yytext());
+}
+					case -76:
+						break;
+					case 79:
+						{
+    curr_string.append(yytext());
+}
+					case -77:
+						break;
+					case 80:
+						{}
+					case -78:
+						break;
+					case 81:
+						{}
+					case -79:
+						break;
+					case 82:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -80:
+						break;
+					case 83:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -81:
+						break;
+					case 84:
+						{
+    curr_string.append(yytext());
+}
+					case -82:
+						break;
+					case 85:
+						{
+    curr_string.append(yytext());
+}
+					case -83:
+						break;
+					case 86:
+						{}
+					case -84:
+						break;
+					case 87:
+						{}
+					case -85:
+						break;
+					case 88:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -86:
+						break;
+					case 89:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -87:
+						break;
+					case 90:
+						{
+    curr_string.append(yytext());
+}
+					case -88:
+						break;
+					case 91:
+						{
+    curr_string.append(yytext());
+}
+					case -89:
+						break;
+					case 92:
+						{}
+					case -90:
+						break;
+					case 93:
+						{}
+					case -91:
+						break;
+					case 94:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -92:
+						break;
+					case 95:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -93:
+						break;
+					case 96:
+						{
+    curr_string.append(yytext());
+}
+					case -94:
+						break;
+					case 97:
+						{
+    curr_string.append(yytext());
+}
+					case -95:
+						break;
+					case 98:
+						{}
+					case -96:
+						break;
+					case 99:
+						{}
+					case -97:
+						break;
+					case 100:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -98:
+						break;
+					case 101:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -99:
+						break;
+					case 102:
+						{
+    curr_string.append(yytext());
+}
+					case -100:
+						break;
+					case 103:
+						{
+    curr_string.append(yytext());
+}
+					case -101:
+						break;
+					case 104:
+						{}
+					case -102:
+						break;
+					case 105:
+						{}
+					case -103:
+						break;
+					case 106:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -104:
+						break;
+					case 107:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -105:
+						break;
+					case 108:
+						{
+    curr_string.append(yytext());
+}
+					case -106:
+						break;
+					case 109:
+						{
+    curr_string.append(yytext());
+}
+					case -107:
+						break;
+					case 110:
+						{}
+					case -108:
+						break;
+					case 111:
+						{}
+					case -109:
+						break;
+					case 112:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -110:
+						break;
+					case 113:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -111:
+						break;
+					case 114:
+						{
+    curr_string.append(yytext());
+}
+					case -112:
+						break;
+					case 115:
+						{
+    curr_string.append(yytext());
+}
+					case -113:
+						break;
+					case 116:
+						{}
+					case -114:
+						break;
+					case 117:
+						{}
+					case -115:
+						break;
+					case 118:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
+}
+					case -116:
+						break;
+					case 119:
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
+					case -117:
+						break;
+					case 120:
+						{
+    curr_string.append(yytext());
+}
+					case -118:
+						break;
+					case 121:
+						{
+    curr_string.append(yytext());
+}
+					case -119:
+						break;
+					case 122:
+						{}
+					case -120:
+						break;
+					case 123:
+						{}
+					case -121:
+						break;
+					case 124:
+						{
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
     }
 }
 					case -122:
 						break;
 					case 125:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -123:
 						break;
 					case 126:
 						{
-    curr_string.append(yytext());
+    if (curr_in_string()) {
+        curr_string.append(yytext());
+    }
+    else if (!curr_in_comment()) {
+        // Non-boolean Keywords
+        Field[] tokens = TokenConstants.class.getDeclaredFields();
+        for (Field f : tokens) {
+            if (f.getName().equals(yytext().toUpperCase())) {
+                try {
+                    return new Symbol((Integer) f.get(TokenConstants.class));
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+        }
+    }
 }
 					case -124:
 						break;
 					case 127:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -125:
 						break;
 					case 128:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -126:
 						break;
 					case 129:
-						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    }
-    else if (!curr_in_comment()) {
-        // Non-boolean Keywords
-        Field[] tokens = TokenConstants.class.getDeclaredFields();
-        for (Field f : tokens) {
-            if (f.getName().equals(yytext().toUpperCase())) {
-                try {
-                    return new Symbol((Integer) f.get(TokenConstants.class));
-                } catch (Exception e) {
-                    System.out.println("error");
-                }
-            }
-        }
-    }
-}
+						{}
 					case -127:
 						break;
 					case 130:
-						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    }
-    else if (!curr_in_comment()) {
-        // Non-boolean Keywords
-        Field[] tokens = TokenConstants.class.getDeclaredFields();
-        for (Field f : tokens) {
-            if (f.getName().equals(yytext().toUpperCase())) {
-                try {
-                    return new Symbol((Integer) f.get(TokenConstants.class));
-                } catch (Exception e) {
-                    System.out.println("error");
-                }
-            }
-        }
-    }
-}
+						{}
 					case -128:
 						break;
 					case 131:
@@ -1997,49 +2004,91 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 134:
 						{
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    if (curr_in_string()) {
+        curr_string.append(yytext());
     }
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
+    else if (!curr_in_comment()) {
+        // Non-boolean Keywords
+        Field[] tokens = TokenConstants.class.getDeclaredFields();
+        for (Field f : tokens) {
+            if (f.getName().equals(yytext().toUpperCase())) {
+                try {
+                    return new Symbol((Integer) f.get(TokenConstants.class));
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+        }
     }
 }
 					case -132:
 						break;
 					case 135:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    if (curr_in_string()) {
+        curr_string.append(yytext());
+    }
+    else if (!curr_in_comment()) {
+        // Non-boolean Keywords
+        Field[] tokens = TokenConstants.class.getDeclaredFields();
+        for (Field f : tokens) {
+            if (f.getName().equals(yytext().toUpperCase())) {
+                try {
+                    return new Symbol((Integer) f.get(TokenConstants.class));
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+        }
+    }
 }
 					case -133:
 						break;
 					case 136:
 						{
-    curr_string.append(yytext());
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+        // Booleans
+        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
+    }
+    else {
+        // Object identifier
+        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+        inc_object_count();
+        return new Symbol(TokenConstants.OBJECTID, sym);
+    }
 }
 					case -134:
 						break;
 					case 137:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -135:
 						break;
 					case 138:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -136:
 						break;
 					case 139:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -137:
 						break;
 					case 140:
+						{}
+					case -138:
+						break;
+					case 141:
+						{}
+					case -139:
+						break;
+					case 142:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2051,39 +2100,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -138:
-						break;
-					case 141:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -139:
-						break;
-					case 142:
-						{
-    curr_string.append(yytext());
 }
 					case -140:
 						break;
 					case 143:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -141:
 						break;
 					case 144:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -142:
 						break;
 					case 145:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -143:
 						break;
 					case 146:
+						{}
+					case -144:
+						break;
+					case 147:
+						{}
+					case -145:
+						break;
+					case 148:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2095,39 +2144,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -144:
-						break;
-					case 147:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -145:
-						break;
-					case 148:
-						{
-    curr_string.append(yytext());
 }
 					case -146:
 						break;
 					case 149:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -147:
 						break;
 					case 150:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -148:
 						break;
 					case 151:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -149:
 						break;
 					case 152:
+						{}
+					case -150:
+						break;
+					case 153:
+						{}
+					case -151:
+						break;
+					case 154:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2139,39 +2188,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -150:
-						break;
-					case 153:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -151:
-						break;
-					case 154:
-						{
-    curr_string.append(yytext());
 }
 					case -152:
 						break;
 					case 155:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -153:
 						break;
 					case 156:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -154:
 						break;
 					case 157:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -155:
 						break;
 					case 158:
+						{}
+					case -156:
+						break;
+					case 159:
+						{}
+					case -157:
+						break;
+					case 160:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2183,39 +2232,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -156:
-						break;
-					case 159:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -157:
-						break;
-					case 160:
-						{
-    curr_string.append(yytext());
 }
 					case -158:
 						break;
 					case 161:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -159:
 						break;
 					case 162:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -160:
 						break;
 					case 163:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -161:
 						break;
 					case 164:
+						{}
+					case -162:
+						break;
+					case 165:
+						{}
+					case -163:
+						break;
+					case 166:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2227,39 +2276,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -162:
-						break;
-					case 165:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -163:
-						break;
-					case 166:
-						{
-    curr_string.append(yytext());
 }
 					case -164:
 						break;
 					case 167:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -165:
 						break;
 					case 168:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -166:
 						break;
 					case 169:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -167:
 						break;
 					case 170:
+						{}
+					case -168:
+						break;
+					case 171:
+						{}
+					case -169:
+						break;
+					case 172:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2271,39 +2320,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -168:
-						break;
-					case 171:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -169:
-						break;
-					case 172:
-						{
-    curr_string.append(yytext());
 }
 					case -170:
 						break;
 					case 173:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -171:
 						break;
 					case 174:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -172:
 						break;
 					case 175:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -173:
 						break;
 					case 176:
+						{}
+					case -174:
+						break;
+					case 177:
+						{}
+					case -175:
+						break;
+					case 178:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2315,39 +2364,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -174:
-						break;
-					case 177:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -175:
-						break;
-					case 178:
-						{
-    curr_string.append(yytext());
 }
 					case -176:
 						break;
 					case 179:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -177:
 						break;
 					case 180:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -178:
 						break;
 					case 181:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -179:
 						break;
 					case 182:
+						{}
+					case -180:
+						break;
+					case 183:
+						{}
+					case -181:
+						break;
+					case 184:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2359,39 +2408,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -180:
-						break;
-					case 183:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -181:
-						break;
-					case 184:
-						{
-    curr_string.append(yytext());
 }
 					case -182:
 						break;
 					case 185:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -183:
 						break;
 					case 186:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -184:
 						break;
 					case 187:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -185:
 						break;
 					case 188:
+						{}
+					case -186:
+						break;
+					case 189:
+						{}
+					case -187:
+						break;
+					case 190:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2403,39 +2452,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -186:
-						break;
-					case 189:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -187:
-						break;
-					case 190:
-						{
-    curr_string.append(yytext());
 }
 					case -188:
 						break;
 					case 191:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -189:
 						break;
 					case 192:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -190:
 						break;
 					case 193:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -191:
 						break;
 					case 194:
+						{}
+					case -192:
+						break;
+					case 195:
+						{}
+					case -193:
+						break;
+					case 196:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2447,39 +2496,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -192:
-						break;
-					case 195:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -193:
-						break;
-					case 196:
-						{
-    curr_string.append(yytext());
 }
 					case -194:
 						break;
 					case 197:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -195:
 						break;
 					case 198:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -196:
 						break;
 					case 199:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -197:
 						break;
 					case 200:
+						{}
+					case -198:
+						break;
+					case 201:
+						{}
+					case -199:
+						break;
+					case 202:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2491,39 +2540,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -198:
-						break;
-					case 201:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -199:
-						break;
-					case 202:
-						{
-    curr_string.append(yytext());
 }
 					case -200:
 						break;
 					case 203:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -201:
 						break;
 					case 204:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -202:
 						break;
 					case 205:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -203:
 						break;
 					case 206:
+						{}
+					case -204:
+						break;
+					case 207:
+						{}
+					case -205:
+						break;
+					case 208:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2535,39 +2584,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -204:
-						break;
-					case 207:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -205:
-						break;
-					case 208:
-						{
-    curr_string.append(yytext());
 }
 					case -206:
 						break;
 					case 209:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -207:
 						break;
 					case 210:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -208:
 						break;
 					case 211:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -209:
 						break;
 					case 212:
+						{}
+					case -210:
+						break;
+					case 213:
+						{}
+					case -211:
+						break;
+					case 214:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2579,39 +2628,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -210:
-						break;
-					case 213:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -211:
-						break;
-					case 214:
-						{
-    curr_string.append(yytext());
 }
 					case -212:
 						break;
 					case 215:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -213:
 						break;
 					case 216:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -214:
 						break;
 					case 217:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -215:
 						break;
 					case 218:
+						{}
+					case -216:
+						break;
+					case 219:
+						{}
+					case -217:
+						break;
+					case 220:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2623,39 +2672,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -216:
-						break;
-					case 219:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -217:
-						break;
-					case 220:
-						{
-    curr_string.append(yytext());
 }
 					case -218:
 						break;
 					case 221:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -219:
 						break;
 					case 222:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -220:
 						break;
 					case 223:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -221:
 						break;
 					case 224:
+						{}
+					case -222:
+						break;
+					case 225:
+						{}
+					case -223:
+						break;
+					case 226:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2667,267 +2716,267 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -222:
-						break;
-					case 225:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -223:
-						break;
-					case 226:
-						{
-    curr_string.append(yytext());
 }
 					case -224:
 						break;
 					case 227:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -225:
 						break;
 					case 228:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -226:
 						break;
 					case 229:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -227:
 						break;
 					case 230:
+						{}
+					case -228:
+						break;
+					case 231:
+						{}
+					case -229:
+						break;
+					case 232:
 						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -228:
-						break;
-					case 231:
-						{
-    curr_string.append(yytext());
-}
-					case -229:
-						break;
-					case 232:
-						{}
 					case -230:
 						break;
 					case 233:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -231:
 						break;
 					case 234:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -232:
 						break;
 					case 235:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -233:
 						break;
 					case 236:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -234:
 						break;
 					case 237:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -235:
 						break;
 					case 238:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -236:
 						break;
 					case 239:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -237:
 						break;
 					case 240:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -238:
 						break;
 					case 241:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -239:
 						break;
 					case 242:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -240:
 						break;
 					case 243:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -241:
 						break;
 					case 244:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -242:
 						break;
 					case 245:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -243:
 						break;
 					case 246:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -244:
 						break;
 					case 247:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -245:
 						break;
 					case 248:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -246:
 						break;
 					case 249:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -247:
 						break;
 					case 250:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -248:
 						break;
 					case 251:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -249:
 						break;
 					case 252:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -250:
 						break;
 					case 253:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -251:
 						break;
 					case 254:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -252:
 						break;
 					case 255:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -253:
 						break;
 					case 256:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -254:
 						break;
 					case 257:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -255:
 						break;
 					case 258:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -256:
 						break;
 					case 259:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -257:
 						break;
 					case 260:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    curr_string.append(yytext());
 }
 					case -258:
 						break;
 					case 261:
-						{
-    curr_string.append(yytext());
-}
+						{}
 					case -259:
 						break;
 					case 262:
-						{}
-					case -260:
-						break;
-					case 263:
 						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -261:
+					case -260:
 						break;
-					case 264:
+					case 263:
 						{
     curr_string.append(yytext());
 }
+					case -261:
+						break;
+					case 264:
+						{}
 					case -262:
 						break;
 					case 265:
-						{}
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -263:
 						break;
 					case 266:
+						{
+    curr_string.append(yytext());
+}
+					case -264:
+						break;
+					case 267:
+						{}
+					case -265:
+						break;
+					case 268:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2939,39 +2988,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -264:
-						break;
-					case 267:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -265:
-						break;
-					case 268:
-						{
-    curr_string.append(yytext());
 }
 					case -266:
 						break;
 					case 269:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -267:
 						break;
 					case 270:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -268:
 						break;
 					case 271:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -269:
 						break;
 					case 272:
+						{}
+					case -270:
+						break;
+					case 273:
+						{}
+					case -271:
+						break;
+					case 274:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -2983,39 +3032,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -270:
-						break;
-					case 273:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -271:
-						break;
-					case 274:
-						{
-    curr_string.append(yytext());
 }
 					case -272:
 						break;
 					case 275:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -273:
 						break;
 					case 276:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -274:
 						break;
 					case 277:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -275:
 						break;
 					case 278:
+						{}
+					case -276:
+						break;
+					case 279:
+						{}
+					case -277:
+						break;
+					case 280:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -3027,39 +3076,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -276:
-						break;
-					case 279:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -277:
-						break;
-					case 280:
-						{
-    curr_string.append(yytext());
 }
 					case -278:
 						break;
 					case 281:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -279:
 						break;
 					case 282:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -280:
 						break;
 					case 283:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -281:
 						break;
 					case 284:
+						{}
+					case -282:
+						break;
+					case 285:
+						{}
+					case -283:
+						break;
+					case 286:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -3071,39 +3120,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -282:
-						break;
-					case 285:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -283:
-						break;
-					case 286:
-						{
-    curr_string.append(yytext());
 }
 					case -284:
 						break;
 					case 287:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -285:
 						break;
 					case 288:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -286:
 						break;
 					case 289:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -287:
 						break;
 					case 290:
+						{}
+					case -288:
+						break;
+					case 291:
+						{}
+					case -289:
+						break;
+					case 292:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -3115,39 +3164,39 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_object_count();
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
-}
-					case -288:
-						break;
-					case 291:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -289:
-						break;
-					case 292:
-						{
-    curr_string.append(yytext());
 }
 					case -290:
 						break;
 					case 293:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -291:
 						break;
 					case 294:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -292:
 						break;
 					case 295:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -293:
 						break;
 					case 296:
+						{}
+					case -294:
+						break;
+					case 297:
+						{}
+					case -295:
+						break;
+					case 298:
 						{
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -3160,74 +3209,74 @@ class CoolLexer implements java_cup.runtime.Scanner {
         return new Symbol(TokenConstants.OBJECTID, sym);
     }
 }
-					case -294:
-						break;
-					case 297:
-						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
-}
-					case -295:
-						break;
-					case 298:
-						{
-    curr_string.append(yytext());
-}
 					case -296:
 						break;
 					case 299:
 						{
-    curr_string.append(yytext());
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
 }
 					case -297:
 						break;
 					case 300:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -298:
 						break;
 					case 301:
-						{}
+						{
+    curr_string.append(yytext());
+}
 					case -299:
 						break;
 					case 302:
+						{}
+					case -300:
+						break;
+					case 303:
+						{}
+					case -301:
+						break;
+					case 304:
 						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -300:
-						break;
-					case 303:
-						{
-    curr_string.append(yytext());
-}
-					case -301:
-						break;
-					case 304:
-						{}
 					case -302:
 						break;
 					case 305:
 						{
+    curr_string.append(yytext());
+}
+					case -303:
+						break;
+					case 306:
+						{}
+					case -304:
+						break;
+					case 307:
+						{
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
     inc_type_count();
     return new Symbol(TokenConstants.TYPEID, sym);
 }
-					case -303:
+					case -305:
 						break;
-					case 306:
+					case 308:
 						{
     curr_string.append(yytext());
 }
-					case -304:
+					case -306:
 						break;
-					case 307:
+					case 309:
 						{}
-					case -305:
+					case -307:
 						break;
 					default:
 						yy_error(YY_E_INTERNAL,false);
