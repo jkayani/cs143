@@ -17,8 +17,6 @@ import java.lang.reflect.*;
     // Max size of string constants
     static int MAX_STR_CONST = 1025;
 
-    static final int NORMAL = 0;
-
     static int integer_count = 0;
     int get_integer_count() {
         return integer_count;
@@ -68,6 +66,10 @@ import java.lang.reflect.*;
         curr_string = new StringBuffer();
     }
 
+    boolean curr_in_comment() {
+        return yy_lexical_state == IN_SINGLE_COMMENT || yy_lexical_state == IN_MULTI_COMMENT;
+    }
+
     private AbstractSymbol filename;
 
     void set_filename(String fname) {
@@ -113,17 +115,23 @@ import java.lang.reflect.*;
 %class CoolLexer
 %cup
 
-%state IN_STRING
+%state IN_STRING IN_MULTI_COMMENT IN_SINGLE_COMMENT
 
 %%
 
-<YYINITIAL>"=>"			{ /* Sample lexical rule for "=>" arrow.
-                                     Further lexical rules should be defined
-                                     here, after the last %% separator */
-                                  return new Symbol(TokenConstants.DARROW); }
+<YYINITIAL>"(*" {
+    yybegin(IN_MULTI_COMMENT);
+}
+<IN_MULTI_COMMENT>"*)" {
+    yybegin(YYINITIAL);
+}
+"--" {
+    if (!curr_in_comment()) {
+        yybegin(IN_SINGLE_COMMENT);
+    }
+}
 
-
-
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>"\"" {}
 "\"" { 
     in_string++;
     if (curr_in_string()) {
@@ -140,29 +148,33 @@ import java.lang.reflect.*;
     }
 }
 
+<IN_SINGLE_COMMENT>\n {
+    yybegin(YYINITIAL);
+    inc_curr_lineno();
+}
+<IN_SINGLE_COMMENT>[\40\f\r\t\v] {}
 <IN_STRING>[\40\n\f\r\t\v] {
     if (yytext().equals("\n")) {
         reset_string();
+        inc_curr_lineno();
         return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
     }
     curr_string.append(yytext());
 }
-
-[\40\n\f\r\t\v] {
+<YYINITIAL, IN_MULTI_COMMENT>[\40\n\f\r\t\v] {
     if (yytext().indexOf("\n") > -1) {
         inc_curr_lineno();
     }
 }
-
 <IN_STRING>\0 {
     reset_string();
     return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[a-z][a-zA-Z0-9_]* {}
 <IN_STRING>[a-z][a-zA-Z0-9_]* {
     curr_string.append(yytext());
 }
-
 [a-z][a-zA-Z0-9_]* {
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
@@ -176,10 +188,10 @@ import java.lang.reflect.*;
     }
 }
 
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {}
 <IN_STRING>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
     curr_string.append(yytext());
 }
-
 (Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
     // Type identifier
     AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
@@ -187,10 +199,10 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.TYPEID, sym);
 }
 
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[0-9]+ {}
 <IN_STRING>[0-9]+ {
     curr_string.append(yytext());
 }
-
 [0-9]+ {
     // Integers
     AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
@@ -198,20 +210,20 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.INT_CONST, sym);
 }
 
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>"<-" {}
 <IN_STRING>"<-" {
     curr_string.append(yytext());
 }
-
 "<-" {
     // Assignment symbol
     return new Symbol(TokenConstants.DARROW);
 }
 
-<IN_STRING>[:;{}()+-*/=~<>,.@\\] {
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[:;{}()+\-*/=~<>,.@\\] {}
+<IN_STRING>[:;{}()+\-*/=~<>,.@\\] {
     curr_string.append(yytext());
 }
-
-[:;{}()+-*/=~<>,.@\\] {
+[:;{}()+\-*/=~<>,.@\\] {
     // Special symbols
     switch (yytext()) {
         case ":":
@@ -253,7 +265,8 @@ import java.lang.reflect.*;
 (class|else|fi|if|in|inherits|isvoid|let|loop|pool|then|while|case|esac|new|of|not|CLASS|ELSE|FI|IF|IN|INHERITS|ISVOID|LET|LOOP|POOL|THEN|WHILE|CASE|ESAC|NEW|OF|NOT) {
     if (curr_in_string()) {
         curr_string.append(yytext());
-    } else {
+    }
+    else if (!curr_in_comment()) {
         // Non-boolean Keywords
         Field[] tokens = TokenConstants.class.getDeclaredFields();
         for (Field f : tokens) {
@@ -268,9 +281,6 @@ import java.lang.reflect.*;
     }
 }
 
-
-.                               { /* This rule should be the very last
-                                     in your lexical specification and
-                                     will match match everything not
-                                     matched by other lexical rules. */
-                                  System.err.println("LEXER BUG - UNMATCHED: " + yytext()); }
+. { 
+    System.err.printf("LEXER BUG - UNMATCHED: %s (line: %d), (lexical state: %d)\n", yytext(), curr_lineno, yy_lexical_state);
+}
