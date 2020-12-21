@@ -22,6 +22,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
  *  was there initially.  */
     // Max size of string constants
     static int MAX_STR_CONST = 1025;
+    static final int NORMAL = 0;
     static int integer_count = 0;
     int get_integer_count() {
         return integer_count;
@@ -113,9 +114,11 @@ class CoolLexer implements java_cup.runtime.Scanner {
 	}
 
 	private boolean yy_eof_done = false;
+	private final int IN_STRING = 1;
 	private final int YYINITIAL = 0;
 	private final int yy_state_dtrans[] = {
-		0
+		0,
+		18
 	};
 	private void yybegin (int state) {
 		yy_lexical_state = state;
@@ -271,18 +274,27 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 12 */ YY_NO_ANCHOR,
 		/* 13 */ YY_NO_ANCHOR,
 		/* 14 */ YY_NO_ANCHOR,
-		/* 15 */ YY_NO_ANCHOR
+		/* 15 */ YY_NO_ANCHOR,
+		/* 16 */ YY_NO_ANCHOR,
+		/* 17 */ YY_NO_ANCHOR,
+		/* 18 */ YY_NOT_ACCEPT,
+		/* 19 */ YY_NO_ANCHOR,
+		/* 20 */ YY_NO_ANCHOR,
+		/* 21 */ YY_NO_ANCHOR,
+		/* 22 */ YY_NO_ANCHOR,
+		/* 23 */ YY_NO_ANCHOR
 	};
 	private int yy_cmap[] = unpackFromString(1,130,
-"15:9,4:2,15,4:2,15:18,4,15,3,15:5,14:2,15,14:2,13,14:2,6,11:9,14:2,12,1,2,1" +
-"5,14,10:26,15,5,15:2,9,15,7:21,8,7:4,14,15,14:2,15,0:2")[0];
+"5,14:8,4:2,14,4:2,14:18,4,14,3,14:5,13:2,14,13:2,12,13:2,10:10,13:2,11,1,2," +
+"14,13,9:26,14,13,14:2,8,14,6:21,7,6:4,13,14,13:2,14,0:2")[0];
 
-	private int yy_rmap[] = unpackFromString(1,16,
-"0,1,2,1:2,3,4,1,5,1:4,4,6,7")[0];
+	private int yy_rmap[] = unpackFromString(1,24,
+"0,1,2,1:3,3,4,5,1:5,6,7,8,1,9,1,3,10,6,11")[0];
 
-	private int yy_nxt[][] = unpackFromString(8,16,
-"1,2,12,3,4,14,5,6,13,7,8,5,15,7,12,7,-1:18,9,-1:19,5,-1:4,5,-1:10,6:6,-1:10" +
-",8:6,-1:10,10,-1:22,11,-1:2");
+	private int yy_nxt[][] = unpackFromString(12,15,
+"1,2,19,3,4,5,6,20,5,7,8,23,5,19,5,-1:17,9,-1:18,6:5,-1:10,7:5,-1:14,8,-1:10" +
+",14:5,-1:10,15:5,-1:14,16,-1:4,1,11:2,3,12,13,14,22,5,15,16,21,5,11,5,-1:12" +
+",17,-1:14,10,-1:2");
 
 	public java_cup.runtime.Symbol next_token ()
 		throws java.io.IOException {
@@ -351,45 +363,41 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 2:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else {
-        // Special symbols
-        switch (yytext()) {
-            case ":":
-                return new Symbol(TokenConstants.COLON);
-            case ";":
-                return new Symbol(TokenConstants.SEMI);
-            case "{": 
-                return new Symbol(TokenConstants.LBRACE);
-            case "}":
-                return new Symbol(TokenConstants.RBRACE);
-            case "(": 
-                return new Symbol(TokenConstants.LPAREN);
-            case ")":
-                return new Symbol(TokenConstants.RPAREN);
-            case "<": 
-                return new Symbol(TokenConstants.LT);
-            case "+": 
-                return new Symbol(TokenConstants.PLUS);
-            case "-": 
-                return new Symbol(TokenConstants.MINUS);
-            case "*":
-                return new Symbol(TokenConstants.MULT);
-            case "/":
-                return new Symbol(TokenConstants.DIV);
-            case "=":
-                return new Symbol(TokenConstants.EQ);
-            case "~":
-                return new Symbol(TokenConstants.NEG);
-            case ",":
-                return new Symbol(TokenConstants.COMMA);
-            case "@":
-                return new Symbol(TokenConstants.AT);
-            default: 
-                // TODO: what happens on backslash?
-                return new Symbol(TokenConstants.ERROR, "Don't know what this is");
-        }
+    // Special symbols
+    switch (yytext()) {
+        case ":":
+            return new Symbol(TokenConstants.COLON);
+        case ";":
+            return new Symbol(TokenConstants.SEMI);
+        case "{": 
+            return new Symbol(TokenConstants.LBRACE);
+        case "}":
+            return new Symbol(TokenConstants.RBRACE);
+        case "(": 
+            return new Symbol(TokenConstants.LPAREN);
+        case ")":
+            return new Symbol(TokenConstants.RPAREN);
+        case "<": 
+            return new Symbol(TokenConstants.LT);
+        case "+": 
+            return new Symbol(TokenConstants.PLUS);
+        case "-": 
+            return new Symbol(TokenConstants.MINUS);
+        case "*":
+            return new Symbol(TokenConstants.MULT);
+        case "/":
+            return new Symbol(TokenConstants.DIV);
+        case "=":
+            return new Symbol(TokenConstants.EQ);
+        case "~":
+            return new Symbol(TokenConstants.NEG);
+        case ",":
+            return new Symbol(TokenConstants.COMMA);
+        case "@":
+            return new Symbol(TokenConstants.AT);
+        default: 
+            // TODO: what happens on backslash?
+            return new Symbol(TokenConstants.ERROR, "Don't know what this is");
     }
 }
 					case -3:
@@ -399,7 +407,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
     in_string++;
     if (curr_in_string()) {
         reset_string();
+        yybegin(IN_STRING);
     } else {
+        yybegin(YYINITIAL);
         if (curr_string.length() > MAX_STR_CONST) {
             reset_string();
             return new Symbol(TokenConstants.ERROR, "String constant too long");
@@ -412,38 +422,23 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 4:
 						{
-    if (curr_in_string()) {
-        if (yytext().equals("\n")) {
-            reset_string();
-            return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
-        }
-        curr_string.append(yytext());
-    }
-    else if (yytext().equals("\n")) {
+    if (yytext().indexOf("\n") > -1) {
         inc_curr_lineno();
     }
 }
 					case -5:
 						break;
 					case 5:
-						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else {
-        // Integers
-        AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
-        inc_integer_count();
-        return new Symbol(TokenConstants.INT_CONST, sym);
-    }
-}
+						{ /* This rule should be the very last
+                                     in your lexical specification and
+                                     will match match everything not
+                                     matched by other lexical rules. */
+                                  System.err.println("LEXER BUG - UNMATCHED: " + yytext()); }
 					case -6:
 						break;
 					case 6:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } 
-    else if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
         return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
     }
@@ -457,23 +452,20 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -7:
 						break;
 					case 7:
-						{ /* This rule should be the very last
-                                     in your lexical specification and
-                                     will match match everything not
-                                     matched by other lexical rules. */
-                                  System.err.println("LEXER BUG - UNMATCHED: " + yytext()); }
+						{
+    // Type identifier
+    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
+    inc_type_count();
+    return new Symbol(TokenConstants.TYPEID, sym);
+}
 					case -8:
 						break;
 					case 8:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else  {
-        // Type identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-        inc_type_count();
-        return new Symbol(TokenConstants.TYPEID, sym);
-    }
+    // Integers
+    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
+    inc_integer_count();
+    return new Symbol(TokenConstants.INT_CONST, sym);
 }
 					case -9:
 						break;
@@ -486,173 +478,163 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 10:
 						{
-    if (curr_in_string()) {
-        reset_string();
-        return new Symbol(TokenConstants.ERROR, "String contains null character");
-    }
+    // Assignment symbol
+    return new Symbol(TokenConstants.DARROW);
 }
 					case -11:
 						break;
 					case 11:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else {
-        // Assignment symbol
-        return new Symbol(TokenConstants.DARROW);
-    }
+    curr_string.append(yytext());
 }
 					case -12:
 						break;
 					case 12:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else {
-        // Special symbols
-        switch (yytext()) {
-            case ":":
-                return new Symbol(TokenConstants.COLON);
-            case ";":
-                return new Symbol(TokenConstants.SEMI);
-            case "{": 
-                return new Symbol(TokenConstants.LBRACE);
-            case "}":
-                return new Symbol(TokenConstants.RBRACE);
-            case "(": 
-                return new Symbol(TokenConstants.LPAREN);
-            case ")":
-                return new Symbol(TokenConstants.RPAREN);
-            case "<": 
-                return new Symbol(TokenConstants.LT);
-            case "+": 
-                return new Symbol(TokenConstants.PLUS);
-            case "-": 
-                return new Symbol(TokenConstants.MINUS);
-            case "*":
-                return new Symbol(TokenConstants.MULT);
-            case "/":
-                return new Symbol(TokenConstants.DIV);
-            case "=":
-                return new Symbol(TokenConstants.EQ);
-            case "~":
-                return new Symbol(TokenConstants.NEG);
-            case ",":
-                return new Symbol(TokenConstants.COMMA);
-            case "@":
-                return new Symbol(TokenConstants.AT);
-            default: 
-                // TODO: what happens on backslash?
-                return new Symbol(TokenConstants.ERROR, "Don't know what this is");
-        }
+    if (yytext().equals("\n")) {
+        reset_string();
+        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
     }
+    curr_string.append(yytext());
 }
 					case -13:
 						break;
 					case 13:
 						{
-    if (curr_in_string()) {
-        if (yytext().equals("\n")) {
-            reset_string();
-            return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
-        }
-        curr_string.append(yytext());
-    }
-    else if (yytext().equals("\n")) {
-        inc_curr_lineno();
-    }
+    reset_string();
+    return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 					case -14:
 						break;
 					case 14:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else {
-        // Special symbols
-        switch (yytext()) {
-            case ":":
-                return new Symbol(TokenConstants.COLON);
-            case ";":
-                return new Symbol(TokenConstants.SEMI);
-            case "{": 
-                return new Symbol(TokenConstants.LBRACE);
-            case "}":
-                return new Symbol(TokenConstants.RBRACE);
-            case "(": 
-                return new Symbol(TokenConstants.LPAREN);
-            case ")":
-                return new Symbol(TokenConstants.RPAREN);
-            case "<": 
-                return new Symbol(TokenConstants.LT);
-            case "+": 
-                return new Symbol(TokenConstants.PLUS);
-            case "-": 
-                return new Symbol(TokenConstants.MINUS);
-            case "*":
-                return new Symbol(TokenConstants.MULT);
-            case "/":
-                return new Symbol(TokenConstants.DIV);
-            case "=":
-                return new Symbol(TokenConstants.EQ);
-            case "~":
-                return new Symbol(TokenConstants.NEG);
-            case ",":
-                return new Symbol(TokenConstants.COMMA);
-            case "@":
-                return new Symbol(TokenConstants.AT);
-            default: 
-                // TODO: what happens on backslash?
-                return new Symbol(TokenConstants.ERROR, "Don't know what this is");
-        }
-    }
+    curr_string.append(yytext());
 }
 					case -15:
 						break;
 					case 15:
 						{
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    } else {
-        // Special symbols
-        switch (yytext()) {
-            case ":":
-                return new Symbol(TokenConstants.COLON);
-            case ";":
-                return new Symbol(TokenConstants.SEMI);
-            case "{": 
-                return new Symbol(TokenConstants.LBRACE);
-            case "}":
-                return new Symbol(TokenConstants.RBRACE);
-            case "(": 
-                return new Symbol(TokenConstants.LPAREN);
-            case ")":
-                return new Symbol(TokenConstants.RPAREN);
-            case "<": 
-                return new Symbol(TokenConstants.LT);
-            case "+": 
-                return new Symbol(TokenConstants.PLUS);
-            case "-": 
-                return new Symbol(TokenConstants.MINUS);
-            case "*":
-                return new Symbol(TokenConstants.MULT);
-            case "/":
-                return new Symbol(TokenConstants.DIV);
-            case "=":
-                return new Symbol(TokenConstants.EQ);
-            case "~":
-                return new Symbol(TokenConstants.NEG);
-            case ",":
-                return new Symbol(TokenConstants.COMMA);
-            case "@":
-                return new Symbol(TokenConstants.AT);
-            default: 
-                // TODO: what happens on backslash?
-                return new Symbol(TokenConstants.ERROR, "Don't know what this is");
-        }
-    }
+    curr_string.append(yytext());
 }
 					case -16:
+						break;
+					case 16:
+						{
+    curr_string.append(yytext());
+}
+					case -17:
+						break;
+					case 17:
+						{
+    curr_string.append(yytext());
+}
+					case -18:
+						break;
+					case 19:
+						{
+    // Special symbols
+    switch (yytext()) {
+        case ":":
+            return new Symbol(TokenConstants.COLON);
+        case ";":
+            return new Symbol(TokenConstants.SEMI);
+        case "{": 
+            return new Symbol(TokenConstants.LBRACE);
+        case "}":
+            return new Symbol(TokenConstants.RBRACE);
+        case "(": 
+            return new Symbol(TokenConstants.LPAREN);
+        case ")":
+            return new Symbol(TokenConstants.RPAREN);
+        case "<": 
+            return new Symbol(TokenConstants.LT);
+        case "+": 
+            return new Symbol(TokenConstants.PLUS);
+        case "-": 
+            return new Symbol(TokenConstants.MINUS);
+        case "*":
+            return new Symbol(TokenConstants.MULT);
+        case "/":
+            return new Symbol(TokenConstants.DIV);
+        case "=":
+            return new Symbol(TokenConstants.EQ);
+        case "~":
+            return new Symbol(TokenConstants.NEG);
+        case ",":
+            return new Symbol(TokenConstants.COMMA);
+        case "@":
+            return new Symbol(TokenConstants.AT);
+        default: 
+            // TODO: what happens on backslash?
+            return new Symbol(TokenConstants.ERROR, "Don't know what this is");
+    }
+}
+					case -19:
+						break;
+					case 20:
+						{
+    if (yytext().indexOf("\n") > -1) {
+        inc_curr_lineno();
+    }
+}
+					case -20:
+						break;
+					case 21:
+						{
+    curr_string.append(yytext());
+}
+					case -21:
+						break;
+					case 22:
+						{
+    if (yytext().equals("\n")) {
+        reset_string();
+        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+    }
+    curr_string.append(yytext());
+}
+					case -22:
+						break;
+					case 23:
+						{
+    // Special symbols
+    switch (yytext()) {
+        case ":":
+            return new Symbol(TokenConstants.COLON);
+        case ";":
+            return new Symbol(TokenConstants.SEMI);
+        case "{": 
+            return new Symbol(TokenConstants.LBRACE);
+        case "}":
+            return new Symbol(TokenConstants.RBRACE);
+        case "(": 
+            return new Symbol(TokenConstants.LPAREN);
+        case ")":
+            return new Symbol(TokenConstants.RPAREN);
+        case "<": 
+            return new Symbol(TokenConstants.LT);
+        case "+": 
+            return new Symbol(TokenConstants.PLUS);
+        case "-": 
+            return new Symbol(TokenConstants.MINUS);
+        case "*":
+            return new Symbol(TokenConstants.MULT);
+        case "/":
+            return new Symbol(TokenConstants.DIV);
+        case "=":
+            return new Symbol(TokenConstants.EQ);
+        case "~":
+            return new Symbol(TokenConstants.NEG);
+        case ",":
+            return new Symbol(TokenConstants.COMMA);
+        case "@":
+            return new Symbol(TokenConstants.AT);
+        default: 
+            // TODO: what happens on backslash?
+            return new Symbol(TokenConstants.ERROR, "Don't know what this is");
+    }
+}
+					case -23:
 						break;
 					default:
 						yy_error(YY_E_INTERNAL,false);

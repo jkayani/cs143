@@ -2,6 +2,9 @@ class Foo2Class INHERITS IO {
   foo : String;
   bar : Bool <- true;
   beep : Bool <- fAlsE;
+  
+  -- weird stuff starts here
+
   baz : String <- "Hello, \nBeautiful World"
   digs : String <- "123"
   darrow : String <- "<-"
