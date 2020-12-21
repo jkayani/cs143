@@ -219,12 +219,13 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.DARROW);
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[:;{}()+\-*/=~<>,.@\\] {}
-<IN_STRING>[:;{}()+\-*/=~<>,.@\\] {
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[:;{}()+\-*/=~<,.@\\] {}
+<IN_STRING>[:;{}()+\-*/=~<,.@\\] {
     curr_string.append(yytext());
 }
-[:;{}()+\-*/=~<>,.@\\] {
+[:;{}()+\-*/=~<,.@\\] {
     // Special symbols
+    // TODO: Add <= (LE)
     switch (yytext()) {
         case ":":
             return new Symbol(TokenConstants.COLON);
@@ -256,9 +257,11 @@ import java.lang.reflect.*;
             return new Symbol(TokenConstants.COMMA);
         case "@":
             return new Symbol(TokenConstants.AT);
+        case ".":
+            return new Symbol(TokenConstants.DOT);
         default: 
             // TODO: what happens on backslash?
-            return new Symbol(TokenConstants.ERROR, "Don't know what this is");
+            return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
     }
 }
 
@@ -280,6 +283,8 @@ import java.lang.reflect.*;
         }
     }
 }
+
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT> . {}
 
 . { 
     System.err.printf("LEXER BUG - UNMATCHED: %s (line: %d), (lexical state: %d)\n", yytext(), curr_lineno, yy_lexical_state);
