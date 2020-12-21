@@ -905,8 +905,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 12:
 						{
-    // Assignment symbol
-    return new Symbol(TokenConstants.DARROW);
+    return new Symbol(TokenConstants.ASSIGN);
 }
 					case -13:
 						break;

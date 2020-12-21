@@ -234,8 +234,7 @@ import java.lang.reflect.*;
     curr_string.append(yytext());
 }
 "<-" {
-    // Assignment symbol
-    return new Symbol(TokenConstants.DARROW);
+    return new Symbol(TokenConstants.ASSIGN);
 }
 
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[:;{}()+\-*/=~<,.@\\] {}
