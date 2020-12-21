@@ -726,9 +726,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
  *  work.  */
     switch(yy_lexical_state) {
     case IN_MULTI_COMMENT:
-        return new Symbol(TokenConstants.ERROR, "EOF in comment");
+        return new Symbol(TokenConstants.EOF, "EOF in comment");
     case IN_STRING:
-        return new Symbol(TokenConstants.ERROR, "EOF in string constant");
+        return new Symbol(TokenConstants.EOF, "EOF in string constant");
     }
     return new Symbol(TokenConstants.EOF);
 			}
