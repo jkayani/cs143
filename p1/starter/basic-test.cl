@@ -9,6 +9,7 @@ class Foo2Class INHERITS IO {
      }
   *)
   product : Int <- 3 * 3
+  truth : Bool <- 2 <= 3
   -- <- this is another comment and 3 * 3 = 9
   baz : String <- "Hello, \nBeautiful World"
   digs : String <- "123"

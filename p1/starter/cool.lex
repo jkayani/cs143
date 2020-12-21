@@ -223,9 +223,8 @@ import java.lang.reflect.*;
 <IN_STRING>[:;{}()+\-*/=~<,.@\\] {
     curr_string.append(yytext());
 }
-[:;{}()+\-*/=~<,.@\\] {
+([:;{}()+\-*/=~<,.@\\]|"<=") {
     // Special symbols
-    // TODO: Add <= (LE)
     switch (yytext()) {
         case ":":
             return new Symbol(TokenConstants.COLON);
@@ -241,6 +240,8 @@ import java.lang.reflect.*;
             return new Symbol(TokenConstants.RPAREN);
         case "<": 
             return new Symbol(TokenConstants.LT);
+        case "<=": 
+            return new Symbol(TokenConstants.LE);
         case "+": 
             return new Symbol(TokenConstants.PLUS);
         case "-": 
