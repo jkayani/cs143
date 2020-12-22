@@ -308,17 +308,17 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 31 */ YY_NO_ANCHOR
 	};
 	private int yy_cmap[] = unpackFromString(1,130,
-"8,19:8,20,6,19,20,7,19:18,20,19,5,19:5,1,3,2,16:2,4,16:2,10:10,16:2,15,17,1" +
-"8,19,16,14:26,19,9,19:2,13,19,12:21,11,12:4,16,19,16:2,19,0:2")[0];
+"8,10:8,11,6,10,11,7,10:18,11,10,5,10:5,1,3,2,18:2,4,18:2,16:10,18:2,17,19,2" +
+"0,10,18,15:26,10,9,10:2,14,10,12:21,13,12:4,18,10,18:2,10,0:2")[0];
 
 	private int yy_rmap[] = unpackFromString(1,32,
-"0,1,2,1:3,3,4,5,1:12,6,7,4,8,9,10,1,11,12,13,14")[0];
+"0,1,2,1:3,3,4,5,1:12,6,7,3,8,9,10,1,11,12,13,14")[0];
 
 	private int yy_nxt[][] = unpackFromString(15,21,
-"1,2,22,27,29,3,4:2,5,27,6,23,7,5,8,30,27,31,5:2,4,-1:23,9,-1:28,6,-1:20,7:5" +
-",-1:16,8:5,-1:6,1,13:4,14,15:2,16,24,13,15,13:8,15,-1:3,10,-1:27,17:3,-1,17" +
-",-1:9,19,-1:17,1,18,25,18:3,4:2,18:3,4,18:8,4,1,18:5,20,-1,18:13,-1:4,11,-1" +
-":20,12,-1:12,27,-1:21,27,-1:2");
+"1,2,22,27,29,3,4:2,5,27,5,4,6,23,5,7,8,30,27,31,5,-1:23,9,-1:30,6:5,-1:16,7" +
+":5,-1:20,8,-1:4,1,13:4,14,15:2,16,24,13,15,13,15,13:7,-1:3,10,-1:18,17:5,-1" +
+":2,17:13,-1:3,19,-1:17,1,18,25,18:3,4:2,18:3,4,18,4,18:7,1,18:5,20,-1,18:13" +
+",-1:4,11,-1:20,12,-1:14,27,-1:21,27");
 
 	public java_cup.runtime.Symbol next_token ()
 		throws java.io.IOException {
@@ -451,15 +451,6 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 6:
 						{
-    // Integers
-    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
-    inc_integer_count();
-    return new Symbol(TokenConstants.INT_CONST, sym);
-}
-					case -7:
-						break;
-					case 7:
-						{
     Symbol k = keyword(yytext());
     if (k == null) {
         if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
@@ -475,9 +466,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
     }
     return k;
 }
-					case -8:
+					case -7:
 						break;
-					case 8:
+					case 7:
 						{
     Symbol k = keyword(yytext());
     if (k == null) {
@@ -486,6 +477,15 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_type_count();
     }
     return k;
+}
+					case -8:
+						break;
+					case 8:
+						{
+    // Integers
+    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
+    inc_integer_count();
+    return new Symbol(TokenConstants.INT_CONST, sym);
 }
 					case -9:
 						break;
@@ -525,7 +525,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						{ 
     yybegin(YYINITIAL);
     if (curr_string.length() > MAX_STR_CONST) {
-        reset_string();
+        // reset_string();
         return new Symbol(TokenConstants.ERROR, "String constant too long");
     }
     string_count++;
@@ -536,11 +536,17 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case 15:
 						{
     if (yytext().equals("\n")) {
-        reset_string();
-        inc_curr_lineno();
-        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+        if (curr_string.charAt(curr_string.length() - 1) == '\\') {
+            curr_string.deleteCharAt(curr_string.length() - 1);
+            curr_string.append("\n");
+        } else {
+            reset_string();
+            inc_curr_lineno();
+            return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+        }
+    } else {
+        curr_string.append(yytext());
     }
-    curr_string.append(yytext());
 }
 					case -16:
 						break;

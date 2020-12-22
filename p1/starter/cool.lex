@@ -141,7 +141,7 @@ import java.lang.reflect.*;
 <IN_STRING>"\"" { 
     yybegin(YYINITIAL);
     if (curr_string.length() > MAX_STR_CONST) {
-        reset_string();
+        // reset_string();
         return new Symbol(TokenConstants.ERROR, "String constant too long");
     }
     string_count++;
@@ -158,11 +158,17 @@ import java.lang.reflect.*;
 }
 <IN_STRING>[\40\n\f\r\t\v] {
     if (yytext().equals("\n")) {
-        reset_string();
-        inc_curr_lineno();
-        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+        if (curr_string.charAt(curr_string.length() - 1) == '\\') {
+            curr_string.deleteCharAt(curr_string.length() - 1);
+            curr_string.append("\n");
+        } else {
+            reset_string();
+            inc_curr_lineno();
+            return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+        }
+    } else {
+        curr_string.append(yytext());
     }
-    curr_string.append(yytext());
 }
 <YYINITIAL, IN_MULTI_COMMENT>[\40\n\f\r\t\v] {
     if (yytext().indexOf("\n") > -1) {
@@ -174,7 +180,7 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 
-<IN_STRING>\\[a-zA-Z0-9] {
+<IN_STRING>\\. {
     String after = yytext().substring(1);
     switch (after) {
         case "n":
