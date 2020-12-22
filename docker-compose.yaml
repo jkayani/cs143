@@ -3,7 +3,6 @@ services:
   cool:
     build:
       context: ""
-      dockerfile: Dockerfile.local
     image: cool:latest
     volumes:
       - type: bind
