@@ -175,15 +175,23 @@ import java.lang.reflect.*;
     inc_curr_lineno();
     yybegin(IN_STRING);
 }
-<IN_STRING, STRING_NULL>\n {
+<IN_STRING>\n {
     yybegin(YYINITIAL);
     inc_curr_lineno();
     return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
+}
+<STRING_NULL>\n {
+    yybegin(YYINITIAL);
+    inc_curr_lineno();
 }
 <YYINITIAL, IN_MULTI_COMMENT>[\40\n\f\r\t\v] {
     if (yytext().indexOf("\n") > -1) {
         inc_curr_lineno();
     }
+}
+<IN_STRING>\0 {
+    yybegin(STRING_NULL);
+    return new Symbol(TokenConstants.ERROR, "String contains null character.");
 }
 <IN_STRING, STRING_UNESCAPED>\0 {
     yybegin(STRING_NULL);
