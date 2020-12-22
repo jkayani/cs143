@@ -62,11 +62,12 @@ import java.lang.reflect.*;
         curr_string = new StringBuffer();
     }
 
+    private int comment_count = 0;
     boolean curr_in_comment() {
         return yy_lexical_state == IN_SINGLE_COMMENT || yy_lexical_state == IN_MULTI_COMMENT;
     }
 
-    private String[] keywords = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "no"};
+    private String[] keywords = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "not"};
     Symbol keyword(String input) {
         for (String k : keywords) {
             if (input.toLowerCase().equals(k)) {
@@ -113,29 +114,37 @@ import java.lang.reflect.*;
  *  work.  */
 
     switch(yy_lexical_state) {
-    case IN_MULTI_COMMENT:
-        return new Symbol(TokenConstants.EOF, "EOF in comment");
-    case IN_STRING:
-        return new Symbol(TokenConstants.EOF, "EOF in string constant");
+        case IN_MULTI_COMMENT:
+            yybegin(EOF);
+            return new Symbol(TokenConstants.ERROR, "EOF in comment");
+        case STRING_UNESCAPED:
+        case IN_STRING:
+            yybegin(EOF);
+            return new Symbol(TokenConstants.ERROR, "EOF in string constant");
+        default:
+            return new Symbol(TokenConstants.EOF);
     }
-    return new Symbol(TokenConstants.EOF);
 %eofval}
 
 %class CoolLexer
 %cup
 
-%state IN_STRING STRING_UNESCAPED IN_MULTI_COMMENT IN_SINGLE_COMMENT 
+%state IN_STRING STRING_UNESCAPED IN_MULTI_COMMENT IN_SINGLE_COMMENT EOF
 
 %%
 
-<YYINITIAL>"(*" {
+<YYINITIAL, IN_MULTI_COMMENT>"(*" {
     yybegin(IN_MULTI_COMMENT);
+    comment_count++;
 }
-<IN_MULTI_COMMENT>"*)" {
-    yybegin(YYINITIAL);
-}
-<YYINITIAL>"*)" {
-    return new Symbol(TokenConstants.ERROR, "Unmatched *)");
+<YYINITIAL, IN_MULTI_COMMENT>"*)" {
+    if (yy_lexical_state == YYINITIAL) {
+        return new Symbol(TokenConstants.ERROR, "Unmatched *)");
+    }
+    comment_count--;
+    if (comment_count == 0) {
+        yybegin(YYINITIAL);
+    }
 }
 <YYINITIAL>"--" {
     yybegin(IN_SINGLE_COMMENT);
@@ -224,7 +233,7 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.ASSIGN);
 }
 
-<YYINITIAL>([:;{}()+\-*/=~<,.@\\]|"<="|"=>") {
+<YYINITIAL>([:;{}()+\-*/=~<,.@]|"<="|"=>") {
     // Special symbols
     switch (yytext()) {
         case ":":
