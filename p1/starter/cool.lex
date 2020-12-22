@@ -132,13 +132,12 @@ import java.lang.reflect.*;
 <YYINITIAL>"*)" {
     return new Symbol(TokenConstants.ERROR, "Unmatched *)");
 }
-"--" {
+<YYINITIAL>"--" {
     if (!curr_in_comment()) {
         yybegin(IN_SINGLE_COMMENT);
     }
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>"\"" {}
 <IN_STRING>"\"" { 
     yybegin(YYINITIAL);
     if (curr_string.length() > MAX_STR_CONST) {
@@ -148,7 +147,7 @@ import java.lang.reflect.*;
     string_count++;
     return new Symbol(TokenConstants.STR_CONST, new StringSymbol(curr_string.toString(), curr_string.length(), string_count));
 }
-"\"" { 
+<YYINITIAL>"\"" { 
     reset_string();
     yybegin(IN_STRING);
 }
@@ -157,7 +156,6 @@ import java.lang.reflect.*;
     yybegin(YYINITIAL);
     inc_curr_lineno();
 }
-<IN_SINGLE_COMMENT>[\40\f\r\t\v] {}
 <IN_STRING>[\40\n\f\r\t\v] {
     if (yytext().equals("\n")) {
         reset_string();
@@ -176,11 +174,7 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[a-z][a-zA-Z0-9_]* {}
-<IN_STRING>[a-z][a-zA-Z0-9_]* {
-    curr_string.append(yytext());
-}
-[a-z][a-zA-Z0-9_]* {
+<YYINITIAL>[a-z][a-zA-Z0-9_]* {
     Symbol k = keyword(yytext());
     if (k == null) {
         if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
@@ -197,11 +191,7 @@ import java.lang.reflect.*;
     return k;
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {}
-<IN_STRING>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
-    curr_string.append(yytext());
-}
-(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
+<YYINITIAL>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
     Symbol k = keyword(yytext());
     if (k == null) {
         // Type identifier
@@ -211,30 +201,18 @@ import java.lang.reflect.*;
     return k;
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[0-9]+ {}
-<IN_STRING>[0-9]+ {
-    curr_string.append(yytext());
-}
-[0-9]+ {
+<YYINITIAL>[0-9]+ {
     // Integers
     AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
     inc_integer_count();
     return new Symbol(TokenConstants.INT_CONST, sym);
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>"<-" {}
-<IN_STRING>"<-" {
-    curr_string.append(yytext());
-}
-"<-" {
+<YYINITIAL>"<-" {
     return new Symbol(TokenConstants.ASSIGN);
 }
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[:;{}()+\-*/=~<,.@\\] {}
-<IN_STRING>[:;{}()+\-*/=~<,.@\\] {
-    curr_string.append(yytext());
-}
-([:;{}()+\-*/=~<,.@\\]|"<="|"=>") {
+<YYINITIAL>([:;{}()+\-*/=~<,.@\\]|"<="|"=>") {
     // Special symbols
     switch (yytext()) {
         case ":":
@@ -281,6 +259,9 @@ import java.lang.reflect.*;
 
 
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT> . {}
+<IN_STRING> . { 
+    curr_string.append(yytext()); 
+}
 
 . { 
     System.err.printf("LEXER BUG - UNMATCHED: %s (line: %d), (lexical state: %d)\n", yytext(), curr_lineno, yy_lexical_state);
