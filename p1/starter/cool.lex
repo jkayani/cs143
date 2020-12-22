@@ -129,7 +129,7 @@ import java.lang.reflect.*;
 %class CoolLexer
 %cup
 
-%state IN_STRING STRING_UNESCAPED IN_MULTI_COMMENT IN_SINGLE_COMMENT EOF
+%state IN_STRING STRING_UNESCAPED STRING_NULL IN_MULTI_COMMENT IN_SINGLE_COMMENT EOF
 
 %%
 
@@ -152,12 +152,14 @@ import java.lang.reflect.*;
 
 <IN_STRING>"\"" { 
     yybegin(YYINITIAL);
-    if (curr_string.length() > MAX_STR_CONST) {
-        // reset_string();
+    if (curr_string.length() >= MAX_STR_CONST) {
         return new Symbol(TokenConstants.ERROR, "String constant too long");
     }
     string_count++;
     return new Symbol(TokenConstants.STR_CONST, new StringSymbol(curr_string.toString(), curr_string.length(), string_count));
+}
+<STRING_NULL>"\"" {
+    yybegin(YYINITIAL); 
 }
 <YYINITIAL>"\"" { 
     reset_string();
@@ -173,23 +175,19 @@ import java.lang.reflect.*;
     inc_curr_lineno();
     yybegin(IN_STRING);
 }
-<IN_STRING>[\40\n\f\r\t\v] {
-    if (yytext().equals("\n")) {
-        yybegin(YYINITIAL);
-        inc_curr_lineno();
-        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
-    } else {
-        curr_string.append(yytext());
-    }
+<IN_STRING, STRING_NULL>\n {
+    yybegin(YYINITIAL);
+    inc_curr_lineno();
+    return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
 }
 <YYINITIAL, IN_MULTI_COMMENT>[\40\n\f\r\t\v] {
     if (yytext().indexOf("\n") > -1) {
         inc_curr_lineno();
     }
 }
-<IN_STRING>\0 {
-    reset_string();
-    return new Symbol(TokenConstants.ERROR, "String contains null character");
+<IN_STRING, STRING_UNESCAPED>\0 {
+    yybegin(STRING_NULL);
+    return new Symbol(TokenConstants.ERROR, "String contains escaped null character");
 }
 <IN_STRING>\\ {
     yybegin(STRING_UNESCAPED);
@@ -279,7 +277,7 @@ import java.lang.reflect.*;
 }
 
 
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT> . {}
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT, STRING_NULL> . {}
 <IN_STRING> . { 
     curr_string.append(yytext()); 
 }
