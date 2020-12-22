@@ -131,8 +131,8 @@ class CoolLexer implements java_cup.runtime.Scanner {
 	private final int IN_MULTI_COMMENT = 2;
 	private final int yy_state_dtrans[] = {
 		0,
-		20,
-		25,
+		21,
+		26,
 		28
 	};
 	private void yybegin (int state) {
@@ -294,13 +294,13 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 17 */ YY_NO_ANCHOR,
 		/* 18 */ YY_NO_ANCHOR,
 		/* 19 */ YY_NO_ANCHOR,
-		/* 20 */ YY_NOT_ACCEPT,
-		/* 21 */ YY_NO_ANCHOR,
+		/* 20 */ YY_NO_ANCHOR,
+		/* 21 */ YY_NOT_ACCEPT,
 		/* 22 */ YY_NO_ANCHOR,
 		/* 23 */ YY_NO_ANCHOR,
 		/* 24 */ YY_NO_ANCHOR,
-		/* 25 */ YY_NOT_ACCEPT,
-		/* 26 */ YY_NO_ANCHOR,
+		/* 25 */ YY_NO_ANCHOR,
+		/* 26 */ YY_NOT_ACCEPT,
 		/* 27 */ YY_NO_ANCHOR,
 		/* 28 */ YY_NOT_ACCEPT,
 		/* 29 */ YY_NO_ANCHOR,
@@ -308,17 +308,17 @@ class CoolLexer implements java_cup.runtime.Scanner {
 		/* 31 */ YY_NO_ANCHOR
 	};
 	private int yy_cmap[] = unpackFromString(1,130,
-"8,18:8,19,6,18,19,7,18:18,19,18,5,18:5,1,3,2,15:2,4,15:2,13:10,15:2,14,16,1" +
-"7,18,15,12:26,18,15,18:2,11,18,9:21,10,9:4,15,18,15:2,18,0:2")[0];
+"8,19:8,20,6,19,20,7,19:18,20,19,5,19:5,1,3,2,16:2,4,16:2,10:10,16:2,15,17,1" +
+"8,19,16,14:26,19,9,19:2,13,19,12:21,11,12:4,16,19,16:2,19,0:2")[0];
 
 	private int yy_rmap[] = unpackFromString(1,32,
-"0,1,2,1:3,3,4,5,1:11,6,7,3,8,9,10,1,8,11,8,12,13")[0];
+"0,1,2,1:3,3,4,5,1:12,6,7,4,8,9,10,1,11,12,13,14")[0];
 
-	private int yy_nxt[][] = unpackFromString(14,20,
-"1,2,21,26,29,3,4:2,5,6,22,5,7,8,30,26,31,5:2,4,-1:22,9,-1:26,6:5,-1:15,7:5," +
-"-1:19,8,-1:6,1,13:3,23,14,15:2,16,13,15,13:8,15,-1:3,10,-1:20,11,-1:18,18,-" +
-"1:16,1,17,24,17,27,17,4:2,17:2,4,17:8,4,1,17:3,27,17,19,-1,17:12,-1:4,12,-1" +
-":11,26,-1:20,26,-1:2");
+	private int yy_nxt[][] = unpackFromString(15,21,
+"1,2,22,27,29,3,4:2,5,27,6,23,7,5,8,30,27,31,5:2,4,-1:23,9,-1:28,6,-1:20,7:5" +
+",-1:16,8:5,-1:6,1,13:4,14,15:2,16,24,13,15,13:8,15,-1:3,10,-1:27,17:3,-1,17" +
+",-1:9,19,-1:17,1,18,25,18:3,4:2,18:3,4,18:8,4,1,18:5,20,-1,18:13,-1:4,11,-1" +
+":20,12,-1:12,27,-1:21,27,-1:2");
 
 	public java_cup.runtime.Symbol next_token ()
 		throws java.io.IOException {
@@ -451,6 +451,15 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 6:
 						{
+    // Integers
+    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
+    inc_integer_count();
+    return new Symbol(TokenConstants.INT_CONST, sym);
+}
+					case -7:
+						break;
+					case 7:
+						{
     Symbol k = keyword(yytext());
     if (k == null) {
         if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
@@ -466,9 +475,9 @@ class CoolLexer implements java_cup.runtime.Scanner {
     }
     return k;
 }
-					case -7:
+					case -8:
 						break;
-					case 7:
+					case 8:
 						{
     Symbol k = keyword(yytext());
     if (k == null) {
@@ -477,15 +486,6 @@ class CoolLexer implements java_cup.runtime.Scanner {
         inc_type_count();
     }
     return k;
-}
-					case -8:
-						break;
-					case 8:
-						{
-    // Integers
-    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
-    inc_integer_count();
-    return new Symbol(TokenConstants.INT_CONST, sym);
 }
 					case -9:
 						break;
@@ -552,88 +552,111 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case -17:
 						break;
 					case 17:
-						{}
+						{
+    String after = yytext().substring(1);
+    switch (after) {
+        case "n":
+            curr_string.append("\n");
+            break;
+        case "b":
+            curr_string.append("\b");
+            break;
+        case "t":
+            curr_string.append("\t");
+            break;
+        case "f":
+            curr_string.append("\f");
+            break;
+        default: 
+            curr_string.append(after);
+            break;
+    }
+}
 					case -18:
 						break;
 					case 18:
-						{
-    yybegin(YYINITIAL);
-}
+						{}
 					case -19:
 						break;
 					case 19:
 						{
     yybegin(YYINITIAL);
-    inc_curr_lineno();
 }
 					case -20:
 						break;
-					case 21:
+					case 20:
 						{
-    // Special symbols
-    switch (yytext()) {
-        case ":":
-            return new Symbol(TokenConstants.COLON);
-        case ";":
-            return new Symbol(TokenConstants.SEMI);
-        case "{": 
-            return new Symbol(TokenConstants.LBRACE);
-        case "}":
-            return new Symbol(TokenConstants.RBRACE);
-        case "(": 
-            return new Symbol(TokenConstants.LPAREN);
-        case ")":
-            return new Symbol(TokenConstants.RPAREN);
-        case "<": 
-            return new Symbol(TokenConstants.LT);
-        case "<=": 
-            return new Symbol(TokenConstants.LE);
-        case "=>": 
-            return new Symbol(TokenConstants.DARROW);
-        case "+": 
-            return new Symbol(TokenConstants.PLUS);
-        case "-": 
-            return new Symbol(TokenConstants.MINUS);
-        case "*":
-            return new Symbol(TokenConstants.MULT);
-        case "/":
-            return new Symbol(TokenConstants.DIV);
-        case "=":
-            return new Symbol(TokenConstants.EQ);
-        case "~":
-            return new Symbol(TokenConstants.NEG);
-        case ",":
-            return new Symbol(TokenConstants.COMMA);
-        case "@":
-            return new Symbol(TokenConstants.AT);
-        case ".":
-            return new Symbol(TokenConstants.DOT);
-        default: 
-            // TODO: what happens on backslash?
-            return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
-    }
+    yybegin(YYINITIAL);
+    inc_curr_lineno();
 }
 					case -21:
 						break;
 					case 22:
 						{
-    if (yytext().indexOf("\n") > -1) {
-        inc_curr_lineno();
+    // Special symbols
+    switch (yytext()) {
+        case ":":
+            return new Symbol(TokenConstants.COLON);
+        case ";":
+            return new Symbol(TokenConstants.SEMI);
+        case "{": 
+            return new Symbol(TokenConstants.LBRACE);
+        case "}":
+            return new Symbol(TokenConstants.RBRACE);
+        case "(": 
+            return new Symbol(TokenConstants.LPAREN);
+        case ")":
+            return new Symbol(TokenConstants.RPAREN);
+        case "<": 
+            return new Symbol(TokenConstants.LT);
+        case "<=": 
+            return new Symbol(TokenConstants.LE);
+        case "=>": 
+            return new Symbol(TokenConstants.DARROW);
+        case "+": 
+            return new Symbol(TokenConstants.PLUS);
+        case "-": 
+            return new Symbol(TokenConstants.MINUS);
+        case "*":
+            return new Symbol(TokenConstants.MULT);
+        case "/":
+            return new Symbol(TokenConstants.DIV);
+        case "=":
+            return new Symbol(TokenConstants.EQ);
+        case "~":
+            return new Symbol(TokenConstants.NEG);
+        case ",":
+            return new Symbol(TokenConstants.COMMA);
+        case "@":
+            return new Symbol(TokenConstants.AT);
+        case ".":
+            return new Symbol(TokenConstants.DOT);
+        default: 
+            // TODO: what happens on backslash?
+            return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
     }
 }
 					case -22:
 						break;
 					case 23:
-						{ 
-    curr_string.append(yytext()); 
+						{
+    if (yytext().indexOf("\n") > -1) {
+        inc_curr_lineno();
+    }
 }
 					case -23:
 						break;
 					case 24:
-						{}
+						{ 
+    curr_string.append(yytext()); 
+}
 					case -24:
 						break;
-					case 26:
+					case 25:
+						{}
+					case -25:
+						break;
+					case 27:
 						{
     // Special symbols
     switch (yytext()) {
@@ -678,10 +701,6 @@ class CoolLexer implements java_cup.runtime.Scanner {
             return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
     }
 }
-					case -25:
-						break;
-					case 27:
-						{}
 					case -26:
 						break;
 					case 29:

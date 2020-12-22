@@ -174,6 +174,27 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 
+<IN_STRING>\\[a-zA-Z0-9] {
+    String after = yytext().substring(1);
+    switch (after) {
+        case "n":
+            curr_string.append("\n");
+            break;
+        case "b":
+            curr_string.append("\b");
+            break;
+        case "t":
+            curr_string.append("\t");
+            break;
+        case "f":
+            curr_string.append("\f");
+            break;
+        default: 
+            curr_string.append(after);
+            break;
+    }
+}
+
 <YYINITIAL>[a-z][a-zA-Z0-9_]* {
     Symbol k = keyword(yytext());
     if (k == null) {
