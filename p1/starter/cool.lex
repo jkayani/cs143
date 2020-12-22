@@ -57,10 +57,6 @@ import java.lang.reflect.*;
         curr_lineno++;
     }
 
-    private int in_string = 1;
-    boolean curr_in_string() {
-        return in_string % 2 == 0;
-    }
     private StringBuffer curr_string = new StringBuffer();
     void reset_string() {
         curr_string = new StringBuffer();
@@ -143,21 +139,18 @@ import java.lang.reflect.*;
 }
 
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT>"\"" {}
-"\"" { 
-    // TODO: Remove this stuff and factor out into Lex states
-    in_string++;
-    if (curr_in_string()) {
+<IN_STRING>"\"" { 
+    yybegin(YYINITIAL);
+    if (curr_string.length() > MAX_STR_CONST) {
         reset_string();
-        yybegin(IN_STRING);
-    } else {
-        yybegin(YYINITIAL);
-        if (curr_string.length() > MAX_STR_CONST) {
-            reset_string();
-            return new Symbol(TokenConstants.ERROR, "String constant too long");
-        }
-        string_count++;
-        return new Symbol(TokenConstants.STR_CONST, new StringSymbol(curr_string.toString(), curr_string.length(), string_count));
+        return new Symbol(TokenConstants.ERROR, "String constant too long");
     }
+    string_count++;
+    return new Symbol(TokenConstants.STR_CONST, new StringSymbol(curr_string.toString(), curr_string.length(), string_count));
+}
+"\"" { 
+    reset_string();
+    yybegin(IN_STRING);
 }
 
 <IN_SINGLE_COMMENT>\n {
@@ -188,7 +181,6 @@ import java.lang.reflect.*;
     curr_string.append(yytext());
 }
 [a-z][a-zA-Z0-9_]* {
-    // Keywords
     Symbol k = keyword(yytext());
     if (k == null) {
         if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
@@ -242,7 +234,7 @@ import java.lang.reflect.*;
 <IN_STRING>[:;{}()+\-*/=~<,.@\\] {
     curr_string.append(yytext());
 }
-([:;{}()+\-*/=~<,.@\\]|"<=") {
+([:;{}()+\-*/=~<,.@\\]|"<="|"=>") {
     // Special symbols
     switch (yytext()) {
         case ":":
@@ -261,6 +253,8 @@ import java.lang.reflect.*;
             return new Symbol(TokenConstants.LT);
         case "<=": 
             return new Symbol(TokenConstants.LE);
+        case "=>": 
+            return new Symbol(TokenConstants.DARROW);
         case "+": 
             return new Symbol(TokenConstants.PLUS);
         case "-": 
