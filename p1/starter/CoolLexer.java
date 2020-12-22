@@ -68,6 +68,19 @@ class CoolLexer implements java_cup.runtime.Scanner {
     boolean curr_in_comment() {
         return yy_lexical_state == IN_SINGLE_COMMENT || yy_lexical_state == IN_MULTI_COMMENT;
     }
+    Symbol keyword(String input) {
+        Field[] tokens = TokenConstants.class.getDeclaredFields();
+        for (Field f : tokens) {
+            if (f.getName().equals(input.toUpperCase())) {
+                try {
+                    return new Symbol((Integer) f.get(TokenConstants.class));
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+        }
+        return null;
+    }
     private AbstractSymbol filename;
     void set_filename(String fname) {
         filename = AbstractTable.stringtable.addString(fname);
@@ -435,6 +448,7 @@ class CoolLexer implements java_cup.runtime.Scanner {
 						break;
 					case 3:
 						{ 
+    // TODO: Remove this stuff and factor out into Lex states
     in_string++;
     if (curr_in_string()) {
         reset_string();
@@ -468,35 +482,32 @@ class CoolLexer implements java_cup.runtime.Scanner {
 					case 6:
 						{
     // Keywords
-    Field[] tokens = TokenConstants.class.getDeclaredFields();
-    for (Field f : tokens) {
-        if (f.getName().equals(yytext().toUpperCase())) {
-            try {
-                return new Symbol((Integer) f.get(TokenConstants.class));
-            } catch (Exception e) {
-                System.out.println("error");
-            }
+    Symbol k = keyword(yytext());
+    if (k == null) {
+        if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+            // Booleans
+            k = new Symbol(TokenConstants.BOOL_CONST, yytext());
+        } 
+        else {
+            // Object identifier
+            AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+            inc_object_count();
+            k = new Symbol(TokenConstants.OBJECTID, sym);
         }
     }
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, yytext());
-    } 
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
+    return k;
 }
 					case -7:
 						break;
 					case 7:
 						{
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    Symbol k = keyword(yytext());
+    if (k == null) {
+        // Type identifier
+        k = new Symbol(TokenConstants.TYPEID, new IdSymbol(yytext(), yytext().length(), get_type_count()));
+        inc_type_count();
+    }
+    return k;
 }
 					case -8:
 						break;

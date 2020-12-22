@@ -70,12 +70,24 @@ import java.lang.reflect.*;
         return yy_lexical_state == IN_SINGLE_COMMENT || yy_lexical_state == IN_MULTI_COMMENT;
     }
 
-    private AbstractSymbol filename;
+    Symbol keyword(String input) {
+        Field[] tokens = TokenConstants.class.getDeclaredFields();
+        for (Field f : tokens) {
+            if (f.getName().equals(input.toUpperCase())) {
+                try {
+                    return new Symbol((Integer) f.get(TokenConstants.class));
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            }
+        }
+        return null;
+    }
 
+    private AbstractSymbol filename;
     void set_filename(String fname) {
         filename = AbstractTable.stringtable.addString(fname);
     }
-
     AbstractSymbol curr_filename() {
         return filename;
     }
@@ -132,6 +144,7 @@ import java.lang.reflect.*;
 
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT>"\"" {}
 "\"" { 
+    // TODO: Remove this stuff and factor out into Lex states
     in_string++;
     if (curr_in_string()) {
         reset_string();
@@ -176,26 +189,20 @@ import java.lang.reflect.*;
 }
 [a-z][a-zA-Z0-9_]* {
     // Keywords
-    Field[] tokens = TokenConstants.class.getDeclaredFields();
-    for (Field f : tokens) {
-        if (f.getName().equals(yytext().toUpperCase())) {
-            try {
-                return new Symbol((Integer) f.get(TokenConstants.class));
-            } catch (Exception e) {
-                System.out.println("error");
-            }
+    Symbol k = keyword(yytext());
+    if (k == null) {
+        if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
+            // Booleans
+            k = new Symbol(TokenConstants.BOOL_CONST, yytext());
+        } 
+        else {
+            // Object identifier
+            AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
+            inc_object_count();
+            k = new Symbol(TokenConstants.OBJECTID, sym);
         }
     }
-    if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-        // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, yytext());
-    } 
-    else {
-        // Object identifier
-        AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-        inc_object_count();
-        return new Symbol(TokenConstants.OBJECTID, sym);
-    }
+    return k;
 }
 
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {}
@@ -203,10 +210,13 @@ import java.lang.reflect.*;
     curr_string.append(yytext());
 }
 (Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
-    // Type identifier
-    AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_type_count());
-    inc_type_count();
-    return new Symbol(TokenConstants.TYPEID, sym);
+    Symbol k = keyword(yytext());
+    if (k == null) {
+        // Type identifier
+        k = new Symbol(TokenConstants.TYPEID, new IdSymbol(yytext(), yytext().length(), get_type_count()));
+        inc_type_count();
+    }
+    return k;
 }
 
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[0-9]+ {}
