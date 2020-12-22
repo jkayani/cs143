@@ -170,34 +170,26 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
 
-(class|else|fi|if|in|inherits|isvoid|let|loop|pool|then|while|case|esac|new|of|not|CLASS|ELSE|FI|IF|IN|INHERITS|ISVOID|LET|LOOP|POOL|THEN|WHILE|CASE|ESAC|NEW|OF|NOT) {
-    if (curr_in_string()) {
-        curr_string.append(yytext());
-    }
-    else if (!curr_in_comment()) {
-        // Non-boolean Keywords
-        Field[] tokens = TokenConstants.class.getDeclaredFields();
-        for (Field f : tokens) {
-            if (f.getName().equals(yytext().toUpperCase())) {
-                try {
-                    return new Symbol((Integer) f.get(TokenConstants.class));
-                } catch (Exception e) {
-                    System.out.println("error");
-                }
-            }
-        }
-    }
-}
-
 <IN_SINGLE_COMMENT, IN_MULTI_COMMENT>[a-z][a-zA-Z0-9_]* {}
 <IN_STRING>[a-z][a-zA-Z0-9_]* {
     curr_string.append(yytext());
 }
 [a-z][a-zA-Z0-9_]* {
+    // Keywords
+    Field[] tokens = TokenConstants.class.getDeclaredFields();
+    for (Field f : tokens) {
+        if (f.getName().equals(yytext().toUpperCase())) {
+            try {
+                return new Symbol((Integer) f.get(TokenConstants.class));
+            } catch (Exception e) {
+                System.out.println("error");
+            }
+        }
+    }
     if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
         // Booleans
-        return new Symbol(TokenConstants.BOOL_CONST, new BoolConst(Boolean.valueOf(yytext().toLowerCase())));
-    }
+        return new Symbol(TokenConstants.BOOL_CONST, yytext());
+    } 
     else {
         // Object identifier
         AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());

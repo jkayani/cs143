@@ -1,4 +1,4 @@
-class Foo2Class INHERITS IO {
+cLaSs Foo2Class INHERITS IO {
   foo : String;
   bar : Bool <- true;
   beep : Bool <- fAlsE; -- this is valid, apparently
