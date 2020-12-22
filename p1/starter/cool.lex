@@ -66,14 +66,19 @@ import java.lang.reflect.*;
         return yy_lexical_state == IN_SINGLE_COMMENT || yy_lexical_state == IN_MULTI_COMMENT;
     }
 
+    private String[] keywords = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "no"};
     Symbol keyword(String input) {
-        Field[] tokens = TokenConstants.class.getDeclaredFields();
-        for (Field f : tokens) {
-            if (f.getName().equals(input.toUpperCase())) {
-                try {
-                    return new Symbol((Integer) f.get(TokenConstants.class));
-                } catch (Exception e) {
-                    System.out.println("error");
+        for (String k : keywords) {
+            if (input.toLowerCase().equals(k)) {
+                Field[] tokens = TokenConstants.class.getDeclaredFields();
+                for (Field f : tokens) {
+                    if (f.getName().equals(input.toUpperCase())) {
+                        try {
+                            return new Symbol((Integer) f.get(TokenConstants.class));
+                        } catch (Exception e) {
+                            System.out.println("error");
+                        }
+                    }
                 }
             }
         }
@@ -119,7 +124,7 @@ import java.lang.reflect.*;
 %class CoolLexer
 %cup
 
-%state IN_STRING IN_MULTI_COMMENT IN_SINGLE_COMMENT
+%state IN_STRING STRING_UNESCAPED IN_MULTI_COMMENT IN_SINGLE_COMMENT 
 
 %%
 
@@ -133,9 +138,7 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.ERROR, "Unmatched *)");
 }
 <YYINITIAL>"--" {
-    if (!curr_in_comment()) {
-        yybegin(IN_SINGLE_COMMENT);
-    }
+    yybegin(IN_SINGLE_COMMENT);
 }
 
 <IN_STRING>"\"" { 
@@ -156,16 +159,16 @@ import java.lang.reflect.*;
     yybegin(YYINITIAL);
     inc_curr_lineno();
 }
+<STRING_UNESCAPED>\n {
+    curr_string.append("\n");
+    inc_curr_lineno();
+    yybegin(IN_STRING);
+}
 <IN_STRING>[\40\n\f\r\t\v] {
     if (yytext().equals("\n")) {
-        if (curr_string.charAt(curr_string.length() - 1) == '\\') {
-            curr_string.deleteCharAt(curr_string.length() - 1);
-            curr_string.append("\n");
-        } else {
-            reset_string();
-            inc_curr_lineno();
-            return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
-        }
+        yybegin(YYINITIAL);
+        inc_curr_lineno();
+        return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
     } else {
         curr_string.append(yytext());
     }
@@ -179,26 +182,8 @@ import java.lang.reflect.*;
     reset_string();
     return new Symbol(TokenConstants.ERROR, "String contains null character");
 }
-
-<IN_STRING>\\. {
-    String after = yytext().substring(1);
-    switch (after) {
-        case "n":
-            curr_string.append("\n");
-            break;
-        case "b":
-            curr_string.append("\b");
-            break;
-        case "t":
-            curr_string.append("\t");
-            break;
-        case "f":
-            curr_string.append("\f");
-            break;
-        default: 
-            curr_string.append(after);
-            break;
-    }
+<IN_STRING>\\ {
+    yybegin(STRING_UNESCAPED);
 }
 
 <YYINITIAL>[a-z][a-zA-Z0-9_]* {
@@ -289,7 +274,28 @@ import java.lang.reflect.*;
 <IN_STRING> . { 
     curr_string.append(yytext()); 
 }
+<STRING_UNESCAPED> . {
+    switch (yytext()) {
+        case "n":
+            curr_string.append("\n");
+            break;
+        case "b":
+            curr_string.append("\b");
+            break;
+        case "t":
+            curr_string.append("\t");
+            break;
+        case "f":
+            curr_string.append("\f");
+            break;
+        default: 
+            curr_string.append(yytext());
+            break;
+    }
+    yybegin(IN_STRING);
+}
 
 . { 
-    System.err.printf("LEXER BUG - UNMATCHED: %s (line: %d), (lexical state: %d)\n", yytext(), curr_lineno, yy_lexical_state);
+    // System.err.printf("LEXER BUG - UNMATCHED: %s (line: %d), (lexical state: %d)\n", yytext(), curr_lineno, yy_lexical_state);
+    return new Symbol(TokenConstants.ERROR, yytext());
 }
