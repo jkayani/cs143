@@ -17,57 +17,27 @@ import java.lang.reflect.*;
     // Max size of string constants
     static int MAX_STR_CONST = 1025;
 
+    // Things to keep count of
     static int integer_count = 0;
-    int get_integer_count() {
-        return integer_count;
-    }
-    void inc_integer_count() {
-        integer_count++;
-    }
-
     static int type_count = 0;
-    int get_type_count() {
-        return type_count;
-    }
-    void inc_type_count() {
-        type_count++;
-    }
-
     static int object_count = 0;
-    int get_object_count() {
-        return object_count;
-    }
-    void inc_object_count() {
-        object_count++;
-    }
-
     static int string_count = 0;
-    int get_string_count() {
-        return string_count;
-    }
-    void inc_string_count() {
-        string_count++;
-    }
+    static int comment_count = 0;
+    static int curr_lineno = 1;
 
-    private int curr_lineno = 1;
+    // Getters and setters
     int get_curr_lineno() {
         return curr_lineno;
     }
-    void inc_curr_lineno() {
-        curr_lineno++;
-    }
 
-    private StringBuffer curr_string = new StringBuffer();
+    // String stiching
+    static StringBuffer curr_string = new StringBuffer();
     void reset_string() {
         curr_string = new StringBuffer();
     }
 
-    private int comment_count = 0;
-    boolean curr_in_comment() {
-        return yy_lexical_state == IN_SINGLE_COMMENT || yy_lexical_state == IN_MULTI_COMMENT;
-    }
-
-    private String[] keywords = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "not"};
+    // Finding keywords
+    static String[] keywords = {"class", "else", "fi", "if", "in", "inherits", "isvoid", "let", "loop", "pool", "then", "while", "case", "esac", "new", "of", "not"};
     Symbol keyword(String input) {
         for (String k : keywords) {
             if (input.toLowerCase().equals(k)) {
@@ -113,6 +83,8 @@ import java.lang.reflect.*;
  *  Ultimately, you should return the EOF symbol, or your lexer won't
  *  work.  */
 
+    // We want to report errors on EOF so we report the error, switch
+    // to an EOF state, and use that to finally return EOF and end lexing
     switch(yy_lexical_state) {
         case IN_MULTI_COMMENT:
             yybegin(EOF);
@@ -134,23 +106,29 @@ import java.lang.reflect.*;
 %%
 
 <YYINITIAL, IN_MULTI_COMMENT>"(*" {
+    // Start of multi-line comment. 
+    // They can be nested so we have to record whether we're "balanced" or not
     yybegin(IN_MULTI_COMMENT);
     comment_count++;
 }
 <YYINITIAL, IN_MULTI_COMMENT>"*)" {
+    // Ensures that commment_count >= 0 and we catch unbalanced comments
     if (yy_lexical_state == YYINITIAL) {
         return new Symbol(TokenConstants.ERROR, "Unmatched *)");
     }
+    // Ending a multi-line comment
     comment_count--;
     if (comment_count == 0) {
         yybegin(YYINITIAL);
     }
 }
 <YYINITIAL>"--" {
+    // Single line comments
     yybegin(IN_SINGLE_COMMENT);
 }
 
 <IN_STRING>"\"" { 
+    // End of a string
     yybegin(YYINITIAL);
     if (curr_string.length() >= MAX_STR_CONST) {
         return new Symbol(TokenConstants.ERROR, "String constant too long");
@@ -159,59 +137,78 @@ import java.lang.reflect.*;
     return new Symbol(TokenConstants.STR_CONST, new StringSymbol(curr_string.toString(), curr_string.length(), string_count));
 }
 <STRING_NULL>"\"" {
+    // We can resume lexing:
+    /*
+        If the string contains invalid characters (i.e., the null character), 
+        report thisas‘‘String contains null character’’. 
+        In either case, lexing should resume after the end of thestring.
+    */
     yybegin(YYINITIAL); 
 }
 <YYINITIAL>"\"" { 
+    // Start of a string
     reset_string();
     yybegin(IN_STRING);
 }
 
-<IN_SINGLE_COMMENT>\n {
+<YYINITIAL, IN_SINGLE_COMMENT, STRING_NULL>\n {
+    // YYINITIAL: track line count, keep state
+    // IN_SINGLE_COMMENT: End of single line comment
+    // STRING_NULL: 
+        // We resume lexing:
+        /*
+            If a string contains an unescaped newline, 
+            report that error as‘‘Unterminated string constant’’and 
+            resume lexing at the beginning of the next line
+        */
     yybegin(YYINITIAL);
-    inc_curr_lineno();
+    curr_lineno++;
 }
 <STRING_UNESCAPED>\n {
+    // An ending backslash followed by a newline is OK
     curr_string.append("\n");
-    inc_curr_lineno();
+    curr_lineno++;
     yybegin(IN_STRING);
 }
 <IN_STRING>\n {
+    // Strings w/o an ending backslash with a newline is not OK
     yybegin(YYINITIAL);
-    inc_curr_lineno();
+    curr_lineno++;
     return new Symbol(TokenConstants.ERROR, "Unterminated string constant");
 }
-<STRING_NULL>\n {
-    yybegin(YYINITIAL);
-    inc_curr_lineno();
+<IN_MULTI_COMMENT>\n {
+    // Keep record of line count while we're still in a comment
+    curr_lineno++;
 }
-<YYINITIAL, IN_MULTI_COMMENT>[\40\n\f\r\t\v] {
-    if (yytext().indexOf("\n") > -1) {
-        inc_curr_lineno();
-    }
+<YYINITIAL, IN_MULTI_COMMENT>[\40\f\r\t\013] {
+    // Permitted whitespace chars in regular COOL code
+    // Note: \013 is used b/c "\v" isn't valid in Java
 }
 <IN_STRING>\0 {
+    // Strings cannot contain null literals
     yybegin(STRING_NULL);
     return new Symbol(TokenConstants.ERROR, "String contains null character.");
 }
-<IN_STRING, STRING_UNESCAPED>\0 {
+<STRING_UNESCAPED>\0 {
+    // Strings cannot attempt to escape null literals
     yybegin(STRING_NULL);
     return new Symbol(TokenConstants.ERROR, "String contains escaped null character");
 }
 <IN_STRING>\\ {
+    // Backslash in a string means the next input is part of an escape
     yybegin(STRING_UNESCAPED);
 }
 
 <YYINITIAL>[a-z][a-zA-Z0-9_]* {
+    // Keywords, boolean values, or object identifiers (variables)
     Symbol k = keyword(yytext());
     if (k == null) {
         if (yytext().toLowerCase().equals("true") || yytext().toLowerCase().equals("false")) {
-            // Booleans
             k = new Symbol(TokenConstants.BOOL_CONST, yytext());
         } 
         else {
-            // Object identifier
-            AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), get_object_count());
-            inc_object_count();
+            AbstractSymbol sym = new IdSymbol(yytext(), yytext().length(), object_count);
+            object_count++;
             k = new Symbol(TokenConstants.OBJECTID, sym);
         }
     }
@@ -219,27 +216,23 @@ import java.lang.reflect.*;
 }
 
 <YYINITIAL>(Object|IO|Int|String|Bool|([A-Z][a-zA-Z0-9_]*)) {
+    // Keywords or type identifiers
     Symbol k = keyword(yytext());
     if (k == null) {
-        // Type identifier
-        k = new Symbol(TokenConstants.TYPEID, new IdSymbol(yytext(), yytext().length(), get_type_count()));
-        inc_type_count();
+        k = new Symbol(TokenConstants.TYPEID, new IdSymbol(yytext(), yytext().length(), type_count));
+        type_count++;
     }
     return k;
 }
 
 <YYINITIAL>[0-9]+ {
     // Integers
-    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), get_integer_count());
-    inc_integer_count();
+    AbstractSymbol sym = new IntSymbol(yytext(), yytext().length(), integer_count);
+    integer_count++;
     return new Symbol(TokenConstants.INT_CONST, sym);
 }
 
-<YYINITIAL>"<-" {
-    return new Symbol(TokenConstants.ASSIGN);
-}
-
-<YYINITIAL>([:;{}()+\-*/=~<,.@]|"<="|"=>") {
+<YYINITIAL>([:;{}()+\-*/=~<,.@]|"<="|"=>"|"<-") {
     // Special symbols
     switch (yytext()) {
         case ":":
@@ -260,6 +253,8 @@ import java.lang.reflect.*;
             return new Symbol(TokenConstants.LE);
         case "=>": 
             return new Symbol(TokenConstants.DARROW);
+        case "<-": 
+            return new Symbol(TokenConstants.ASSIGN);
         case "+": 
             return new Symbol(TokenConstants.PLUS);
         case "-": 
@@ -279,17 +274,29 @@ import java.lang.reflect.*;
         case ".":
             return new Symbol(TokenConstants.DOT);
         default: 
-            // TODO: what happens on backslash?
-            return new Symbol(TokenConstants.ERROR, "Don't know what this is: " + yytext());
+            // Impossible
+            return new Symbol(TokenConstants.ERROR, "IMPOSSIBLE");
     }
 }
 
-
-<IN_SINGLE_COMMENT, IN_MULTI_COMMENT, STRING_NULL> . {}
-<IN_STRING> . { 
+<IN_SINGLE_COMMENT, IN_MULTI_COMMENT, STRING_NULL> . {
+    // In comments, anything printable goes, and is skipped
+    // TODO: String null?
+}
+<IN_STRING>[\000-\176] { 
+    // In COOL strings, literally any possible char goes??
     curr_string.append(yytext()); 
 }
 <STRING_UNESCAPED> . {
+    // This input completes the escape sequence, which has to be
+    // collapsed by the rules
+    /*
+        Your scanner should convert escape characters in string 
+        constants to their correct values.
+
+        However, the sequence of two characters \[a-zA-Z0-9]
+        is allowed but should be converted to the one character
+    */
     switch (yytext()) {
         case "n":
             curr_string.append("\n");
@@ -311,6 +318,6 @@ import java.lang.reflect.*;
 }
 
 . { 
-    // System.err.printf("LEXER BUG - UNMATCHED: %s (line: %d), (lexical state: %d)\n", yytext(), curr_lineno, yy_lexical_state);
+    // Any unrecognized tokens
     return new Symbol(TokenConstants.ERROR, yytext());
 }
