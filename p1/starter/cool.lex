@@ -180,10 +180,12 @@ import java.lang.reflect.*;
     // Keep record of line count while we're still in a comment
     curr_lineno++;
 }
+
 <YYINITIAL, IN_MULTI_COMMENT>[\40\f\r\t\013] {
     // Permitted whitespace chars in regular COOL code
     // Note: \013 is used b/c "\v" isn't valid in Java
 }
+
 <IN_STRING>\0 {
     // Strings cannot contain null literals
     yybegin(STRING_NULL);
@@ -194,9 +196,39 @@ import java.lang.reflect.*;
     yybegin(STRING_NULL);
     return new Symbol(TokenConstants.ERROR, "String contains escaped null character");
 }
+
 <IN_STRING>\\ {
     // Backslash in a string means the next input is part of an escape
     yybegin(STRING_UNESCAPED);
+}
+<STRING_UNESCAPED> . {
+    // This input completes the escape sequence, which has to be
+    // collapsed by the rules
+    /*
+        Your scanner should convert escape characters in string 
+        constants to their correct values.
+
+        However, the sequence of two characters \[a-zA-Z0-9]
+        is allowed but should be converted to the one character
+    */
+    switch (yytext()) {
+        case "n":
+            curr_string.append("\n");
+            break;
+        case "b":
+            curr_string.append("\b");
+            break;
+        case "t":
+            curr_string.append("\t");
+            break;
+        case "f":
+            curr_string.append("\f");
+            break;
+        default: 
+            curr_string.append(yytext());
+            break;
+    }
+    yybegin(IN_STRING);
 }
 
 <YYINITIAL>[a-z][a-zA-Z0-9_]* {
@@ -286,35 +318,6 @@ import java.lang.reflect.*;
 <IN_STRING>[\000-\176] { 
     // In COOL strings, literally any possible char goes??
     curr_string.append(yytext()); 
-}
-<STRING_UNESCAPED> . {
-    // This input completes the escape sequence, which has to be
-    // collapsed by the rules
-    /*
-        Your scanner should convert escape characters in string 
-        constants to their correct values.
-
-        However, the sequence of two characters \[a-zA-Z0-9]
-        is allowed but should be converted to the one character
-    */
-    switch (yytext()) {
-        case "n":
-            curr_string.append("\n");
-            break;
-        case "b":
-            curr_string.append("\b");
-            break;
-        case "t":
-            curr_string.append("\t");
-            break;
-        case "f":
-            curr_string.append("\f");
-            break;
-        default: 
-            curr_string.append(yytext());
-            break;
-    }
-    yybegin(IN_STRING);
 }
 
 . { 
