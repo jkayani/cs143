@@ -67,7 +67,10 @@ terminal AbstractSymbol TYPEID, OBJECTID;
 nonterminal programc program;
 nonterminal Classes class_list;
 nonterminal class_c class;
-nonterminal Features dummy_feature_list;
+nonterminal Features feature_list;
+nonterminal attr attribute;
+nonterminal Expression expr;
+nonterminal plus addition;
 
 /* Precedence declarations go here. */
 
@@ -87,16 +90,48 @@ class_list
 
 /* If no parent is specified, the class inherits from the Object class */
 class
-	::= CLASS TYPEID:n LBRACE dummy_feature_list:f RBRACE SEMI
+	::= CLASS TYPEID:n LBRACE feature_list:f RBRACE SEMI
 	    {: RESULT = new class_c(curr_lineno(), n, 
 		                   AbstractTable.idtable.addString("Object"), 
 				   f, curr_filename()); :}
-	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE dummy_feature_list:f RBRACE SEMI
+	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE feature_list:f RBRACE SEMI
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
 	;
 
 /* Feature list may be empty, but no empty features in list. */
-dummy_feature_list
-	::= /* empty */
-	    {: RESULT = new Features(curr_lineno()); :}
+// dummy_feature_list
+// 	::= /* empty */
+// 	    {: RESULT = new Features(curr_lineno()); :}
+// 	;
+
+feature_list 
+	::= {: RESULT = new Features(curr_lineno()); :}
+	| attribute:a {:
+		RESULT = new Features(curr_lineno()).appendElement(a);
+	:}
+	| feature_list:fl attribute:a {:
+		RESULT = fl.appendElement(a);
+	:}
 	;
+
+attribute
+	::= OBJECTID:o COLON TYPEID:t SEMI {: 
+		RESULT = new attr(curr_lineno(), o, t, new no_expr(curr_lineno()));
+	:}
+	| OBJECTID:o COLON TYPEID:t ASSIGN expr:e SEMI {: 
+		RESULT = new attr(curr_lineno(), o, t, e);
+	:}
+	;
+
+expr
+	::= addition:a {:
+		RESULT = a;
+	:}
+	;
+
+addition 
+	::= INT_CONST:i1 PLUS INT_CONST:i2 {:
+		RESULT = new plus(curr_lineno(), new int_const(curr_lineno(), i1), new int_const(curr_lineno(), i2));
+	:}
+	;
+

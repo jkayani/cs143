@@ -61,6 +61,9 @@ parser: Makefile ${CLS}
 	echo 'java -classpath ${CLASSPATH}:`dirname $$0` Parser $$*' >> parser
 	chmod 755 parser
 
+debug: cool.cup
+	${CUP} -parser CoolParser -symbols TokenConstants -expect 10000 -dump -nopositions < cool.cup
+
 CoolParser.java TokenConstants.java: cool.cup
 	${CUP} -parser CoolParser -symbols TokenConstants -expect 10000 -dump -nopositions < $< >cool.output 2>&1 || { egrep '^Error at ' cool.output; false; }
 
