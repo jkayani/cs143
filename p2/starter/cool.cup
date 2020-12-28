@@ -72,6 +72,11 @@ nonterminal attr attribute;
 nonterminal Expression expr;
 nonterminal Case case_;
 nonterminal Cases case_list;
+nonterminal Expressions block_expr_list;
+nonterminal Expressions arg_expr_list;
+nonterminal Formal formal;
+nonterminal Formals formal_list;
+nonterminal method method;
 
 /* Precedence declarations go here. */
 precedence right ASSIGN;
@@ -90,10 +95,10 @@ program
         ;
 
 class_list
-	/* single class */
+	// Single class
 	::= class:c
 	    {: RESULT = (new Classes(curr_lineno())).appendElement(c); :}
-	/* several classes */
+	// Many classes
 	| class_list:cl class:c
 	    {: RESULT = cl.appendElement(c); :}
 	;
@@ -116,42 +121,124 @@ class
 
 feature_list 
 	::= {: RESULT = new Features(curr_lineno()); :}
-	| attribute:a {:
+	| attribute:a SEMI {:
 		RESULT = new Features(curr_lineno()).appendElement(a);
 	:}
-	| feature_list:fl attribute:a {:
+	| method:m SEMI {:
+		RESULT = new Features(curr_lineno()).appendElement(m);
+	:}
+	| feature_list:fl attribute:a SEMI {:
 		RESULT = fl.appendElement(a);
 	:}
+	| feature_list:fl method:m SEMI {:
+		RESULT = fl.appendElement(m);
+	:}
 	;
-
 attribute
-	::= OBJECTID:o COLON TYPEID:t SEMI {: 
+	::= OBJECTID:o COLON TYPEID:t {: 
 		RESULT = new attr(curr_lineno(), o, t, new no_expr(curr_lineno()));
 	:}
-	| OBJECTID:o COLON TYPEID:t ASSIGN expr:e SEMI {: 
+	| OBJECTID:o COLON TYPEID:t ASSIGN expr:e {: 
 		RESULT = new attr(curr_lineno(), o, t, e);
+	:}
+	;
+formal
+	::= OBJECTID:o COLON TYPEID:t {:
+		RESULT = new formalc(curr_lineno(), o, t);
+	:}
+	;
+formal_list
+	::= formal:f_ {:
+		RESULT = new Formals(curr_lineno()).appendElement(f_);
+	:}
+	| formal_list:f COMMA formal:f_ {:
+		RESULT = f.appendElement(f_);
+	:}
+	| {:
+		RESULT = new Formals(curr_lineno());
+	:}
+	;
+ method 
+ 	::= OBJECTID:o LPAREN formal_list:f RPAREN COLON TYPEID:t LBRACE expr:e RBRACE {:
+	 	RESULT = new method(curr_lineno(), o, f, t, e);
 	:}
 	;
 
 case_
-	::= OBJECTID:o COLON TYPEID:t DARROW expr:e {:
+	::= OBJECTID:o COLON TYPEID:t DARROW expr:e SEMI {:
 		RESULT = new branch(curr_lineno(), o, t, e);
 	:}
 	;
-
 case_list
 	::= case_:c_ {:
 		RESULT = new Cases(curr_lineno()).appendElement(c_);
 	:}
 	| case_list:c case_:c_ {:
-		c.appendElement(c_);
+		RESULT = c.appendElement(c_);
 	:}
 	;
 
+block_expr_list
+	::= expr:e_ SEMI {:
+		RESULT = new Expressions(curr_lineno()).appendElement(e_);
+	:}
+	| block_expr_list:e expr:e_ SEMI {:
+		RESULT = e.appendElement(e_);
+	:}
+	;
+arg_expr_list
+	::= expr:e_ {:
+		RESULT = new Expressions(curr_lineno()).appendElement(e_);
+	:}
+	| arg_expr_list:e COMMA expr:e_ {:
+		RESULT = e.appendElement(e_);
+	:}
+	;
 expr
 	::= OBJECTID:i {:
 		RESULT = new object(curr_lineno(), i);
 	:}
+	| OBJECTID:o ASSIGN expr:e {:
+		RESULT = new assign(curr_lineno(), o, e);
+	:}
+	| expr:e AT TYPEID:t DOT OBJECTID:o LPAREN arg_expr_list:a RPAREN {:
+		RESULT = new static_dispatch(
+			curr_lineno(),
+			e, t,
+			o, a
+		);
+	:}
+	| expr:e DOT OBJECTID:o LPAREN arg_expr_list:a RPAREN {:
+		RESULT = new dispatch(
+			curr_lineno(),
+			e,
+			o, a
+		);
+	:}
+	| OBJECTID:o LPAREN arg_expr_list:a RPAREN {:
+		RESULT = new dispatch(
+			curr_lineno(),
+			// TODO: Is this right? How do you refer to self?
+			new object(curr_lineno(), new IdSymbol("self", 4, 0)), 
+			o, a
+		);
+	:}
+	| IF expr:e1 THEN expr:e2 ELSE expr:e3 FI {:
+		RESULT = new cond(curr_lineno(), e1, e2, e3);
+	:}
+	| WHILE expr:e1 LOOP expr:e2 POOL {:
+		RESULT = new loop(curr_lineno(), e1, e2);
+	:}
+	| LBRACE block_expr_list:e RBRACE {:
+		RESULT = new block(curr_lineno(), e);
+	:}
+	| LET OBJECTID:i COLON TYPEID:t IN expr:e {:
+		RESULT = new let(curr_lineno(), i, t, new no_expr(curr_lineno()), e);
+	:}
+	| LET OBJECTID:i COLON TYPEID:t ASSIGN expr:e IN expr:e2 {:
+		RESULT = new let(curr_lineno(), i, t, e, e2);
+	:}
+	// TODO: Where does let_binding_list go in the tree?
 	| CASE expr:i1 OF case_list:c ESAC {:
 		RESULT = new typcase(curr_lineno(), i1, c);
 	:}
