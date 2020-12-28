@@ -29,17 +29,17 @@ parser code {:
     int omerrs = 0;
 
     public void syntax_error(Symbol cur_token) {
-        int lineno = action_obj.curr_lineno();
-	String filename = action_obj.curr_filename().getString();
-        System.err.print("\"" + filename + "\", line " + lineno + 
-		         ": parse error at or near ");
-        Utilities.printToken(cur_token);
-	omerrs++;
-	if (omerrs>50) {
-	   System.err.println("More than 50 errors");
-	   System.exit(1);
-	}
-    }
+			int lineno = action_obj.curr_lineno();
+			String filename = action_obj.curr_filename().getString();
+			System.err.print("\"" + filename + "\", line " + lineno + 
+				": parse error at or near ");
+			Utilities.printToken(cur_token);
+			omerrs++;
+			if (omerrs>50) {
+				System.err.println("More than 50 errors");
+				System.exit(1);
+			}
+		}
 
     public void unrecovered_syntax_error(Symbol cur_token) {
     }
@@ -70,9 +70,19 @@ nonterminal class_c class;
 nonterminal Features feature_list;
 nonterminal attr attribute;
 nonterminal Expression expr;
-nonterminal plus addition;
+nonterminal Case case_;
+nonterminal Cases case_list;
 
 /* Precedence declarations go here. */
+precedence right ASSIGN;
+precedence left NOT;
+precedence nonassoc LE, LT, EQ;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV;
+precedence left ISVOID;
+precedence left NEG;
+precedence left AT;
+precedence left DOT;
 
 program	
 	::= class_list:cl
@@ -123,15 +133,72 @@ attribute
 	:}
 	;
 
+case_
+	::= OBJECTID:o COLON TYPEID:t DARROW expr:e {:
+		RESULT = new branch(curr_lineno(), o, t, e);
+	:}
+	;
+
+case_list
+	::= case_:c_ {:
+		RESULT = new Cases(curr_lineno()).appendElement(c_);
+	:}
+	| case_list:c case_:c_ {:
+		c.appendElement(c_);
+	:}
+	;
+
 expr
-	::= addition:a {:
-		RESULT = a;
+	::= OBJECTID:i {:
+		RESULT = new object(curr_lineno(), i);
 	:}
-	;
-
-addition 
-	::= INT_CONST:i1 PLUS INT_CONST:i2 {:
-		RESULT = new plus(curr_lineno(), new int_const(curr_lineno(), i1), new int_const(curr_lineno(), i2));
+	| CASE expr:i1 OF case_list:c ESAC {:
+		RESULT = new typcase(curr_lineno(), i1, c);
 	:}
+	| INT_CONST:i {:
+		RESULT = new int_const(curr_lineno(), i);
+	:}
+	| STR_CONST:i {:
+		RESULT = new string_const(curr_lineno(), i);
+	:}
+	| BOOL_CONST:i {:
+		RESULT = new bool_const(curr_lineno(), i);
+	:}
+	| NEW TYPEID:t {:
+		RESULT = new new_(curr_lineno(), t);
+	:}
+	| ISVOID expr:i1 {:
+		RESULT = new isvoid(curr_lineno(), i1);
+	:}
+	| expr:i1 PLUS expr:i2 {:
+		RESULT = new plus(curr_lineno(), i1, i2);
+	:}
+	| expr:i1 MINUS expr:i2 {:
+		RESULT = new sub(curr_lineno(), i1, i2);
+	:}
+	| expr:i1 MULT expr:i2 {:
+		RESULT = new mul(curr_lineno(), i1, i2);
+	:}
+	| expr:i1 DIV expr:i2 {:
+		RESULT = new divide(curr_lineno(), i1, i2);
+	:}
+	| NEG expr:i1 {:
+		RESULT = new neg(curr_lineno(), i1);
+	:}
+	| expr:i1 LT expr:i2 {:
+		RESULT = new lt(curr_lineno(), i1, i2);
+	:}
+	| expr:i1 LE expr:i2 {:
+		RESULT = new leq(curr_lineno(), i1, i2);
+	:}
+	| expr:i1 EQ expr:i2 {:
+		RESULT = new eq(curr_lineno(), i1, i2);
+	:}
+	| NOT expr:i1 {:
+		RESULT = new comp(curr_lineno(), i1);
+	:}
+	| LPAREN expr:i1 RPAREN {:
+		RESULT = i1;
+	:}
+		%prec DOT
 	;
-
