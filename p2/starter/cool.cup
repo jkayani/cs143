@@ -96,12 +96,16 @@ program
         ;
 
 class_list
-	// Single class
 	::= class:c SEMI
 	    {: RESULT = (new Classes(curr_lineno())).appendElement(c); :}
-	// Many classes
 	| class_list:cl class:c SEMI
 	    {: RESULT = cl.appendElement(c); :}
+  | error SEMI {:
+		RESULT = new Classes(curr_lineno());
+	:}
+  | class_list:cl error SEMI {:
+		RESULT = cl;
+	:}
 	;
 
 /* If no parent is specified, the class inherits from the Object class */
@@ -127,6 +131,12 @@ feature_list
 	:}
 	| feature_list:f feature:f_ SEMI {:
 		RESULT = f.appendElement(f_);
+	:}
+	| error SEMI {:
+		RESULT = new Features(curr_lineno());
+	:}
+	| feature_list:f error SEMI {:
+		RESULT = f;
 	:}
 	;
 feature
@@ -187,6 +197,12 @@ block_expr_list
 	:}
 	| block_expr_list:e expr:e_ SEMI {:
 		RESULT = e.appendElement(e_);
+	:}
+	| error SEMI {:
+		RESULT = new Expressions(curr_lineno());
+	:}
+	| block_expr_list:e error SEMI {:
+		RESULT = e;
 	:}
 	;
 arg_expr_list
