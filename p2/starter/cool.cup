@@ -113,12 +113,6 @@ class
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
 	;
 
-/* Feature list may be empty, but no empty features in list. */
-// dummy_feature_list
-// 	::= /* empty */
-// 	    {: RESULT = new Features(curr_lineno()); :}
-// 	;
-
 feature_list 
 	::= {: RESULT = new Features(curr_lineno()); :}
 	| attribute:a SEMI {:
@@ -192,6 +186,9 @@ arg_expr_list
 	:}
 	| arg_expr_list:e COMMA expr:e_ {:
 		RESULT = e.appendElement(e_);
+	:}
+	| {:
+		RESULT = new Expressions(curr_lineno());
 	:}
 	;
 expr
