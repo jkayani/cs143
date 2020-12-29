@@ -68,6 +68,7 @@ nonterminal programc program;
 nonterminal Classes class_list;
 nonterminal class_c class;
 nonterminal Features feature_list;
+nonterminal Feature feature;
 nonterminal attr attribute;
 nonterminal Expression expr;
 nonterminal Case case_;
@@ -96,36 +97,44 @@ program
 
 class_list
 	// Single class
-	::= class:c
+	::= class:c SEMI
 	    {: RESULT = (new Classes(curr_lineno())).appendElement(c); :}
 	// Many classes
-	| class_list:cl class:c
+	| class_list:cl class:c SEMI
 	    {: RESULT = cl.appendElement(c); :}
 	;
 
 /* If no parent is specified, the class inherits from the Object class */
 class
-	::= CLASS TYPEID:n LBRACE feature_list:f RBRACE SEMI
+	::= CLASS TYPEID:n LBRACE feature_list:f RBRACE 
 	    {: RESULT = new class_c(curr_lineno(), n, 
 		                   AbstractTable.idtable.addString("Object"), 
 				   f, curr_filename()); :}
-	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE feature_list:f RBRACE SEMI
+	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE feature_list:f RBRACE
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
+	| CLASS TYPEID:n LBRACE RBRACE
+	    {: RESULT = new class_c(curr_lineno(), n, 
+		                   AbstractTable.idtable.addString("Object"), 
+				   new Features(curr_lineno()), curr_filename()); :}
+	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE RBRACE
+	    {: RESULT = new class_c(curr_lineno(), n, p, new Features(curr_lineno()), curr_filename()); :}
 	;
 
 feature_list 
-	::= {: RESULT = new Features(curr_lineno()); :}
-	| attribute:a SEMI {:
-		RESULT = new Features(curr_lineno()).appendElement(a);
+	// ::= {: RESULT = new Features(curr_lineno()); :}
+	::= feature:f_ SEMI {:
+		RESULT = new Features(curr_lineno()).appendElement(f_);
 	:}
-	| method:m SEMI {:
-		RESULT = new Features(curr_lineno()).appendElement(m);
+	| feature_list:f feature:f_ SEMI {:
+		RESULT = f.appendElement(f_);
 	:}
-	| feature_list:fl attribute:a SEMI {:
-		RESULT = fl.appendElement(a);
+	;
+feature
+	::= attribute:a {:
+		RESULT = a;
 	:}
-	| feature_list:fl method:m SEMI {:
-		RESULT = fl.appendElement(m);
+	| method:m {:
+		RESULT = m;
 	:}
 	;
 attribute
