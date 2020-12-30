@@ -5,6 +5,7 @@
  */
 
 import java_cup.runtime.*;
+import java.util.*;
 
 /* Stuff enclosed in {: :} is copied verbatim to the class containing
 all parser actions.  All the extra variables/functions you want to use
@@ -14,11 +15,62 @@ that was there initially.  */
 action code {: 
 
     int curr_lineno() {
-	return ((CoolTokenLexer)parser.getScanner()).curr_lineno();
+			return ((CoolTokenLexer)parser.getScanner()).curr_lineno();
     }
 
+		class LetBinding {
+			AbstractSymbol objectid, typeid;
+			Expression assignment;
+			LetBinding(AbstractSymbol o, AbstractSymbol t, Expression e) {
+				objectid = o;
+				typeid = t;
+				assignment = e;
+			}
+		}
+
+		List<ArrayList<LetBinding>> let_bindings_list = new ArrayList<ArrayList<LetBinding>>();
+		ArrayList<LetBinding> curr_let_bindings = new ArrayList<LetBinding>();
+
+		ArrayList<LetBinding> add_let_binding(LetBinding l) {
+			if (let_bindings_list.size() == 0) {
+				curr_let_bindings.add(l);
+				let_bindings_list.add(curr_let_bindings);
+			}
+			else {
+				let_bindings_list.set(let_bindings_list.size() - 1, (ArrayList)curr_let_bindings.clone());
+				curr_let_bindings = new ArrayList<LetBinding>();
+				curr_let_bindings.add(l);
+				let_bindings_list.add(curr_let_bindings);
+			}
+			return curr_let_bindings;
+		}
+
+		Expression let_statement(Expression body, int lineno) {
+			Expression let = null;
+			int len = curr_let_bindings.size() - 1;
+			for (int i = len; i >= 0; i--) {
+				LetBinding curr = curr_let_bindings.get(i);
+				if (let == null) {
+					let = new let(lineno, curr.objectid, curr.typeid, curr.assignment, body);
+				} else {
+					let = new let(lineno, curr.objectid, curr.typeid, curr.assignment, let);
+				}
+			}
+			return let;
+		}
+
+		void finished_let_statement() {
+			let_bindings_list.remove(let_bindings_list.size() - 1);
+			if (let_bindings_list.size() > 0) {
+				curr_let_bindings = let_bindings_list.get(let_bindings_list.size() - 1);
+			}
+			else {
+				curr_let_bindings = new ArrayList<LetBinding>();
+			}
+		}
+
     AbstractSymbol curr_filename() {
-	return ((CoolTokenLexer)parser.getScanner()).curr_filename();
+			return ((CoolTokenLexer)parser.getScanner()).curr_filename();
     }
 :} 
 
@@ -78,6 +130,7 @@ nonterminal Expressions arg_expr_list;
 nonterminal Formal formal;
 nonterminal Formals formal_list;
 nonterminal method method;
+nonterminal ArrayList letbinding_list;
 
 /* Precedence declarations go here. */
 precedence right ASSIGN;
@@ -191,6 +244,27 @@ case_list
 	:}
 	;
 
+letbinding_list
+	::= OBJECTID:o COLON TYPEID:t {:
+		LetBinding l = new LetBinding(o, t, new no_expr(curr_lineno()));
+		RESULT = add_let_binding(l);
+	:}	
+	| OBJECTID:o COLON TYPEID:t ASSIGN expr:e {:
+		LetBinding l = new LetBinding(o, t, e);
+		RESULT = add_let_binding(l);
+	:}	
+	| letbinding_list:l COMMA OBJECTID:o COLON TYPEID:t {:
+		LetBinding let = new LetBinding(o, t, new no_expr(curr_lineno()));
+		l.add(let);
+		RESULT = l;
+	:}
+	| letbinding_list:l COMMA OBJECTID:o COLON TYPEID:t ASSIGN expr:e {:
+		LetBinding let = new LetBinding(o, t, e);
+		l.add(let);
+		RESULT = l;
+	:}
+	;
+
 block_expr_list
 	::= expr:e_ SEMI {:
 		RESULT = new Expressions(curr_lineno()).appendElement(e_);
@@ -254,13 +328,10 @@ expr
 	| LBRACE block_expr_list:e RBRACE {:
 		RESULT = new block(curr_lineno(), e);
 	:}
-	| LET OBJECTID:i COLON TYPEID:t IN expr:e {:
-		RESULT = new let(curr_lineno(), i, t, new no_expr(curr_lineno()), e);
+	| LET letbinding_list:l IN expr:e {:
+		RESULT = let_statement(e, curr_lineno());
+		finished_let_statement();
 	:}
-	| LET OBJECTID:i COLON TYPEID:t ASSIGN expr:e IN expr:e2 {:
-		RESULT = new let(curr_lineno(), i, t, e, e2);
-	:}
-	// TODO: Where does let_binding_list go in the tree?
 	| CASE expr:i1 OF case_list:c ESAC {:
 		RESULT = new typcase(curr_lineno(), i1, c);
 	:}
