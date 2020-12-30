@@ -1,4 +1,6 @@
-# Thoughts
+# P1: Lexer
+
+## Thoughts
 
 - `Makefile` assumed the `libs` folder with the CUP and JLEX jars was always 2 folders "up" relatively even though it's all designed to let you compile/grade the assignment from anywhere
 
@@ -14,7 +16,7 @@
 
 - `"\v"` not being allowed in Java strings was annoying
 
-# Results
+## Results
 ```
 root@1dc7d2e4e4a9:/usr/class/p1/starter# perl pa1-grader.pl
 Grading .....
