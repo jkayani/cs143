@@ -253,6 +253,9 @@ letbinding_list
 		LetBinding l = new LetBinding(o, t, e);
 		RESULT = add_let_binding(l);
 	:}	
+	| error {:
+		RESULT = curr_let_bindings;
+	:}	
 	| letbinding_list:l COMMA OBJECTID:o COLON TYPEID:t {:
 		LetBinding let = new LetBinding(o, t, new no_expr(curr_lineno()));
 		l.add(let);
@@ -261,6 +264,9 @@ letbinding_list
 	| letbinding_list:l COMMA OBJECTID:o COLON TYPEID:t ASSIGN expr:e {:
 		LetBinding let = new LetBinding(o, t, e);
 		l.add(let);
+		RESULT = l;
+	:}
+	| letbinding_list:l COMMA error {:
 		RESULT = l;
 	:}
 	;
