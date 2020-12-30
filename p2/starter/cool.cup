@@ -18,6 +18,24 @@ action code {:
 			return ((CoolTokenLexer)parser.getScanner()).curr_lineno();
     }
 
+		/* 
+			All of this LetBinding stuff is needed because COOL allows 
+			for a let statement to have multiple variable bindings, but
+			these bindings are represented in the AST in a "curried" form: 
+
+			Given: let x <- 1, y <- 2 in x + y
+			Tree:
+				let x <- 1
+					let y <- 2
+						x + y
+		
+			Let statements can also be nested. So we have to keep each list
+			of bindings separate and intact as we encounter them, and then when
+			a statement is completed; i.e, we see `in EXPR`, then we construct a 
+			nested `let()` AST node.
+		*/
+
+		// Structure to keep track of a given LetBinding: name, type, initialization expression
 		class LetBinding {
 			AbstractSymbol objectid, typeid;
 			Expression assignment;
@@ -28,16 +46,23 @@ action code {:
 			}
 		}
 
+		// Stack of LetBinding lists
 		List<ArrayList<LetBinding>> let_bindings_list = new ArrayList<ArrayList<LetBinding>>();
+
+		// Currently used LetBinding list (top of stack)
 		ArrayList<LetBinding> curr_let_bindings = new ArrayList<LetBinding>();
 
 		ArrayList<LetBinding> add_let_binding(LetBinding l) {
+
+			// Currently not in a nested LetBinding
 			if (let_bindings_list.size() == 0) {
 				curr_let_bindings.add(l);
 				let_bindings_list.add(curr_let_bindings);
 			}
 			else {
+				// Set top of stack to clone so we can use the curr_let_bindings pointer for another stack entry
 				let_bindings_list.set(let_bindings_list.size() - 1, (ArrayList)curr_let_bindings.clone());
+
 				curr_let_bindings = new ArrayList<LetBinding>();
 				curr_let_bindings.add(l);
 				let_bindings_list.add(curr_let_bindings);
@@ -45,11 +70,19 @@ action code {:
 			return curr_let_bindings;
 		}
 
+		// Construct a full `let()`
 		Expression let_statement(Expression body, int lineno) {
 			Expression let = null;
 			int len = curr_let_bindings.size() - 1;
+			
+			// Since the LetBinding's are stored in the order we saw them, and
+			// the let() constructor requires having the next tree node, we build the 
+			// tree of let()'s inside-out (go reverse in the list) 
 			for (int i = len; i >= 0; i--) {
 				LetBinding curr = curr_let_bindings.get(i);
+
+				// Base-case, the bottommost let() (the last binding) will contain the full expression
+				// using all let bindings that ancestor it
 				if (let == null) {
 					let = new let(lineno, curr.objectid, curr.typeid, curr.assignment, body);
 				} else {
@@ -59,6 +92,7 @@ action code {:
 			return let;
 		}
 
+		// Pop the stack and keep curr_let_bindings current
 		void finished_let_statement() {
 			let_bindings_list.remove(let_bindings_list.size() - 1);
 			if (let_bindings_list.size() > 0) {
