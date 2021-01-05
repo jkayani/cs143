@@ -11,4 +11,7 @@ services:
       - type: bind
         source: ./p2
         target: /usr/class/p2
+      - type: bind
+        source: ./p3
+        target: /usr/class/p3
 
