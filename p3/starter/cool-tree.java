@@ -262,15 +262,7 @@ class programc extends Program {
 	to test the complete compiler.
     */
     public void semant() {
-        /* ClassTable constructor may do some semantic analysis */
-        ClassTable classTable = new ClassTable(classes);
-        
-        /* some semantic analysis code may go here */
-
-        if (classTable.errors()) {
-            System.err.println("Compilation halted due to static semantic errors.");
-            System.exit(1);
-        }
+        CoolAnalysis.analyze(this, this.classes);
     }
 
 }

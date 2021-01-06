@@ -3,7 +3,7 @@ ASSN = 4J
 CLASS= cs143
 CLASSDIR= ../..
 
-SRC= cool-tree.java CoolAnalysis.java
+SRC= cool-tree.java CoolAnalysis.java 
 CSRC = \
 	ASTConstants.java \
 	ASTLexer.java \
@@ -25,7 +25,7 @@ CSRC = \
 TSRC= mycoolc cool-tree.aps
 CGEN= 
 LIBS= lexer parser cgen
-CFIL= ${CSRC} ${CGEN} TreeConstants.java IntSymbol.java StringSymbol.java BoolConst.java Semant.java
+CFIL= ClassTable.java TreeConstants.java IntSymbol.java StringSymbol.java BoolConst.java Semant.java
 HFIL= 
 LSRC= Makefile
 CLS= ${CFIL:.java=.class}
@@ -42,7 +42,7 @@ ${OUTPUT}: semant
 	@rm -f ${OUTPUT}
 	./mycoolc  example.cl >example.output 2>&1 
 
-semant: Makefile ${CLS}
+semant: Makefile java-source
 	@rm -f semant
 	echo '#!/bin/sh' >> semant
 	echo 'java -classpath ${CLASSPATH} Semant $$*' >> semant
@@ -60,9 +60,9 @@ dotest:	cgen example.cl
 
 ## cool-tree.class is not a real class file, but we need to have it
 ## for dependency tracking
-${CLS}: ${CFIL}
-	${JAVAC} -g -nowarn -classpath ${CLASSPATH} ${SRC}
+java-source: 
 	${JAVAC} -g -nowarn -classpath ${CLASSPATH} ${CFIL}
+	${JAVAC} -g -nowarn -classpath ${CLASSPATH} ${SRC}
 	touch cool-tree.class
 
 ${LIBS}:
@@ -70,9 +70,6 @@ ${LIBS}:
 
 # These dependencies allow you to get the starting files for
 # the assignment.  They will not overwrite a file you already have.
-
-${SRC} :								
-	# -${CLASSDIR}/etc/copy-skel ${ASSN} ${SRC}
 
 ${LSRC} :
 	-${CLASSDIR}/etc/link-shared ${ASSN} ${LSRC}
