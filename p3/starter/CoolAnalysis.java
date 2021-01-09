@@ -281,9 +281,9 @@ public class CoolAnalysis {
   private boolean binaryForceInt(Expression left, Expression right) {
 
     // Don't short-circuit, otherwise types aren't added to AST
-    boolean l = typeCheckExpression(left) == TreeConstants.Int;
-    boolean r = typeCheckExpression(right) == TreeConstants.Int;
-    return l && r;
+    typeCheckExpression(left);
+    typeCheckExpression(right);
+    return left.get_type().equals(TreeConstants.Int) && right.get_type().equals(TreeConstants.Int);
   }
 
   private boolean assertType(Expression e, Class c) {
