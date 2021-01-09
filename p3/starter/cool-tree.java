@@ -64,7 +64,6 @@ abstract class Feature extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-
 }
 
 
@@ -147,7 +146,6 @@ abstract class Expression extends TreeNode {
         else
             { out.println(Utilities.pad(n) + ": _no_type"); }
     }
-
 }
 
 
@@ -262,7 +260,8 @@ class programc extends Program {
 	to test the complete compiler.
     */
     public void semant() {
-        CoolAnalysis.analyze(this, this.classes);
+        CoolAnalysis c = new CoolAnalysis();
+        c.analyze(this, this.classes);
     }
 
 }
@@ -306,6 +305,7 @@ class class_c extends Class_ {
     public AbstractSymbol getFilename() { return filename; }
     public AbstractSymbol getName()     { return name; }
     public AbstractSymbol getParent()   { return parent; }
+    public Features getFeatures() { return features; }
 
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
@@ -332,6 +332,12 @@ class method extends Feature {
     protected Formals formals;
     protected AbstractSymbol return_type;
     protected Expression expr;
+
+    public AbstractSymbol getName() { return name; }
+    public AbstractSymbol getReturnType() { return return_type; }
+    public Formals getFormals() { return formals; }
+    public Expression getExpression() { return expr; }
+
     /** Creates "method" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -380,6 +386,9 @@ class attr extends Feature {
     protected AbstractSymbol name;
     protected AbstractSymbol type_decl;
     protected Expression init;
+    public AbstractSymbol getName() { return name; }
+    public AbstractSymbol getType() { return type_decl; }
+    public Expression getExpression() { return init; }
     /** Creates "attr" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -421,6 +430,8 @@ class attr extends Feature {
 class formalc extends Formal {
     protected AbstractSymbol name;
     protected AbstractSymbol type_decl;
+    public AbstractSymbol getName() { return name; }
+    public AbstractSymbol getType() { return type_decl; }
     /** Creates "formalc" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -459,6 +470,7 @@ class branch extends Case {
     protected AbstractSymbol name;
     protected AbstractSymbol type_decl;
     protected Expression expr;
+    public AbstractSymbol getName() { return name; }
     /** Creates "branch" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -500,6 +512,10 @@ class branch extends Case {
 class assign extends Expression {
     protected AbstractSymbol name;
     protected Expression expr;
+
+    public AbstractSymbol getName() { return name; }
+    public Expression getExpression() { return expr; }
+
     /** Creates "assign" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -841,6 +857,9 @@ class let extends Expression {
 class plus extends Expression {
     protected Expression e1;
     protected Expression e2;
+
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "plus" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -879,6 +898,8 @@ class plus extends Expression {
 class sub extends Expression {
     protected Expression e1;
     protected Expression e2;
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "sub" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -917,6 +938,8 @@ class sub extends Expression {
 class mul extends Expression {
     protected Expression e1;
     protected Expression e2;
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "mul" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -955,6 +978,8 @@ class mul extends Expression {
 class divide extends Expression {
     protected Expression e1;
     protected Expression e2;
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "divide" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -992,6 +1017,7 @@ class divide extends Expression {
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class neg extends Expression {
     protected Expression e1;
+    public Expression getOperand() { return e1; }
     /** Creates "neg" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -1026,6 +1052,8 @@ class neg extends Expression {
 class lt extends Expression {
     protected Expression e1;
     protected Expression e2;
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "lt" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -1064,6 +1092,8 @@ class lt extends Expression {
 class eq extends Expression {
     protected Expression e1;
     protected Expression e2;
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "eq" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -1102,6 +1132,8 @@ class eq extends Expression {
 class leq extends Expression {
     protected Expression e1;
     protected Expression e2;
+    public Expression getLeft() { return e1; }
+    public Expression getRight() { return e2; }
     /** Creates "leq" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
