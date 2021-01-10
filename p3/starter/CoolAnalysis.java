@@ -108,9 +108,49 @@ public class CoolAnalysis {
     }
   }
 
+  /* Calculate if A is the ancestor of B */
+  private boolean isAncestor(AbstractSymbol a, AbstractSymbol b) {
+    // Direct ancestry
+    if (!b.equals(TreeConstants.Object_) && classGraph.get(b).equals(a)) {
+      return true;
+    }
+
+    // If B is Object_, only way A is the ancestor is if A is Object
+    // Find parent of B and check if A => ancestry
+    while (!b.equals(TreeConstants.Object_)) {
+      b = classGraph.get(b);
+      if (a.equals(b)) {
+        return true;
+      }
+    }
+    return a.equals(TreeConstants.Object_);
+  }
+
+  /* Calculate common ancestor of A and B */  
+  private AbstractSymbol findLUB(AbstractSymbol a, AbstractSymbol b) {
+    if (a.equals(b)) {
+      return a;
+    } else if (isAncestor(a, b)) {
+      return a;
+    } else if (isAncestor(b, a)) {
+      return b;
+    }
+
+    // If either class is Object, then that's the LUB
+    // Look at each class's parent, if same => common ancestor. Repeat on the parents.
+    while (!(a.equals(TreeConstants.Object_) || b.equals(TreeConstants.Object_))) {
+      a = classGraph.get(a);
+      b = classGraph.get(b);
+      if (a.equals(b)) {
+        return a;
+      }
+    }
+    return TreeConstants.Object_;
+  }
+
   public void analyze(Program p, Classes classes) {
-    // init();
-    // buildGraph(classes);
+    init();
+    buildGraph(classes);
     // System.out.printf("\n---Inheritance Graph---\n");
     // printGraph();
     // System.out.printf("\n\n");
@@ -127,10 +167,24 @@ public class CoolAnalysis {
     typeCheckClass((class_c) classes.getNth(0));
   }
 
-  private static SymbolTable programwide = new SymbolTable();
-  private class_c currentClass;
+  private class ClassTable {
+    public SymbolTable objects = new SymbolTable();
+    public SymbolTable methods = new SymbolTable();
+    public ClassTable() {}
+    public String toString() {
+      return String.format("\nObjects: %s\nMethods: %s\n", objects.toString(), methods.toString());
+    }
+  }
+  // program will map class names to ClassTable's
+  private static Map<AbstractSymbol, ClassTable> program = new HashMap<AbstractSymbol, ClassTable>();
+
+  /*
+    Data for SymbolTable entries
+  */
   private class ObjectData {
     public AbstractSymbol type;
+    public ObjectData(AbstractSymbol a) { type = a; }
+    public String toString() { return type.toString(); }
   }
   private class MethodData {
     public AbstractSymbol className;
@@ -147,142 +201,162 @@ public class CoolAnalysis {
     }
   }
 
+  private class_c currentClass;
+
   /* 
   * Discover all class names, and method names+signatures
   * since these are the only public data
   */
   private void discoverPublicMembers(Classes classes) {
-    programwide.enterScope();
     for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
+
       class_c currClass = (class_c) e.nextElement();
+      ClassTable currTable = new ClassTable();
+      program.put(currClass.getName(), currTable);
+
+      currTable.methods.enterScope();
       for (Enumeration e2 = currClass.getFeatures().getElements(); e2.hasMoreElements(); ) {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof method) {
           method m = (method) f;
-          programwide.addId(m.getName(), new MethodData(currClass.getName(), m.getReturnType(), m.getFormals()));
+          currTable.methods.addId(m.getName(), new MethodData(currClass.getName(), m.getReturnType(), m.getFormals()));
         }
       }
     }
-    System.out.println(programwide);
   }
 
-  private void discoverClassMembers(class_c C) {
+  private ClassTable discoverClassMembers(class_c C) {
+    ClassTable currTable = program.get(C.getName());
+    currTable.objects.enterScope();
+
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
-        programwide.addId(a.getName(), a.getType());
+        currTable.objects.addId(a.getName(), new ObjectData(a.getType()));
       }
     }
+    return currTable;
   }
 
   /*
     Recursively type check the AST:
-    - Add new variables to ObjectData SymbolTable
     - Base case are leaf nodes, they take the right type based on their value
     - Upon each recursive call, enter a new scope
     - Type check the node
     - At then end of each recursive call, exit scope
   */
   private void typeCheckClass(class_c C) {
-    programwide.enterScope();
-    discoverClassMembers(C);
+    ClassTable symbols = discoverClassMembers(C);
+
+    // TODO: rm
     currentClass = C;
+
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
         Expression val = a.getExpression();
-        typeCheckExpression(val);
+        if (!(val instanceof no_expr)) {
+          typeCheckExpression(val, symbols);
+        } else {
+          val.set_type(a.getType());
+        }
         validateOrError(a.getType(), val.get_type(), String.format("%s declared as %s but has value %s", a.getName(), a.getType(), val.get_type()), a); 
       }
     }
   }
 
-  private void typeCheckExpression(Expression e) {
+  private void typeCheckExpression(Expression e, ClassTable symbols) {
 
-    // Simple types
-    boolean intType = assertType(e, int_const.class);
-    boolean boolType = assertType(e, bool_const.class);
-    boolean stringType = assertType(e, string_const.class);
-    boolean objecType = assertType(e, object.class);
-    if (intType) {
-      e.set_type(TreeConstants.Int);
-    } else if (boolType) {
-      e.set_type(TreeConstants.Bool);
-    } else if (stringType) {
-      e.set_type(TreeConstants.Str);
-    } else if (objecType) {
-      e.set_type(TreeConstants.Object_);
+    // Literals
+    if (e instanceof SimpleExpression) {
+      SimpleExpression s = (SimpleExpression) e;
+      e.set_type(s.getType());
+    }
+
+    // Variable reference
+    if (e instanceof object) {
+      object o = (object) e;
+      ObjectData a = (ObjectData) symbols.objects.lookup(o.getName());
+      if (a == null) {
+        error(String.format("%s not defined", o.getName()), e);
+      } else {
+        e.set_type(a.type);
+      }
+    }
+
+    if (e instanceof cond) {
+      cond c = (cond) e;
+      typeCheckExpression(c.getPred(), symbols);
+      AbstractSymbol predType = c.getPred().get_type();
+      if (predType.equals(TreeConstants.Bool)) {
+        typeCheckExpression(c.getThen(), symbols);
+        typeCheckExpression(c.getElse(), symbols);
+        e.set_type(findLUB(c.getThen().get_type(), c.getElse().get_type()));
+      } else {
+        error(String.format("conditional has predicate of type %s", predType), e);
+        e.set_type(TreeConstants.Object_);
+      }
     }
 
     // Binary Int operations
-    boolean plusType = assertType(e, plus.class);
-    boolean subType = assertType(e, sub.class);
-    boolean mulType = assertType(e, mul.class);
-    boolean divType = assertType(e, divide.class);
-    boolean ltType = assertType(e, lt.class);
-    boolean leqType = assertType(e, leq.class);
-    if (plusType) {
-      plus p = (plus) e;
-      Expression l = p.getLeft();
-      Expression r = p.getRight();
-      AbstractSymbol t = binaryForceInt(l, r) ? TreeConstants.Int : TreeConstants.Object_;
-      validateOrError(TreeConstants.Int, t, String.format("plus expression has operands %s and %s", l.get_type(), r.get_type()), e);
-      e.set_type(t);
-    } else if (subType) {
-      sub s = (sub) e;
-      Expression l = s.getLeft();
-      Expression r = s.getRight();
-      AbstractSymbol t = binaryForceInt(l, r) ? TreeConstants.Int : TreeConstants.Object_;
-      validateOrError(TreeConstants.Int, t, String.format("sub expression has operands %s and %s", l.get_type(), r.get_type()), e);
-      e.set_type(t);
-    } else if (mulType) {
-      mul m = (mul) e;
-      Expression l = m.getLeft();
-      Expression r = m.getRight();
-      AbstractSymbol t = binaryForceInt(l, r) ? TreeConstants.Int : TreeConstants.Object_;
-      validateOrError(TreeConstants.Int, t, String.format("mul expression has operands %s and %s", l.get_type(), r.get_type()), e);
-      e.set_type(t);
-    } else if (divType) {
-      divide d = (divide) e;
-      Expression l = d.getLeft();
-      Expression r = d.getRight();
-      AbstractSymbol t = binaryForceInt(l, r) ? TreeConstants.Int : TreeConstants.Object_;
-      validateOrError(TreeConstants.Int, t, String.format("divide expression has operands %s and %s", l.get_type(), r.get_type()), e);
-      e.set_type(t);
-    } else if (ltType) {
-      lt d = (lt) e;
-      Expression l = d.getLeft();
-      Expression r = d.getRight();
-      AbstractSymbol t = binaryForceInt(l, r) ? TreeConstants.Bool : TreeConstants.Object_;
-      validateOrError(TreeConstants.Bool, t, String.format("lt (<) expression has operands %s and %s", l.get_type(), r.get_type()), e);
-      e.set_type(t);
-    } else if (leqType) {
-      leq d = (leq) e;
-      Expression l = d.getLeft();
-      Expression r = d.getRight();
-      AbstractSymbol t = binaryForceInt(l, r) ? TreeConstants.Bool : TreeConstants.Object_;
-      validateOrError(TreeConstants.Bool, t, String.format("leq (<=) expression has operands %s and %s", l.get_type(), r.get_type()), e);
-      e.set_type(t);
-    }
+    if (e instanceof BinaryExpression) {
+      BinaryExpression b = (BinaryExpression) e;
+      Expression l = b.getLeft();
+      Expression r = b.getRight();
+      if (binaryForceInt(l, r, symbols)) {
+        AbstractSymbol t = (b instanceof lt) || (b instanceof leq) ? TreeConstants.Bool : TreeConstants.Int;
+        e.set_type(t);
+      } else {
+        error(String.format("BinaryExpression defined on Ints has operands %s and %s", l.get_type(), r.get_type()), e);
+        e.set_type(TreeConstants.Object_);
+      }
+    }  
 
     // Unary Int operations
     boolean negType = assertType(e, neg.class);
     if (negType) {
       neg n = (neg) e;
       Expression o = n.getOperand();
-      typeCheckExpression(o);
+      typeCheckExpression(o, symbols);
       validateOrError(TreeConstants.Int, o.get_type(), String.format("neg expression has operand %s", o.get_type()), e);
       e.set_type(o.get_type());
     }
+
+    // Unary boolean
+    boolean compType = assertType(e, comp.class);
+    if (compType) {
+      comp n = (comp) e;
+      Expression o = n.getOperand();
+      typeCheckExpression(o, symbols);
+      validateOrError(TreeConstants.Bool, o.get_type(), String.format("comp expression has operand %s", o.get_type()), e);
+      e.set_type(o.get_type());
+    }
+
+    // Equality
+    if (e instanceof eq) {
+      eq e2 = (eq) e;
+      Expression l = e2.getLeft();
+      Expression r = e2.getRight();
+      typeCheckExpression(l, symbols);
+      typeCheckExpression(r, symbols);
+      AbstractSymbol lt = l.get_type();
+      AbstractSymbol rt = r.get_type();
+      if (lt.equals(rt)) {
+        e.set_type(TreeConstants.Bool);
+      } else {
+        error(String.format("eq (=) expression has operands %s and %s", lt, rt), e);
+        e.set_type(TreeConstants.Object_);
+      }
+    }
   }
 
-  private boolean binaryForceInt(Expression left, Expression right) {
+  private boolean binaryForceInt(Expression left, Expression right, ClassTable symbols) {
 
     // Don't short-circuit, otherwise types aren't added to AST
-    typeCheckExpression(left);
-    typeCheckExpression(right);
+    typeCheckExpression(left, symbols);
+    typeCheckExpression(right, symbols);
     return left.get_type().equals(TreeConstants.Int) && right.get_type().equals(TreeConstants.Int);
   }
 
@@ -296,10 +370,14 @@ public class CoolAnalysis {
   }
 
   private void validateOrError(AbstractSymbol expected, AbstractSymbol actual, String error, TreeNode t) {
-    AbstractSymbol filename = currentClass.getFilename();
-    if (!expected.equals(actual)) {
-      errorCount++;
-      System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
+    if (!(expected.equals(actual) || isAncestor(expected, actual))) {
+      error(error, t);
     }
+  }
+
+  private void error(String error, TreeNode t) {
+    AbstractSymbol filename = currentClass.getFilename();
+    errorCount++;
+    System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
   }
 }

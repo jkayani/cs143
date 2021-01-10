@@ -148,6 +148,15 @@ abstract class Expression extends TreeNode {
     }
 }
 
+interface BinaryExpression {
+    public Expression getLeft();
+    public Expression getRight();
+}
+
+interface SimpleExpression {
+    public AbstractSymbol getType();
+}
+
 
 /** Defines list phylum Expressions
     <p>
@@ -654,6 +663,11 @@ class cond extends Expression {
     protected Expression pred;
     protected Expression then_exp;
     protected Expression else_exp;
+
+    public Expression getPred() { return pred; }
+    public Expression getThen() { return then_exp; }
+    public Expression getElse() { return else_exp; }
+
     /** Creates "cond" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -854,7 +868,7 @@ class let extends Expression {
 /** Defines AST constructor 'plus'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class plus extends Expression {
+class plus extends Expression implements BinaryExpression {
     protected Expression e1;
     protected Expression e2;
 
@@ -895,7 +909,7 @@ class plus extends Expression {
 /** Defines AST constructor 'sub'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class sub extends Expression {
+class sub extends Expression implements BinaryExpression {
     protected Expression e1;
     protected Expression e2;
     public Expression getLeft() { return e1; }
@@ -935,7 +949,7 @@ class sub extends Expression {
 /** Defines AST constructor 'mul'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class mul extends Expression {
+class mul extends Expression implements BinaryExpression {
     protected Expression e1;
     protected Expression e2;
     public Expression getLeft() { return e1; }
@@ -975,7 +989,7 @@ class mul extends Expression {
 /** Defines AST constructor 'divide'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class divide extends Expression {
+class divide extends Expression implements BinaryExpression {
     protected Expression e1;
     protected Expression e2;
     public Expression getLeft() { return e1; }
@@ -1049,7 +1063,7 @@ class neg extends Expression {
 /** Defines AST constructor 'lt'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class lt extends Expression {
+class lt extends Expression implements BinaryExpression {
     protected Expression e1;
     protected Expression e2;
     public Expression getLeft() { return e1; }
@@ -1129,7 +1143,7 @@ class eq extends Expression {
 /** Defines AST constructor 'leq'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class leq extends Expression {
+class leq extends Expression implements BinaryExpression {
     protected Expression e1;
     protected Expression e2;
     public Expression getLeft() { return e1; }
@@ -1176,6 +1190,7 @@ class comp extends Expression {
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for e1
       */
+    public Expression getOperand() { return e1; }
     public comp(int lineNumber, Expression a1) {
         super(lineNumber);
         e1 = a1;
@@ -1202,13 +1217,15 @@ class comp extends Expression {
 /** Defines AST constructor 'int_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class int_const extends Expression {
+class int_const extends Expression implements SimpleExpression {
     protected AbstractSymbol token;
     /** Creates "int_const" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for token
       */
+    public AbstractSymbol getType() { return TreeConstants.Int; }
+
     public int_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
         token = a1;
@@ -1235,13 +1252,14 @@ class int_const extends Expression {
 /** Defines AST constructor 'bool_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class bool_const extends Expression {
+class bool_const extends Expression implements SimpleExpression {
     protected Boolean val;
     /** Creates "bool_const" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for val
       */
+    public AbstractSymbol getType() { return TreeConstants.Bool; }
     public bool_const(int lineNumber, Boolean a1) {
         super(lineNumber);
         val = a1;
@@ -1268,13 +1286,14 @@ class bool_const extends Expression {
 /** Defines AST constructor 'string_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class string_const extends Expression {
+class string_const extends Expression implements SimpleExpression {
     protected AbstractSymbol token;
     /** Creates "string_const" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for token
       */
+    public AbstractSymbol getType() { return TreeConstants.Str; }
     public string_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
         token = a1;
@@ -1408,6 +1427,7 @@ class object extends Expression {
         super(lineNumber);
         name = a1;
     }
+    public AbstractSymbol getName() { return name; }
     public TreeNode copy() {
         return new object(lineNumber, copy_AbstractSymbol(name));
     }
