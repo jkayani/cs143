@@ -329,6 +329,15 @@ public class CoolAnalysis {
       }
     }
 
+    // Loops
+    if (e instanceof loop) {
+      loop l = (loop) e;
+      typeCheckExpression(l.getPred(), symbols);
+      validateOrError(TreeConstants.Bool, l.getPred().get_type(), String.format("loop predicate is type %s not Bool", l.getPred().get_type()), e);
+      typeCheckExpression(l.getBody(), symbols);
+      e.set_type(TreeConstants.Object_);
+    }
+
     // Let statements
     if (e instanceof let) {
       let l = (let) e;
@@ -407,15 +416,6 @@ public class CoolAnalysis {
     typeCheckExpression(left, symbols);
     typeCheckExpression(right, symbols);
     return left.get_type().equals(TreeConstants.Int) && right.get_type().equals(TreeConstants.Int);
-  }
-
-  private boolean assertType(Expression e, Class c) {
-    try {
-      c.cast(e);
-      return true;
-    } catch (Exception e2) {
-      return false;
-    }
   }
 
   private void validateOrError(AbstractSymbol expected, AbstractSymbol actual, String error, TreeNode t) {

@@ -710,6 +710,10 @@ class cond extends Expression {
 class loop extends Expression {
     protected Expression pred;
     protected Expression body;
+
+    public Expression getPred() { return pred; }
+    public Expression getBody() { return body; }
+
     /** Creates "loop" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.

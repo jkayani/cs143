@@ -25,25 +25,32 @@ class Animal {
 		baddescendent : Dingo <- dog;
 
   -- Var assignments
-	good : Int <- good2 <- good2 * ~1;
-	bad1 : Bool <- good2 <- not true;
-	bad2 : Bool <- temp <- who * ~1;
+		good : Int <- good2 <- good2 * ~1;
+		bad1 : Bool <- good2 <- not true;
+		bad2 : Bool <- temp <- who * ~1;
 
 	-- Blocks
-	good : Int <- { good2 <- good2 * ~1; good1 <- fALSE; good2 * 10; };
-	bad : Int <- { a <- 1; a + b; };
-	bad2 : Int <- { good1 <- truE; };
+		good : Int <- { good2 <- good2 * ~1; good1 <- fALSE; good2 * 10; };
+		bad : Int <- { a <- 1; a + b; };
+		bad2 : Int <- { good1 <- truE; };
 
 	-- Let
-	goodlet1 : Int <- let x:Int <- 1, y:Int <- 2 in x + y;
-	goodlet2 : Int <- let x:Int <- 1 in let y:Int <- 2 in x + y;
-	goodlet3 : Int <- let x:Int, y:Int <- 2 in x + y;
-	goodlet4 : Int <- let x:Int in let y:Int <- 2 in x + y;
-	goodlet5 : Int <- let x:Int <- good in let y:Int <- good in x + y;
-	badlet1 : Int <- let x:Bool <- 1, y:Int <- 2 in x + y;
-	badlet2 : Bool <- let x:Bool <- 1, y:Bool <- 2 in x + y;
-	badlet3 : Int <- let x:Int <- 1, y:Int <- 2 in x + y + z;
-	badlet4 : Int <- x + y;
+		goodlet1 : Int <- let x:Int <- 1, y:Int <- 2 in x + y;
+		goodlet2 : Int <- let x:Int <- 1 in let y:Int <- 2 in x + y;
+		goodlet3 : Int <- let x:Int, y:Int <- 2 in x + y;
+		goodlet4 : Int <- let x:Int in let y:Int <- 2 in x + y;
+		goodlet5 : Int <- let x:Int <- good in let y:Int <- good in x + y;
+		badlet1 : Int <- let x:Bool <- 1, y:Int <- 2 in x + y;
+		badlet2 : Bool <- let x:Bool <- 1, y:Bool <- 2 in x + y;
+		badlet3 : Int <- let x:Int <- 1, y:Int <- 2 in x + y + z;
+		badlet4 : Int <- x + y;
+
+	-- Loop
+	goodloop1 : Object <- while 1 < 0 loop good pool;
+	goodloop2 : Object <- while true loop { goodloop1; goodloop2; } pool;
+	badloop1 : Int <- while 1 < 0 loop good pool;
+	badloop2 : Object <- while 1 loop good pool;
+	badloop3 : Object <- while false loop { x; } pool;
 };
 
 class Dingo inherits Dog {};
