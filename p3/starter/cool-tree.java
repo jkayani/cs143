@@ -792,6 +792,7 @@ class block extends Expression {
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for body
       */
+    public Expressions getBody() { return body; }
     public block(int lineNumber, Expressions a1) {
         super(lineNumber);
         body = a1;

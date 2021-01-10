@@ -281,11 +281,29 @@ public class CoolAnalysis {
       ObjectData a = (ObjectData) symbols.objects.lookup(o.getName());
       if (a == null) {
         error(String.format("%s not defined", o.getName()), e);
+        e.set_type(TreeConstants.Object_);
       } else {
         e.set_type(a.type);
       }
     }
 
+    // Variable assignment
+    if (e instanceof assign) {
+      assign a = (assign) e;
+      ObjectData o = (ObjectData) symbols.objects.lookup(a.getName());
+      if (o == null) {
+        error(String.format("no identifier %s in scope", a.getName()), e);
+        e.set_type(TreeConstants.Object_);
+      } else {
+        AbstractSymbol expectedType = o.type;
+        typeCheckExpression(a.getExpression(), symbols);
+        AbstractSymbol t = a.getExpression().get_type();
+        validateOrError(expectedType, t, String.format("%s is declared to have type %s but assigned to %s", a.getName(), expectedType, t), e);
+        e.set_type(t);
+      }
+    }
+
+    // Conditionals 
     if (e instanceof cond) {
       cond c = (cond) e;
       typeCheckExpression(c.getPred(), symbols);
