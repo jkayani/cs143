@@ -827,6 +827,12 @@ class let extends Expression {
     protected AbstractSymbol type_decl;
     protected Expression init;
     protected Expression body;
+
+    public AbstractSymbol getName() { return identifier; }
+    public AbstractSymbol getType() { return type_decl; }
+    public Expression getInit() { return init; }
+    public Expression getBody() { return body; }
+
     /** Creates "let" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.

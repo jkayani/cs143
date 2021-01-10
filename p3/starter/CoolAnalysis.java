@@ -262,7 +262,7 @@ public class CoolAnalysis {
         } else {
           val.set_type(a.getType());
         }
-        validateOrError(a.getType(), val.get_type(), String.format("%s declared as %s but has value %s", a.getName(), a.getType(), val.get_type()), a); 
+        validateOrError(a.getType(), val.get_type(), errorTypeMismatch(a.getName(), a.getType(), val.get_type()), a); 
       }
     }
   }
@@ -280,7 +280,7 @@ public class CoolAnalysis {
       object o = (object) e;
       ObjectData a = (ObjectData) symbols.objects.lookup(o.getName());
       if (a == null) {
-        error(String.format("%s not defined", o.getName()), e);
+        error(errorNoSuchVariable(o.getName()), e);
         e.set_type(TreeConstants.Object_);
       } else {
         e.set_type(a.type);
@@ -292,13 +292,13 @@ public class CoolAnalysis {
       assign a = (assign) e;
       ObjectData o = (ObjectData) symbols.objects.lookup(a.getName());
       if (o == null) {
-        error(String.format("no identifier %s in scope", a.getName()), e);
+        error(errorNoSuchVariable(a.getName()), e);
         e.set_type(TreeConstants.Object_);
       } else {
         AbstractSymbol expectedType = o.type;
         typeCheckExpression(a.getExpression(), symbols);
         AbstractSymbol t = a.getExpression().get_type();
-        validateOrError(expectedType, t, String.format("%s is declared to have type %s but assigned to %s", a.getName(), expectedType, t), e);
+        validateOrError(expectedType, t, errorTypeMismatch(a.getName(), expectedType, t), e);
         e.set_type(t);
       }
     }
@@ -329,6 +329,29 @@ public class CoolAnalysis {
       }
     }
 
+    // Let statements
+    if (e instanceof let) {
+      let l = (let) e;
+      AbstractSymbol expectedType = l.getType();
+
+      // Variables with no immediate bindings are assumed to be good
+      if (l.getInit() instanceof no_expr) {
+        l.getInit().set_type(expectedType);
+      } else {
+        typeCheckExpression(l.getInit(), symbols);
+      }
+      AbstractSymbol initType = l.getInit().get_type();
+      validateOrError(expectedType, initType, errorTypeMismatch(l.getName(), expectedType, initType), e);
+
+      // Check the body, taking into the account the newly introduced variable 
+      symbols.objects.enterScope();
+      symbols.objects.addId(l.getName(), new ObjectData(initType));
+      typeCheckExpression(l.getBody(), symbols);
+      symbols.objects.exitScope();
+
+      e.set_type(l.getBody().get_type());
+    }
+
     // Binary Int operations
     if (e instanceof BinaryExpression) {
       BinaryExpression b = (BinaryExpression) e;
@@ -344,8 +367,7 @@ public class CoolAnalysis {
     }  
 
     // Unary Int operations
-    boolean negType = assertType(e, neg.class);
-    if (negType) {
+    if (e instanceof neg) {
       neg n = (neg) e;
       Expression o = n.getOperand();
       typeCheckExpression(o, symbols);
@@ -354,8 +376,7 @@ public class CoolAnalysis {
     }
 
     // Unary boolean
-    boolean compType = assertType(e, comp.class);
-    if (compType) {
+    if (e instanceof comp) {
       comp n = (comp) e;
       Expression o = n.getOperand();
       typeCheckExpression(o, symbols);
@@ -401,6 +422,14 @@ public class CoolAnalysis {
     if (!(expected.equals(actual) || isAncestor(expected, actual))) {
       error(error, t);
     }
+  }
+
+  private String errorTypeMismatch(AbstractSymbol a, AbstractSymbol expected, AbstractSymbol actual) {
+    return String.format("%s declared to have type %s but has type %s", a, expected, actual);
+  }
+
+  private String errorNoSuchVariable(AbstractSymbol v) {
+    return String.format("no variable %s defined in current scope", v);
   }
 
   private void error(String error, TreeNode t) {
