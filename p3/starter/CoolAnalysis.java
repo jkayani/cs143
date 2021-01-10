@@ -303,6 +303,17 @@ public class CoolAnalysis {
       }
     }
 
+    // Block expressions
+    if (e instanceof block) {
+      block b = (block) e;
+      Expressions list = b.getBody();
+      for (Enumeration e2 = list.getElements(); e2.hasMoreElements();) {
+        Expression e3 = (Expression) e2.nextElement();
+        typeCheckExpression(e3, symbols);
+      }
+      e.set_type(b.getLast().get_type());
+    }
+
     // Conditionals 
     if (e instanceof cond) {
       cond c = (cond) e;
@@ -371,7 +382,6 @@ public class CoolAnalysis {
   }
 
   private boolean binaryForceInt(Expression left, Expression right, ClassTable symbols) {
-
     // Don't short-circuit, otherwise types aren't added to AST
     typeCheckExpression(left, symbols);
     typeCheckExpression(right, symbols);

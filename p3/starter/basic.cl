@@ -30,9 +30,9 @@ class Animal {
 	bad2 : Bool <- temp <- who * ~1;
 
 	-- Blocks
-	--good : Int <- good2 <- good2 * ~1;
-	--bad : Int <- { a <- 1; a + b; };
-	--bad2 : Int <- { good1 <- truE; };
+	good : Int <- { good2 <- good2 * ~1; good1 <- fALSE; good2 * 10; };
+	bad : Int <- { a <- 1; a + b; };
+	bad2 : Int <- { good1 <- truE; };
 };
 
 class Dingo inherits Dog {};

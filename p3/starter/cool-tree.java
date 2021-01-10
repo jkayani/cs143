@@ -793,6 +793,7 @@ class block extends Expression {
       * @param a0 initial value for body
       */
     public Expressions getBody() { return body; }
+    public Expression getLast() { return (Expression) body.getNth(body.getLength() - 1); }
     public block(int lineNumber, Expressions a1) {
         super(lineNumber);
         body = a1;
