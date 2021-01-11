@@ -16,6 +16,7 @@ class Animal {
 		dingo : Dingo;
 		dog : Dog;
 		cat : Cat;
+		bear: Bear;
 		human : Human;
 		nolub : Object <- if true then human else dog fi;
 		anmiallub : Object <- if true then cat else dog fi;
@@ -46,16 +47,44 @@ class Animal {
 		badlet4 : Int <- x + y;
 
 	-- Loop
-	goodloop1 : Object <- while 1 < 0 loop good pool;
-	goodloop2 : Object <- while true loop { goodloop1; goodloop2; } pool;
-	badloop1 : Int <- while 1 < 0 loop good pool;
-	badloop2 : Object <- while 1 loop good pool;
-	badloop3 : Object <- while false loop { x; } pool;
+		goodloop1 : Object <- while 1 < 0 loop good pool;
+		goodloop2 : Object <- while true loop { goodloop1; goodloop2; } pool;
+		badloop1 : Int <- while 1 < 0 loop good pool;
+		badloop2 : Object <- while 1 loop good pool;
+		badloop3 : Object <- while false loop { x; } pool;
+
+  -- Cases 
+		goodcase1 : Animal <- case dingo of id1:Dingo => dingo; esac;
+		goodcase12 : Dog <- 
+			case dingo of 
+				id1:Dingo => id1;  
+				id1:Dog => id1;  
+			esac;
+		goodcase2 : Object <- 
+			case dingo of 
+				id1:Dog => id1;
+				id2:Human => id2;
+				id3:Cat => id3;
+			esac;
+		goodcase3 : Animal <- 
+			case dingo of 
+				id1:Dog => id1;
+				id2:Bear => id2;
+				id3:Cat => id3;
+			esac;
+		badcase1 : Human <- case dingo of id1:Dingo => id1; esac;
+		badcase3 : Human <- case dingo of id1:Dingo => id1 + 2; esac;
+		badcase2 : Animal <- 
+			case dingo of 
+				id2:Dingo => dog;
+				id3:Dingo => dog;
+			esac;
 };
 
 class Dingo inherits Dog {};
 class Dog inherits Animal {};
 class Cat inherits Animal {};
+class Bear inherits Animal {};
 class Human {};
 
 (*

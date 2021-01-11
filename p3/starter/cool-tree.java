@@ -480,6 +480,9 @@ class branch extends Case {
     protected AbstractSymbol type_decl;
     protected Expression expr;
     public AbstractSymbol getName() { return name; }
+    public AbstractSymbol getType() { return type_decl; }
+    public Expression getExpression() { return expr; }
+
     /** Creates "branch" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -752,6 +755,9 @@ class loop extends Expression {
 class typcase extends Expression {
     protected Expression expr;
     protected Cases cases;
+
+    public Cases getCases() { return cases; }
+
     /** Creates "typcase" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.

@@ -148,6 +148,21 @@ public class CoolAnalysis {
     return TreeConstants.Object_;
   }
 
+  /* Calculate common ancestor among elements of l */
+  private AbstractSymbol findLUB(List<AbstractSymbol> l) {
+    // Case statements have >= 1 branches
+    if (l.size() < 2) {
+      return l.get(0);
+    }
+    AbstractSymbol lub = findLUB(l.get(0), l.get(1));
+
+    // Once LUB is Object_, no need to check further
+    for (int i = 2; i < l.size() && !lub.equals(TreeConstants.Object_); i++) {
+      lub = findLUB(lub, l.get(i));
+    }
+    return lub;
+  }
+
   public void analyze(Program p, Classes classes) {
     init();
     buildGraph(classes);
@@ -336,6 +351,31 @@ public class CoolAnalysis {
       validateOrError(TreeConstants.Bool, l.getPred().get_type(), String.format("loop predicate is type %s not Bool", l.getPred().get_type()), e);
       typeCheckExpression(l.getBody(), symbols);
       e.set_type(TreeConstants.Object_);
+    }
+
+    // Case statements
+    if (e instanceof typcase) {
+      Cases c = ((typcase) e).getCases();
+      List<AbstractSymbol> types = new ArrayList<AbstractSymbol>();
+
+      // Check each branch's expression when the branch's 
+      // variable has the branch's type
+      for (Enumeration e2 = c.getElements(); e2.hasMoreElements(); ) {
+        branch b = (branch) e2.nextElement();
+        symbols.objects.enterScope();
+        symbols.objects.addId(b.getName(), new ObjectData(b.getType()));
+        typeCheckExpression(b.getExpression(), symbols);
+        symbols.objects.exitScope();
+
+        if (types.contains(b.getType())) {
+          error(String.format("duplicate branch of type %s in case statement", b.getType()), e);
+        }
+
+        types.add(b.getType());
+      }
+
+      // Result is LUB among all types
+      e.set_type(findLUB(types));
     }
 
     // Let statements
