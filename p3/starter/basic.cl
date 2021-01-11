@@ -3,6 +3,7 @@ class Animal {
 	-- Math
 		good1 : Bool <- not ~(1 + 1 - (1 - 1) * 1 / (1 + 1)) <= (1 + 1) * 1;
 		good2 : Int <- ~1;
+		good3 : Bool <- true;
 		bad1 : Int <- not ~(1 + 1 - (1 - 1) * 1 / (1 + 1)) <= (1 + 1) * 1;
 		bad2 : Bool <- ~(1 + 1 - (1 - 1) * 1 / (1 + 1)) <= ((1 + 1) * 1 < 10);
 
@@ -11,6 +12,7 @@ class Animal {
 		badeq : Bool <- tRuE = (5 + 5 + (5 - 5));
 		badeq2 : Bool <- "tRuE" = good1;
 		badvar : Bool <- not hingadingadurgen;
+		self : Bool <- true;
 
 	-- LUB checks
 		dingo : Dingo;
@@ -27,8 +29,11 @@ class Animal {
 
   -- Var assignments
 		good : Int <- good2 <- good2 * ~1;
+		goodvar2 : SELF_TYPE <- dog;
+		goodvar3 : SELF_TYPE <- self;
 		bad1 : Bool <- good2 <- not true;
 		bad2 : Bool <- temp <- who * ~1;
+		bad3 : Bool <- self <- dog;
 
 	-- Blocks
 		good : Int <- { good2 <- good2 * ~1; good1 <- fALSE; good2 * 10; };
@@ -45,6 +50,7 @@ class Animal {
 		badlet2 : Bool <- let x:Bool <- 1, y:Bool <- 2 in x + y;
 		badlet3 : Int <- let x:Int <- 1, y:Int <- 2 in x + y + z;
 		badlet4 : Int <- x + y;
+		badlet5 : Int <- let self:Int in self;
 
 	-- Loop
 		goodloop1 : Object <- while 1 < 0 loop good pool;
@@ -79,6 +85,21 @@ class Animal {
 				id2:Dingo => dog;
 				id3:Dingo => dog;
 			esac;
+		badcase5 : Dingo <- case dingo of self:Dingo => self; esac;
+
+	-- Method declarations
+	good1() : Int { 1 };
+	good2(good2 : Bool) : Bool  { good2 };
+	good3() : Bool  { good3 };
+	good4(a : Int, b : Int) : Int  { { true; fAlSe; a + b; } };
+	good5(a : Int, b : Int) : Animal  { dog };
+	good6() : SELF_TYPE  { self };
+	good7() : SELF_TYPE  { dog };
+	self(a : Int, b : Int) : Animal  { dog };
+	bad1(a : Int, b : Int) : String  { { true; fAlSe; a + b; } };
+	bad2() : Int  { a + b };
+	bad3() : Bool  { good2 };
+	bad4(self:Animal) : Animal  { self };
 };
 
 class Dingo inherits Dog {};

@@ -284,6 +284,11 @@ class class_c extends Class_ {
     protected AbstractSymbol parent;
     protected Features features;
     protected AbstractSymbol filename;
+
+    public AbstractSymbol getFilename() { return filename; }
+    public AbstractSymbol getName()     { return name; }
+    public AbstractSymbol getParent()   { return parent; }
+    public Features getFeatures() { return features; }
     /** Creates "class_c" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -309,12 +314,6 @@ class class_c extends Class_ {
         features.dump(out, n+2);
         dump_AbstractSymbol(out, n+2, filename);
     }
-
-    
-    public AbstractSymbol getFilename() { return filename; }
-    public AbstractSymbol getName()     { return name; }
-    public AbstractSymbol getParent()   { return parent; }
-    public Features getFeatures() { return features; }
 
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);

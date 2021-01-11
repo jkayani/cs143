@@ -185,7 +185,8 @@ public class CoolAnalysis {
   private class ClassTable {
     public SymbolTable objects = new SymbolTable();
     public SymbolTable methods = new SymbolTable();
-    public ClassTable() {}
+    public class_c class_;
+    public ClassTable(class_c c) { class_ = c; }
     public String toString() {
       return String.format("\nObjects: %s\nMethods: %s\n", objects.toString(), methods.toString());
     }
@@ -216,8 +217,6 @@ public class CoolAnalysis {
     }
   }
 
-  private class_c currentClass;
-
   /* 
   * Discover all class names, and method names+signatures
   * since these are the only public data
@@ -226,7 +225,7 @@ public class CoolAnalysis {
     for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
 
       class_c currClass = (class_c) e.nextElement();
-      ClassTable currTable = new ClassTable();
+      ClassTable currTable = new ClassTable(currClass);
       program.put(currClass.getName(), currTable);
 
       currTable.methods.enterScope();
@@ -264,20 +263,51 @@ public class CoolAnalysis {
   private void typeCheckClass(class_c C) {
     ClassTable symbols = discoverClassMembers(C);
 
-    // TODO: rm
-    currentClass = C;
+    // Add self type
+    symbols.objects.addId(TreeConstants.self, new ObjectData(C.getName()));
 
-    for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
+    for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements();) {
       Feature f = (Feature) e.nextElement();
+
+      // Attributes
       if (f instanceof attr) {
         attr a = (attr) f;
+
+        // Cannot use name self
+        noSelfReference(a.getName(), f, symbols.class_);
+
+        // Check the attr's expression, if any
         Expression val = a.getExpression();
         if (!(val instanceof no_expr)) {
           typeCheckExpression(val, symbols);
         } else {
           val.set_type(a.getType());
         }
-        validateOrError(a.getType(), val.get_type(), errorTypeMismatch(a.getName(), a.getType(), val.get_type()), a); 
+        validateOrError(a.getType(), val.get_type(), errorTypeMismatch(a.getName(), a.getType(), val.get_type()), a, C); 
+      } 
+
+      // Method declarations
+      else if (f instanceof method) {
+        method m = (method) f;
+
+        // Add method parameters to symbols
+        symbols.objects.enterScope();
+        for (Enumeration f2 = m.getFormals().getElements(); f2.hasMoreElements();) {
+          formalc f3 = (formalc) f2.nextElement();
+
+          // Cannot use self
+          noSelfReference(f3.getName(), f, C);
+
+          symbols.objects.addId(f3.getName(), new ObjectData(f3.getType()));
+        }
+
+        // Declared return type must match method's expression type
+        typeCheckExpression(m.getExpression(), symbols);
+        AbstractSymbol expected = m.getReturnType();
+        AbstractSymbol t = m.getExpression().get_type();
+        validateOrError(expected, t, errorTypeMismatch(m.getName(), expected, t), f, C);
+
+        symbols.objects.exitScope();
       }
     }
   }
@@ -295,7 +325,7 @@ public class CoolAnalysis {
       object o = (object) e;
       ObjectData a = (ObjectData) symbols.objects.lookup(o.getName());
       if (a == null) {
-        error(errorNoSuchVariable(o.getName()), e);
+        error(errorNoSuchVariable(o.getName()), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       } else {
         e.set_type(a.type);
@@ -307,13 +337,17 @@ public class CoolAnalysis {
       assign a = (assign) e;
       ObjectData o = (ObjectData) symbols.objects.lookup(a.getName());
       if (o == null) {
-        error(errorNoSuchVariable(a.getName()), e);
+        error(errorNoSuchVariable(a.getName()), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       } else {
+
+        // Cannot assign to self
+        noSelfReference(a.getName(), e, symbols.class_);
+
         AbstractSymbol expectedType = o.type;
         typeCheckExpression(a.getExpression(), symbols);
         AbstractSymbol t = a.getExpression().get_type();
-        validateOrError(expectedType, t, errorTypeMismatch(a.getName(), expectedType, t), e);
+        validateOrError(expectedType, t, errorTypeMismatch(a.getName(), expectedType, t), e, symbols.class_);
         e.set_type(t);
       }
     }
@@ -339,7 +373,7 @@ public class CoolAnalysis {
         typeCheckExpression(c.getElse(), symbols);
         e.set_type(findLUB(c.getThen().get_type(), c.getElse().get_type()));
       } else {
-        error(String.format("conditional has predicate of type %s", predType), e);
+        error(String.format("conditional has predicate of type %s", predType), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       }
     }
@@ -348,7 +382,7 @@ public class CoolAnalysis {
     if (e instanceof loop) {
       loop l = (loop) e;
       typeCheckExpression(l.getPred(), symbols);
-      validateOrError(TreeConstants.Bool, l.getPred().get_type(), String.format("loop predicate is type %s not Bool", l.getPred().get_type()), e);
+      validateOrError(TreeConstants.Bool, l.getPred().get_type(), String.format("loop predicate is type %s not Bool", l.getPred().get_type()), e, symbols.class_);
       typeCheckExpression(l.getBody(), symbols);
       e.set_type(TreeConstants.Object_);
     }
@@ -358,17 +392,23 @@ public class CoolAnalysis {
       Cases c = ((typcase) e).getCases();
       List<AbstractSymbol> types = new ArrayList<AbstractSymbol>();
 
+      // TODO: Do I need to typecheck expr0?
+
       // Check each branch's expression when the branch's 
       // variable has the branch's type
       for (Enumeration e2 = c.getElements(); e2.hasMoreElements(); ) {
         branch b = (branch) e2.nextElement();
         symbols.objects.enterScope();
+
+        // Cannot use name self
+        noSelfReference(b.getName(), e, symbols.class_);
+
         symbols.objects.addId(b.getName(), new ObjectData(b.getType()));
         typeCheckExpression(b.getExpression(), symbols);
         symbols.objects.exitScope();
 
         if (types.contains(b.getType())) {
-          error(String.format("duplicate branch of type %s in case statement", b.getType()), e);
+          error(String.format("duplicate branch of type %s in case statement", b.getType()), e, symbols.class_);
         }
 
         types.add(b.getType());
@@ -383,6 +423,9 @@ public class CoolAnalysis {
       let l = (let) e;
       AbstractSymbol expectedType = l.getType();
 
+      // Cannot use name self
+      noSelfReference(l.getName(), e, symbols.class_);
+
       // Variables with no immediate bindings are assumed to be good
       if (l.getInit() instanceof no_expr) {
         l.getInit().set_type(expectedType);
@@ -390,7 +433,7 @@ public class CoolAnalysis {
         typeCheckExpression(l.getInit(), symbols);
       }
       AbstractSymbol initType = l.getInit().get_type();
-      validateOrError(expectedType, initType, errorTypeMismatch(l.getName(), expectedType, initType), e);
+      validateOrError(expectedType, initType, errorTypeMismatch(l.getName(), expectedType, initType), e, symbols.class_);
 
       // Check the body, taking into the account the newly introduced variable 
       symbols.objects.enterScope();
@@ -410,7 +453,7 @@ public class CoolAnalysis {
         AbstractSymbol t = (b instanceof lt) || (b instanceof leq) ? TreeConstants.Bool : TreeConstants.Int;
         e.set_type(t);
       } else {
-        error(String.format("BinaryExpression defined on Ints has operands %s and %s", l.get_type(), r.get_type()), e);
+        error(String.format("BinaryExpression defined on Ints has operands %s and %s", l.get_type(), r.get_type()), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       }
     }  
@@ -420,7 +463,7 @@ public class CoolAnalysis {
       neg n = (neg) e;
       Expression o = n.getOperand();
       typeCheckExpression(o, symbols);
-      validateOrError(TreeConstants.Int, o.get_type(), String.format("neg expression has operand %s", o.get_type()), e);
+      validateOrError(TreeConstants.Int, o.get_type(), String.format("neg expression has operand %s", o.get_type()), e, symbols.class_);
       e.set_type(o.get_type());
     }
 
@@ -429,11 +472,12 @@ public class CoolAnalysis {
       comp n = (comp) e;
       Expression o = n.getOperand();
       typeCheckExpression(o, symbols);
-      validateOrError(TreeConstants.Bool, o.get_type(), String.format("comp expression has operand %s", o.get_type()), e);
+      validateOrError(TreeConstants.Bool, o.get_type(), String.format("comp expression has operand %s", o.get_type()), e, symbols.class_);
       e.set_type(o.get_type());
     }
 
     // Equality
+    // TODO: Only force same type among builtins
     if (e instanceof eq) {
       eq e2 = (eq) e;
       Expression l = e2.getLeft();
@@ -445,7 +489,7 @@ public class CoolAnalysis {
       if (lt.equals(rt)) {
         e.set_type(TreeConstants.Bool);
       } else {
-        error(String.format("eq (=) expression has operands %s and %s", lt, rt), e);
+        error(String.format("eq (=) expression has operands %s and %s", lt, rt), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       }
     }
@@ -458,12 +502,6 @@ public class CoolAnalysis {
     return left.get_type().equals(TreeConstants.Int) && right.get_type().equals(TreeConstants.Int);
   }
 
-  private void validateOrError(AbstractSymbol expected, AbstractSymbol actual, String error, TreeNode t) {
-    if (!(expected.equals(actual) || isAncestor(expected, actual))) {
-      error(error, t);
-    }
-  }
-
   private String errorTypeMismatch(AbstractSymbol a, AbstractSymbol expected, AbstractSymbol actual) {
     return String.format("%s declared to have type %s but has type %s", a, expected, actual);
   }
@@ -472,7 +510,24 @@ public class CoolAnalysis {
     return String.format("no variable %s defined in current scope", v);
   }
 
-  private void error(String error, TreeNode t) {
+  private void noSelfReference(AbstractSymbol s, TreeNode t, class_c currentClass) {
+    if (s.equals(TreeConstants.self)) {
+      error("symbol self cannot be re-bound", t, currentClass);
+    }
+  }
+
+  private void validateOrError(AbstractSymbol expected, AbstractSymbol actual, String error, TreeNode t, class_c currentClass) {
+    if (!(
+      (expected.equals(actual) || 
+      isAncestor(expected, actual)) ||
+      (expected.equals(TreeConstants.SELF_TYPE) && actual.equals(currentClass.getName())) ||
+      (expected.equals(TreeConstants.SELF_TYPE) && isAncestor(currentClass.getName(), actual))
+    )) {
+      error(error, t, currentClass);
+    }
+  }
+
+  private void error(String error, TreeNode t, class_c currentClass) {
     AbstractSymbol filename = currentClass.getFilename();
     errorCount++;
     System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
