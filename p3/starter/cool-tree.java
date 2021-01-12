@@ -1341,6 +1341,8 @@ class string_const extends Expression implements SimpleExpression {
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class new_ extends Expression {
     protected AbstractSymbol type_name;
+
+    public AbstractSymbol getType() { return type_name; }
     /** Creates "new_" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -1379,6 +1381,8 @@ class isvoid extends Expression {
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for e1
       */
+    public Expression getExpression() { return e1; }
+
     public isvoid(int lineNumber, Expression a1) {
         super(lineNumber);
         e1 = a1;

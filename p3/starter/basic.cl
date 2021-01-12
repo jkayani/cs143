@@ -88,18 +88,29 @@ class Animal {
 		badcase5 : Dingo <- case dingo of self:Dingo => self; esac;
 
 	-- Method declarations
-	good1() : Int { 1 };
-	good2(good2 : Bool) : Bool  { good2 };
-	good3() : Bool  { good3 };
-	good4(a : Int, b : Int) : Int  { { true; fAlSe; a + b; } };
-	good5(a : Int, b : Int) : Animal  { dog };
-	good6() : SELF_TYPE  { self };
-	good7() : SELF_TYPE  { dog };
-	self(a : Int, b : Int) : Animal  { dog };
-	bad1(a : Int, b : Int) : String  { { true; fAlSe; a + b; } };
-	bad2() : Int  { a + b };
-	bad3() : Bool  { good2 };
-	bad4(self:Animal) : Animal  { self };
+		good1() : Int { 1 };
+		good2(good2 : Bool) : Bool  { good2 };
+		good3() : Bool  { good3 };
+		good4(a : Int, b : Int) : Int  { { true; fAlSe; a + b; } };
+		good5(a : Int, b : Int) : Animal  { dog };
+		good6() : SELF_TYPE  { self };
+		good7() : SELF_TYPE  { dog };
+		self(a : Int, b : Int) : Animal  { dog };
+		bad1(a : Int, b : Int) : String  { { true; fAlSe; a + b; } };
+		bad2() : Int  { a + b };
+		bad3() : Bool  { good2 };
+		bad4(self:Animal) : Animal  { self };
+
+	-- Isvoid 
+		temp: Int;
+		goodisvoid1 : Bool <- isvoid temp;
+		goodisvoid2 : Bool <- isvoid self;
+		badisvoid1 : Int <- isvoid temp;
+
+	-- New 
+		goodnew1 : SELF_TYPE <- new Dog;
+		goodnew2 : SELF_TYPE <- new Animal;
+		badnew1 : Dingo <- new Dog;
 };
 
 class Dingo inherits Dog {};

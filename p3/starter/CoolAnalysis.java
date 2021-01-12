@@ -444,6 +444,25 @@ public class CoolAnalysis {
       e.set_type(l.getBody().get_type());
     }
 
+    // isvoid
+    if (e instanceof isvoid) {
+      isvoid i = (isvoid) e;
+      typeCheckExpression(i.getExpression(), symbols);
+      e.set_type(TreeConstants.Bool);
+    }
+
+    // New
+    if (e instanceof new_) {
+      new_ n = (new_) e;
+      AbstractSymbol t;
+      if (n.getType().equals(TreeConstants.SELF_TYPE)) {
+        t = symbols.class_.getName();
+      } else {
+        t = n.getType();
+      }
+      e.set_type(t);
+    }
+
     // Binary Int operations
     if (e instanceof BinaryExpression) {
       BinaryExpression b = (BinaryExpression) e;
