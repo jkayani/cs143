@@ -233,7 +233,11 @@ public class CoolAnalysis {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof method) {
           method m = (method) f;
-          currTable.methods.addId(m.getName(), new MethodData(currClass.getName(), m.getReturnType(), m.getFormals()));
+          AbstractSymbol returnType = m.getReturnType();
+          if (returnType.equals(TreeConstants.SELF_TYPE)) {
+            returnType = currClass.getName();
+          }
+          currTable.methods.addId(m.getName(), new MethodData(currClass.getName(), returnType, m.getFormals()));
         }
       }
     }
@@ -247,7 +251,11 @@ public class CoolAnalysis {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
-        currTable.objects.addId(a.getName(), new ObjectData(a.getType()));
+        AbstractSymbol type = a.getType();
+        if (type.equals(TreeConstants.SELF_TYPE)) {
+          type = C.getName();
+        }
+        currTable.objects.addId(a.getName(), new ObjectData(type));
       }
     }
     return currTable;
@@ -312,6 +320,35 @@ public class CoolAnalysis {
     }
   }
 
+  private void typeCheckDispatch(Expression node, AbstractSymbol name, AbstractSymbol className, Expressions args, ClassTable symbols) {
+    ClassTable c = program.get(className);
+    MethodData m = (MethodData) c.methods.lookup(name);
+    if (m == null) {
+      error(errorNoSuchMethod(name, c.class_.getName()), node, symbols.class_);
+      node.set_type(TreeConstants.Object_);
+    }
+    else {
+      int parameterCount = m.args.getLength();
+      if (parameterCount != args.getLength()) {
+        error(errorBadMethodCall(name, m.className, m), node, symbols.class_);
+      }
+      else {
+        for (int i = 0; i < args.getLength(); i++) {
+          Expression arg = (Expression) args.getNth(i);
+          formalc parameter = (formalc) m.args.getNth(i);
+
+          // Check that any variables referenced exist
+          typeCheckExpression(arg, symbols);
+
+          // Check that the type matches method signature
+          AbstractSymbol actual = arg.get_type();
+          validateOrError(parameter.getType(), actual, errorTypeMismatch(parameter.getName(), parameter.getType(), actual), arg, symbols.class_);
+        }
+      }
+      node.set_type(m.returnType);
+    }
+  }
+
   private void typeCheckExpression(Expression e, ClassTable symbols) {
 
     // Literals
@@ -319,6 +356,35 @@ public class CoolAnalysis {
       SimpleExpression s = (SimpleExpression) e;
       e.set_type(s.getType());
     }
+
+    // Simple method calls
+    if (e instanceof dispatch) {
+      dispatch d = (dispatch) e;
+
+      // Calculate the expression type to know which method table to use
+      typeCheckExpression(d.getExpression(), symbols);
+      AbstractSymbol className = d.getExpression().get_type();
+
+      typeCheckDispatch(e, d.getName(), className, d.getArgs(), symbols);
+    }
+
+    // Superclass method calls
+    if (e instanceof static_dispatch) {
+      static_dispatch d = (static_dispatch) e;
+
+      // Calculate the expression type to know which method table to use
+      typeCheckExpression(d.getExpression(), symbols);
+      AbstractSymbol className = d.getExpression().get_type();
+      AbstractSymbol superclassName = d.getType();
+
+      if (!isAncestor(superclassName, className)) {
+        error(String.format("%s is not a superclass of %s", className, superclassName), e, symbols.class_);
+        e.set_type(TreeConstants.Object_);
+      } else {
+        typeCheckDispatch(e, d.getName(), superclassName, d.getArgs(), symbols);
+      }
+    }
+
 
     // Variable reference
     if (e instanceof object) {
@@ -389,10 +455,12 @@ public class CoolAnalysis {
 
     // Case statements
     if (e instanceof typcase) {
-      Cases c = ((typcase) e).getCases();
+      typcase t = (typcase) e;
+      Cases c = t.getCases();
       List<AbstractSymbol> types = new ArrayList<AbstractSymbol>();
 
-      // TODO: Do I need to typecheck expr0?
+      // Type check the case's switch statement
+      typeCheckExpression(t.getExpression(), symbols);
 
       // Check each branch's expression when the branch's 
       // variable has the branch's type
@@ -529,6 +597,14 @@ public class CoolAnalysis {
     return String.format("no variable %s defined in current scope", v);
   }
 
+  private String errorNoSuchMethod(AbstractSymbol v, AbstractSymbol c) {
+    return String.format("no method %s defined for class %s", v, c);
+  }
+
+  private String errorBadMethodCall(AbstractSymbol v, AbstractSymbol c, MethodData m) {
+    return String.format("%s.%s expects %d arguments", c, v, m.args.getLength());
+  }
+
   private void noSelfReference(AbstractSymbol s, TreeNode t, class_c currentClass) {
     if (s.equals(TreeConstants.self)) {
       error("symbol self cannot be re-bound", t, currentClass);
@@ -536,12 +612,13 @@ public class CoolAnalysis {
   }
 
   private void validateOrError(AbstractSymbol expected, AbstractSymbol actual, String error, TreeNode t, class_c currentClass) {
-    if (!(
-      (expected.equals(actual) || 
-      isAncestor(expected, actual)) ||
-      (expected.equals(TreeConstants.SELF_TYPE) && actual.equals(currentClass.getName())) ||
-      (expected.equals(TreeConstants.SELF_TYPE) && isAncestor(currentClass.getName(), actual))
-    )) {
+    if (expected.equals(TreeConstants.SELF_TYPE)) {
+      expected = currentClass.getName();
+    }
+    if (actual.equals(TreeConstants.SELF_TYPE)) {
+      actual = currentClass.getName();
+    }
+    if (!(expected.equals(actual) || isAncestor(expected, actual))) {
       error(error, t, currentClass);
     }
   }

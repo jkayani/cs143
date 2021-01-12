@@ -567,6 +567,12 @@ class static_dispatch extends Expression {
     protected AbstractSymbol type_name;
     protected AbstractSymbol name;
     protected Expressions actual;
+
+    public Expression getExpression() { return expr; }
+    public Expressions getArgs() { return actual; }
+    public AbstractSymbol getName() { return name; }
+    public AbstractSymbol getType() { return type_name; }
+
     /** Creates "static_dispatch" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -618,6 +624,11 @@ class dispatch extends Expression {
     protected Expression expr;
     protected AbstractSymbol name;
     protected Expressions actual;
+
+    public Expression getExpression() { return expr; }
+    public AbstractSymbol getName() { return name; }
+    public Expressions getArgs() { return actual; }
+
     /** Creates "dispatch" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
@@ -756,6 +767,7 @@ class typcase extends Expression {
     protected Cases cases;
 
     public Cases getCases() { return cases; }
+    public Expression getExpression() { return expr; }
 
     /** Creates "typcase" AST node. 
       *

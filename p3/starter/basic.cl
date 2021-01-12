@@ -46,6 +46,7 @@ class Animal {
 		goodlet3 : Int <- let x:Int, y:Int <- 2 in x + y;
 		goodlet4 : Int <- let x:Int in let y:Int <- 2 in x + y;
 		goodlet5 : Int <- let x:Int <- good in let y:Int <- good in x + y;
+		goodlet6 : SELF_TYPE <- let x:SELF_TYPE <- self in x;
 		badlet1 : Int <- let x:Bool <- 1, y:Int <- 2 in x + y;
 		badlet2 : Bool <- let x:Bool <- 1, y:Bool <- 2 in x + y;
 		badlet3 : Int <- let x:Int <- 1, y:Int <- 2 in x + y + z;
@@ -111,10 +112,38 @@ class Animal {
 		goodnew1 : SELF_TYPE <- new Dog;
 		goodnew2 : SELF_TYPE <- new Animal;
 		badnew1 : Dingo <- new Dog;
+
+	-- Method calls
+		goodmethodcall1 : Int <- self.good1();
+		goodmethodcall2 : Bool <- self.good2(true);
+		goodmethodcall3 : Bool <- good2(true);
+		goodmethodcall4 : Bool <- good2(self.good3());
+
+		goodmethodcall45 : Int <- let d:Dog <- new Dog in d.getLegCount();
+    goodmethodcall5 : Int <- let d:Dingo <- new Dingo in d@Dog.getLegCount();
+	  goodmethodcall6 : Dog <- let d:Dingo <- new Dingo in d@Dog.setName("Comet");
+		goodmethodcall7 : Dingo <- let d:Dingo <- new Dingo in d.setName("Dingus");
+		goodmethodcall8 : SELF_TYPE <- let d:Dingo <- new Dingo in d.setName("Dingus");
+
+		badcall1 : Int <- hingadingadurgen();
+		badcall2 : Int <- self.hingadingadurgen();
+		badcall3 : Int <- good1(1, 2, 3);
+		badcall4 : Bool <- self.good1();
+		badcall45 : Bool <- self.good2(thevariabletrue);
+		badcall5 : Bool <- let d:Dog <- new Dog in d.isDingo();
+		badcall6 : Bool <- let d:Dog <- new Dog in d@Dingo.isDingo();
+		badcall7 : Dingo <- let d:Dingo <- new Dingo in d.setName();
 };
 
-class Dingo inherits Dog {};
-class Dog inherits Animal {};
+class Dingo inherits Dog {
+	setName(n: String) : SELF_TYPE { { name <- n.concat(" the Dingo!"); self; } };
+	isDingo() : Bool { true };
+};
+class Dog inherits Animal {
+	name : String;
+	setName(n: String) : SELF_TYPE { { name <- n; self; } };
+	getLegCount() : Int { 4 };
+};
 class Cat inherits Animal {};
 class Bear inherits Animal {};
 class Human {};
