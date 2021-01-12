@@ -1,20 +1,17 @@
 import java.util.*;
 
-// Object is the implicit parent of all classes
-// IO, Int, String, Bool cannot be extended or redefined
-// All mentioned classes must be defined
-// All programs must have Main class
-// Inheritance may not be cyclical: class A inherits from B, and class B inherits from A is not allowed
 public class CoolAnalysis {
 
   public CoolAnalysis() {}
 
   private static int errorCount = 0;
   private static ArrayList<AbstractSymbol> builtins = new ArrayList<AbstractSymbol>();
+  private static ArrayList<AbstractSymbol> strictlyComparable = new ArrayList<AbstractSymbol>();
 
   // Since COOL has single inheritance, each class has exactly 1 parent
   private static Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
 
+  // TODO: Add attributes and methods of builtin classes to program
   private static void init() {
     classGraph.put(TreeConstants.Object_, null);
     classGraph.put(TreeConstants.Int, TreeConstants.Object_);
@@ -27,6 +24,10 @@ public class CoolAnalysis {
     builtins.add(TreeConstants.Str);
     builtins.add(TreeConstants.Bool);
     builtins.add(TreeConstants.IO);
+
+    strictlyComparable.add(TreeConstants.Int);
+    strictlyComparable.add(TreeConstants.Str);
+    strictlyComparable.add(TreeConstants.Bool);
   }
 
   private static void printGraph() {
@@ -179,6 +180,8 @@ public class CoolAnalysis {
     // findMainClass();
     System.out.printf("\n\n");
     discoverPublicMembers(classes);
+
+    // TODO: Check all classes of program
     typeCheckClass((class_c) classes.getNth(0));
   }
 
@@ -564,7 +567,6 @@ public class CoolAnalysis {
     }
 
     // Equality
-    // TODO: Only force same type among builtins
     if (e instanceof eq) {
       eq e2 = (eq) e;
       Expression l = e2.getLeft();
@@ -573,7 +575,10 @@ public class CoolAnalysis {
       typeCheckExpression(r, symbols);
       AbstractSymbol lt = l.get_type();
       AbstractSymbol rt = r.get_type();
-      if (lt.equals(rt)) {
+
+      // Each of the strictlyComparable types can only be compared to itself
+      boolean strictMode = strictlyComparable.contains(lt) || strictlyComparable.contains(rt);
+      if (!strictMode || (strictMode && lt.equals(rt))) {
         e.set_type(TreeConstants.Bool);
       } else {
         error(String.format("eq (=) expression has operands %s and %s", lt, rt), e, symbols.class_);

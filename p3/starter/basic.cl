@@ -7,10 +7,12 @@ class Animal {
 		bad1 : Int <- not ~(1 + 1 - (1 - 1) * 1 / (1 + 1)) <= (1 + 1) * 1;
 		bad2 : Bool <- ~(1 + 1 - (1 - 1) * 1 / (1 + 1)) <= ((1 + 1) * 1 < 10);
 
-	-- Attribute dereference
+	-- Equality and variable dereference
 		goodeq : Bool <- tRuE = good1;
+		goodinaustralia : Bool <- dog = dingo;
 		badeq : Bool <- tRuE = (5 + 5 + (5 - 5));
 		badeq2 : Bool <- "tRuE" = good1;
+		badeq3 : Bool <- "tRuE" = 5;
 		badvar : Bool <- not hingadingadurgen;
 		self : Bool <- true;
 
