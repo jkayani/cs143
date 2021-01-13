@@ -177,6 +177,39 @@ public class CoolAnalysis {
     return builtins;
   }
 
+  /* Entrypoint */
+  public int analyze(Classes classes) {
+    init();
+
+    // Check for well formed class graph
+    buildGraph(classes);
+    // System.out.printf("\n---Inheritance Graph---\n");
+    // printGraph();
+    // System.out.printf("\n\n");
+    // System.out.printf("---Undefined Classes---\n");
+    undefinedClasses();
+    // System.out.printf("\n\n");
+    // System.out.printf("---Cycles---\n");
+    findCycles();
+    // System.out.printf("\n\n");
+    // System.out.printf("---Main class---\n");
+
+    // TODO: Reenable
+    // findMainClass();
+
+    if (errorCount > 0) {
+      error("cannot proceed with semantic analysis");
+      return errorCount;
+    }
+
+    discoverPublicMembers(classes);
+    for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
+      typeCheckClass((class_c) e.nextElement());
+    }
+
+    return errorCount;
+  }
+
   private void init() {
 
     // Add the builtin classes to the graph
@@ -337,39 +370,6 @@ public class CoolAnalysis {
       lub = findLUB(lub, l.get(i));
     }
     return lub;
-  }
-
-  /* Entrypoint */
-  public int analyze(Classes classes) {
-    init();
-
-    // Check for well formed class graph
-    buildGraph(classes);
-    // System.out.printf("\n---Inheritance Graph---\n");
-    // printGraph();
-    // System.out.printf("\n\n");
-    // System.out.printf("---Undefined Classes---\n");
-    undefinedClasses();
-    // System.out.printf("\n\n");
-    // System.out.printf("---Cycles---\n");
-    findCycles();
-    // System.out.printf("\n\n");
-    // System.out.printf("---Main class---\n");
-
-    // TODO: Reenable
-    // findMainClass();
-
-    if (errorCount > 0) {
-      error("cannot proceed with semantic analysis");
-      return errorCount;
-    }
-
-    discoverPublicMembers(classes);
-    for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
-      typeCheckClass((class_c) e.nextElement());
-    }
-
-    return errorCount;
   }
 
   /* The programSymbols entry for each class */
@@ -816,10 +816,12 @@ public class CoolAnalysis {
     AbstractSymbol filename = currentClass.getFilename();
     errorCount++;
     System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
+    System.out.println("Compilation halted due to static semantic errors.");
   }
 
   private void error(String error) {
     errorCount++;
     System.out.printf("%s\n", error);
+    System.out.println("Compilation halted due to static semantic errors.");
   }
 }

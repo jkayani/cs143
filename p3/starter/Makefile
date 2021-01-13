@@ -34,7 +34,7 @@ OUTPUT= example.output
 JAVAC := javac
 
 # rt.jar yet again
-CLASSPATH := ${CLASSDIR}/lib:.:/usr/java/lib/rt.jar
+CLASSPATH := ${CLASSDIR}/lib:.:/usr/java/lib/rt.jar:/usr/class/lib/java_cup/runtime/
 
 source: ${SRC} ${TSRC} ${LSRC} ${LIBS} ${CSRC}
 
