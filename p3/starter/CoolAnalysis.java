@@ -457,12 +457,14 @@ public class CoolAnalysis {
     ClassTable symbols = discoverAttributes(C);
 
     // Add self type
+    // TODO: add `self` as the literal SELF_TYPE
     symbols.objects.addId(TreeConstants.self, new ObjectData(C.getName()));
 
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements();) {
       Feature f = (Feature) e.nextElement();
 
       // Attributes
+      // TODO: error if same as attribute in ancestor class
       if (f instanceof attr) {
         attr a = (attr) f;
 
@@ -481,6 +483,7 @@ public class CoolAnalysis {
       } 
 
       // Method declarations
+      // TODO: error if method name same as in ancestor class but mismatching signatures
       else if (f instanceof method) {
         method m = (method) f;
 
@@ -492,10 +495,13 @@ public class CoolAnalysis {
           // Cannot use self
           noSelfReference(f3.getName(), f, C);
 
+          // TODO: error if parameter name already used
           symbols.objects.addId(f3.getName(), new ObjectData(f3.getType()));
         }
 
         // Declared return type must match method's expression type
+        // TODO: check that return type is a known class
+        // TODO: handle SELF_TYPE
         typeCheckExpression(m.getExpression(), symbols);
         AbstractSymbol expected = m.getReturnType();
         AbstractSymbol t = m.getExpression().get_type();
