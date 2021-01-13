@@ -124,7 +124,7 @@ class Animal {
 		goodmethodcall45 : Int <- let d:Dog <- new Dog in d.getLegCount();
     goodmethodcall5 : Int <- let d:Dingo <- new Dingo in d@Dog.getLegCount();
 	  goodmethodcall6 : Dog <- let d:Dingo <- new Dingo in d@Dog.setName("Comet");
-		goodmethodcall7 : Dingo <- let d:Dingo <- new Dingo in d.setName("Dingus");
+		goodmethodcall7 : Dingo <- let d:Dingo <- new Dingo in d.setName("Dingus".concat(", My dear Dingo"));
 		goodmethodcall8 : SELF_TYPE <- let d:Dingo <- new Dingo in d.setName("Dingus");
 
 		badcall1 : Int <- hingadingadurgen();
@@ -138,7 +138,7 @@ class Animal {
 };
 
 class Dingo inherits Dog {
-	setName(n: String) : SELF_TYPE { { name <- n.concat(" the Dingo!"); self; } };
+	setName(n: String) : SELF_TYPE { { self@Dog.setName(n.concat(" the Dingo!")); self; } };
 	isDingo() : Bool { true };
 };
 class Dog inherits Animal {
@@ -149,12 +149,4 @@ class Dog inherits Animal {
 class Cat inherits Animal {};
 class Bear inherits Animal {};
 class Human {};
-
-(*
-	class B inherits D {
-		x : Int <- (new A).foo(1, 2);
-		bar() : Int {
-			x
-		};
-	};
-*)
+class Main {};

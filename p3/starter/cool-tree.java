@@ -17,7 +17,7 @@ abstract class Program extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void semant();
+    public abstract int semant();
 }
 
 
@@ -268,9 +268,9 @@ class programc extends Program {
     	errors. Part (2) can be done in a second stage when you want
 	to test the complete compiler.
     */
-    public void semant() {
+    public int semant() {
         CoolAnalysis c = new CoolAnalysis();
-        c.analyze(this, this.classes);
+        return c.analyze(this.classes);
     }
 
 }

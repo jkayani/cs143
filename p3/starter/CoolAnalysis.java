@@ -4,45 +4,220 @@ public class CoolAnalysis {
 
   public CoolAnalysis() {}
 
-  private static int errorCount = 0;
-  private static ArrayList<AbstractSymbol> builtins = new ArrayList<AbstractSymbol>();
-  private static ArrayList<AbstractSymbol> strictlyComparable = new ArrayList<AbstractSymbol>();
+  private int errorCount = 0;
+  private ArrayList<AbstractSymbol> builtins = new ArrayList<AbstractSymbol>();
+  private ArrayList<AbstractSymbol> strictlyComparable = new ArrayList<AbstractSymbol>();
 
-  // Since COOL has single inheritance, each class has exactly 1 parent
-  private static Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
+  /* The inheritance graph, mapping a class to it's parent */
+  private Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
 
-  // TODO: Add attributes and methods of builtin classes to program
-  private static void init() {
+  /* The entire symbol table, mapping each class to it's symbol table */
+  private Map<AbstractSymbol, ClassTable> programSymbols = new HashMap<AbstractSymbol, ClassTable>();
+
+  private ArrayList<class_c> getBuiltinClasses() {
+    AbstractSymbol filename = AbstractTable.stringtable.addString("<basic class>");
+
+    // The following demonstrates how to create dummy parse trees to
+    // refer to basic Cool classes.  There's no need for method
+    // bodies -- these are already built into the runtime system.
+
+    // IMPORTANT: The results of the following expressions are
+    // stored in local variables.  You will want to do something
+    // with those variables at the end of this method to make this
+    // code meaningful.
+
+    // The Object class has no parent class. Its methods are
+    //        cool_abort() : Object    aborts the program
+    //        type_name() : Str        returns a string representation 
+    //                                 of class name
+    //        copy() : SELF_TYPE       returns a copy of the object
+
+    class_c Object_class = 
+        new class_c(0, 
+            TreeConstants.Object_, 
+            TreeConstants.No_class,
+            new Features(0)
+          .appendElement(new method(0, 
+                  TreeConstants.cool_abort, 
+                  new Formals(0), 
+                  TreeConstants.Object_, 
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.type_name,
+                  new Formals(0),
+                  TreeConstants.Str,
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.copy,
+                  new Formals(0),
+                  TreeConstants.SELF_TYPE,
+                  new no_expr(0))),
+            filename);
+    
+    // The IO class inherits from Object. Its methods are
+    //        out_string(Str) : SELF_TYPE  writes a string to the output
+    //        out_int(Int) : SELF_TYPE      "    an int    "  "     "
+    //        in_string() : Str            reads a string from the input
+    //        in_int() : Int                "   an int     "  "     "
+
+    class_c IO_class = 
+        new class_c(0,
+            TreeConstants.IO,
+            TreeConstants.Object_,
+            new Features(0)
+          .appendElement(new method(0,
+                  TreeConstants.out_string,
+                  new Formals(0)
+                .appendElement(new formalc(0,
+                      TreeConstants.arg,
+                      TreeConstants.Str)),
+                  TreeConstants.SELF_TYPE,
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.out_int,
+                  new Formals(0)
+                .appendElement(new formalc(0,
+                      TreeConstants.arg,
+                      TreeConstants.Int)),
+                  TreeConstants.SELF_TYPE,
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.in_string,
+                  new Formals(0),
+                  TreeConstants.Str,
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.in_int,
+                  new Formals(0),
+                  TreeConstants.Int,
+                  new no_expr(0))),
+            filename);
+
+    // The Int class has no methods and only a single attribute, the
+    // "val" for the integer.
+
+    class_c Int_class = 
+        new class_c(0,
+            TreeConstants.Int,
+            TreeConstants.Object_,
+            new Features(0)
+          .appendElement(new attr(0,
+                TreeConstants.val,
+                TreeConstants.prim_slot,
+                new no_expr(0))),
+            filename);
+
+    // Bool also has only the "val" slot.
+    class_c Bool_class = 
+        new class_c(0,
+            TreeConstants.Bool,
+            TreeConstants.Object_,
+            new Features(0)
+          .appendElement(new attr(0,
+                TreeConstants.val,
+                TreeConstants.prim_slot,
+                new no_expr(0))),
+            filename);
+
+    // The class Str has a number of slots and operations:
+    //       val                              the length of the string
+    //       str_field                        the string itself
+    //       length() : Int                   returns length of the string
+    //       concat(arg: Str) : Str           performs string concatenation
+    //       substr(arg: Int, arg2: Int): Str substring selection
+
+    class_c Str_class =
+        new class_c(0,
+            TreeConstants.Str,
+            TreeConstants.Object_,
+            new Features(0)
+          .appendElement(new attr(0,
+                TreeConstants.val,
+                TreeConstants.Int,
+                new no_expr(0)))
+          .appendElement(new attr(0,
+                TreeConstants.str_field,
+                TreeConstants.prim_slot,
+                new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.length,
+                  new Formals(0),
+                  TreeConstants.Int,
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.concat,
+                  new Formals(0)
+                .appendElement(new formalc(0,
+                      TreeConstants.arg, 
+                      TreeConstants.Str)),
+                  TreeConstants.Str,
+                  new no_expr(0)))
+          .appendElement(new method(0,
+                  TreeConstants.substr,
+                  new Formals(0)
+                .appendElement(new formalc(0,
+                      TreeConstants.arg,
+                      TreeConstants.Int))
+                .appendElement(new formalc(0,
+                      TreeConstants.arg2,
+                      TreeConstants.Int)),
+                  TreeConstants.Str,
+                  new no_expr(0))),
+            filename);
+
+    /* Do somethind with Object_class, IO_class, Int_class,
+            Bool_class, and Str_class here */
+
+    ArrayList<class_c> builtins = new ArrayList<class_c>();
+    builtins.add(Object_class);
+    builtins.add(Int_class);
+    builtins.add(Bool_class);
+    builtins.add(Str_class);
+    builtins.add(IO_class);
+    return builtins;
+  }
+
+  private void init() {
+
+    // Add the builtin classes to the graph
     classGraph.put(TreeConstants.Object_, null);
     classGraph.put(TreeConstants.Int, TreeConstants.Object_);
     classGraph.put(TreeConstants.Str, TreeConstants.Object_);
     classGraph.put(TreeConstants.IO, TreeConstants.Object_);
     classGraph.put(TreeConstants.Bool, TreeConstants.Object_);
 
+    // Keep track of the bulitins for cycle detection
     builtins.add(TreeConstants.Object_);
     builtins.add(TreeConstants.Int);
     builtins.add(TreeConstants.Str);
     builtins.add(TreeConstants.Bool);
     builtins.add(TreeConstants.IO);
 
+    // Add the methods and attributes of the builtins to programSymbols
+    for (class_c C : getBuiltinClasses()) {
+      programSymbols.put(C.getName(), new ClassTable(C));
+      discoverMethods(C);
+      discoverAttributes(C);
+    }
+
+    // Keep track of the strictly comparable types for type checking
     strictlyComparable.add(TreeConstants.Int);
     strictlyComparable.add(TreeConstants.Str);
     strictlyComparable.add(TreeConstants.Bool);
   }
 
-  private static void printGraph() {
+  private void printGraph() {
     for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
       System.out.printf("Class %s inherits from %s\n", e.getKey(), e.getValue());
     }
   }
 
-  private static void buildGraph(Classes classes) {
+  private void buildGraph(Classes classes) {
     for (int i = 0; i < classes.getLength(); i++) {
       class_c class_ = (class_c) classes.getNth(i);
       AbstractSymbol name = class_.getName();
       if (classGraph.containsKey(name)) {
-        System.out.printf("Error, class %s already defined\n", name);
-        errorCount++;
+        error(String.format("class %s already defined", name), class_, class_);
       } 
       else {
         AbstractSymbol parentName = class_.getParent();
@@ -51,52 +226,52 @@ public class CoolAnalysis {
     }
   }
 
-  private static void undefinedClasses() {
+  private void undefinedClasses() {
     for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
       if (!classGraph.containsKey(e.getValue()) && e.getValue() != null) {
-        System.out.printf("Error, %s is the parent of %s but is not defined\n", e.getValue(), e.getKey());
-        errorCount++;
+        error(String.format("missing class definition for class %s", e.getValue()));
       }
     }
   }
 
-  private static void findMainClass() {
+  private void findMainClass() {
     if (!classGraph.containsKey("Main")) {
-      System.out.printf("Error, Main class is missing\n");
-      errorCount++;
+      error("no class Main found");
     }
+    // TODO, look for main method with 0 parameters
   }
 
-  // Finding cycles means starting at a class, 
-  // following the hierarchy to the end, and repeating for all uncovered classes. 
-  // Failure indicates a cycle
-  private static void findCycles() {
+  private void findCycles() {
     ArrayList<AbstractSymbol> visited = new ArrayList<AbstractSymbol>();
+    // Finding cycles means starting at a class, 
+    // following the hierarchy to the end, and repeating for all uncovered classes. 
+    // Failure indicates a cycle
     for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
-      System.out.printf("Next iteration\n");
-      System.out.println(visited);
+      // System.out.printf("Next iteration\n");
+      // System.out.println(visited);
 
       // Builtins are non-cyclical, and any class in a known non-cyclical path won't cause a cycle
       if (visited.contains(e.getKey()) || builtins.contains(e.getKey())) {
-        System.out.printf("Skipping %s\n", e.getKey());
+        // System.out.printf("Skipping %s\n", e.getKey());
         continue;
       }
 
       ArrayList<AbstractSymbol> visitedInRun = new ArrayList<AbstractSymbol>();
       if (cycles(e.getKey(), visitedInRun, visited) > 0) {
-        System.out.printf("Error, the class graph has a cycle");
+        // System.out.printf("Error, the class graph has a cycle");
+        error("class inheritance graph has a cycle");
         return;
       }
       visited.addAll(visitedInRun);
     }
   }
-  private static int cycles(AbstractSymbol node, ArrayList<AbstractSymbol> visited, ArrayList<AbstractSymbol> allVisited) {
+  private int cycles(AbstractSymbol node, ArrayList<AbstractSymbol> visited, ArrayList<AbstractSymbol> allVisited) {
     if (allVisited.contains(node)) {
       return 0;
     }
-    System.out.printf("Visiting %s\n", node);
+    // System.out.printf("Visiting %s\n", node);
     if (visited.contains(node)) {
-      System.out.printf("Error, %s was already seen\n", node);
+      // System.out.printf("Error, %s was already seen\n", node);
       return ++errorCount;
     } 
     else {
@@ -164,27 +339,40 @@ public class CoolAnalysis {
     return lub;
   }
 
-  public void analyze(Program p, Classes classes) {
+  /* Entrypoint */
+  public int analyze(Classes classes) {
     init();
+
+    // Check for well formed class graph
     buildGraph(classes);
     // System.out.printf("\n---Inheritance Graph---\n");
     // printGraph();
     // System.out.printf("\n\n");
     // System.out.printf("---Undefined Classes---\n");
-    // undefinedClasses();
+    undefinedClasses();
     // System.out.printf("\n\n");
     // System.out.printf("---Cycles---\n");
-    // findCycles();
+    findCycles();
     // System.out.printf("\n\n");
     // System.out.printf("---Main class---\n");
-    // findMainClass();
-    System.out.printf("\n\n");
-    discoverPublicMembers(classes);
 
-    // TODO: Check all classes of program
-    typeCheckClass((class_c) classes.getNth(0));
+    // TODO: Reenable
+    // findMainClass();
+
+    if (errorCount > 0) {
+      error("cannot proceed with semantic analysis");
+      return errorCount;
+    }
+
+    discoverPublicMembers(classes);
+    for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
+      typeCheckClass((class_c) e.nextElement());
+    }
+
+    return errorCount;
   }
 
+  /* The programSymbols entry for each class */
   private class ClassTable {
     public SymbolTable objects = new SymbolTable();
     public SymbolTable methods = new SymbolTable();
@@ -194,17 +382,13 @@ public class CoolAnalysis {
       return String.format("\nObjects: %s\nMethods: %s\n", objects.toString(), methods.toString());
     }
   }
-  // program will map class names to ClassTable's
-  private static Map<AbstractSymbol, ClassTable> program = new HashMap<AbstractSymbol, ClassTable>();
-
-  /*
-    Data for SymbolTable entries
-  */
+  /* The SymbolTable entry for variables */
   private class ObjectData {
     public AbstractSymbol type;
     public ObjectData(AbstractSymbol a) { type = a; }
     public String toString() { return type.toString(); }
   }
+  /* The SymbolTable entry for methods */
   private class MethodData {
     public AbstractSymbol className;
     public AbstractSymbol returnType;
@@ -222,32 +406,37 @@ public class CoolAnalysis {
 
   /* 
   * Discover all class names, and method names+signatures
-  * since these are the only public data
+  * since these are required before any type checking
   */
   private void discoverPublicMembers(Classes classes) {
     for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
-
       class_c currClass = (class_c) e.nextElement();
       ClassTable currTable = new ClassTable(currClass);
-      program.put(currClass.getName(), currTable);
-
-      currTable.methods.enterScope();
-      for (Enumeration e2 = currClass.getFeatures().getElements(); e2.hasMoreElements(); ) {
-        Feature f = (Feature) e2.nextElement();
-        if (f instanceof method) {
-          method m = (method) f;
-          AbstractSymbol returnType = m.getReturnType();
-          if (returnType.equals(TreeConstants.SELF_TYPE)) {
-            returnType = currClass.getName();
-          }
-          currTable.methods.addId(m.getName(), new MethodData(currClass.getName(), returnType, m.getFormals()));
-        }
-      }
+      programSymbols.put(currClass.getName(), currTable);
+      discoverMethods(currClass);
     }
   }
 
-  private ClassTable discoverClassMembers(class_c C) {
-    ClassTable currTable = program.get(C.getName());
+  private ClassTable discoverMethods(class_c C) {
+    ClassTable currTable = programSymbols.get(C.getName());
+    currTable.methods.enterScope();
+
+    for (Enumeration e2 = C.getFeatures().getElements(); e2.hasMoreElements(); ) {
+      Feature f = (Feature) e2.nextElement();
+      if (f instanceof method) {
+        method m = (method) f;
+        AbstractSymbol returnType = m.getReturnType();
+        if (returnType.equals(TreeConstants.SELF_TYPE)) {
+          returnType = C.getName();
+        }
+        currTable.methods.addId(m.getName(), new MethodData(C.getName(), returnType, m.getFormals()));
+      }
+    }
+    return currTable;
+  }
+
+  private ClassTable discoverAttributes(class_c C) {
+    ClassTable currTable = programSymbols.get(C.getName());
     currTable.objects.enterScope();
 
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
@@ -264,15 +453,8 @@ public class CoolAnalysis {
     return currTable;
   }
 
-  /*
-    Recursively type check the AST:
-    - Base case are leaf nodes, they take the right type based on their value
-    - Upon each recursive call, enter a new scope
-    - Type check the node
-    - At then end of each recursive call, exit scope
-  */
   private void typeCheckClass(class_c C) {
-    ClassTable symbols = discoverClassMembers(C);
+    ClassTable symbols = discoverAttributes(C);
 
     // Add self type
     symbols.objects.addId(TreeConstants.self, new ObjectData(C.getName()));
@@ -288,6 +470,7 @@ public class CoolAnalysis {
         noSelfReference(a.getName(), f, symbols.class_);
 
         // Check the attr's expression, if any
+        // TODO: Use no_type
         Expression val = a.getExpression();
         if (!(val instanceof no_expr)) {
           typeCheckExpression(val, symbols);
@@ -324,7 +507,7 @@ public class CoolAnalysis {
   }
 
   private void typeCheckDispatch(Expression node, AbstractSymbol name, AbstractSymbol className, Expressions args, ClassTable symbols) {
-    ClassTable c = program.get(className);
+    ClassTable c = programSymbols.get(className);
     MethodData m = (MethodData) c.methods.lookup(name);
     if (m == null) {
       error(errorNoSuchMethod(name, c.class_.getName()), node, symbols.class_);
@@ -498,6 +681,7 @@ public class CoolAnalysis {
       noSelfReference(l.getName(), e, symbols.class_);
 
       // Variables with no immediate bindings are assumed to be good
+      // TODO: Use no_type instead
       if (l.getInit() instanceof no_expr) {
         l.getInit().set_type(expectedType);
       } else {
@@ -632,5 +816,10 @@ public class CoolAnalysis {
     AbstractSymbol filename = currentClass.getFilename();
     errorCount++;
     System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
+  }
+
+  private void error(String error) {
+    errorCount++;
+    System.out.printf("%s\n", error);
   }
 }
