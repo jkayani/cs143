@@ -177,6 +177,12 @@ public class CoolAnalysis {
     return builtins;
   }
 
+  private class SemanticErrorException extends RuntimeException {
+    public SemanticErrorException() {
+      super();
+    }
+  }
+
   /* Entrypoint */
   public int analyze(Classes classes) {
     init();
@@ -189,6 +195,7 @@ public class CoolAnalysis {
       // printGraph();
       // System.out.printf("\n\n");
       // System.out.printf("---Undefined Classes---\n");
+      illegalInheritance();
       undefinedClasses();
       // System.out.printf("\n\n");
       // System.out.printf("---Cycles---\n");
@@ -198,7 +205,7 @@ public class CoolAnalysis {
 
       // TODO: Reenable
       // findMainClass();
-    } catch (RuntimeException e) {
+    } catch (SemanticErrorException e) {
       return errorCount;
     }
 
@@ -206,11 +213,15 @@ public class CoolAnalysis {
       for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
         typeCheckClass((class_c) e.nextElement());
       }
-    } catch (RuntimeException e) {
+    } catch (SemanticErrorException e) {
       return errorCount;
     }
 
-    return 0;
+    if (errorCount > 0) {
+      System.out.println("Error count > 0 but got here???");
+    }
+
+    return errorCount;
   }
 
   private void init() {
@@ -248,6 +259,7 @@ public class CoolAnalysis {
     }
   }
 
+  // TODO: error on inheriting from any builtin but Object
   private void buildGraph(Classes classes) {
     for (int i = 0; i < classes.getLength(); i++) {
       class_c class_ = (class_c) classes.getNth(i);
@@ -257,10 +269,23 @@ public class CoolAnalysis {
       } 
       else {
         AbstractSymbol parentName = class_.getParent();
-        if (parentName.equals(TreeConstants.SELF_TYPE) || name.equals(TreeConstants.SELF_TYPE)) {
+        if (name.equals(TreeConstants.SELF_TYPE)) {
           error(String.format("cannot use SELF_TYPE as name of class"));
         }
         classGraph.put(name, parentName);
+      }
+    }
+  }
+
+  private void illegalInheritance() {
+    for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
+      AbstractSymbol parentName = e.getValue();
+      AbstractSymbol childName = e.getKey();
+      boolean selfInheritance = (parentName != null && parentName.equals(TreeConstants.SELF_TYPE)) || false;
+      boolean badInheritance = strictlyComparable.contains(parentName) && !parentName.equals(TreeConstants.Object_); 
+      if (selfInheritance || badInheritance) {
+        ClassTable c = programSymbols.get(childName);
+        error(String.format("class %s cannot inherit from %s", childName, parentName), c.class_, c.class_);
       }
     }
   }
@@ -422,10 +447,11 @@ public class CoolAnalysis {
   */
   private void discoverPublicMembers(Classes classes) {
     for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
-      class_c currClass = (class_c) e.nextElement();
-      ClassTable currTable = new ClassTable(currClass);
-      programSymbols.put(currClass.getName(), currTable);
-      discoverMethods(currClass);
+      class_c currentClass = (class_c) e.nextElement();
+      ClassTable symbols = new ClassTable(currentClass);
+      programSymbols.put(currentClass.getName(), symbols);
+      discoverMethods(currentClass);
+      discoverAttributes(currentClass);
     }
   }
 
@@ -458,10 +484,11 @@ public class CoolAnalysis {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
-        AbstractSymbol type = a.getType();
-        if (type.equals(TreeConstants.SELF_TYPE)) {
-          type = C.getName();
-        }
+        AbstractSymbol type = getClassName(a.getType(), C);
+
+        // Cannot use name self
+        noSelfReference(a.getName(), f, C);
+
         if (currTable.objects.lookup(a.getName()) != null) {
           error(String.format("attribute %s already defined", a.getName()), a, C);
         } else {
@@ -473,7 +500,7 @@ public class CoolAnalysis {
   }
 
   private void typeCheckClass(class_c C) {
-    ClassTable symbols = discoverAttributes(C);
+    ClassTable symbols = programSymbols.get(C.getName());
 
     // Add self type
     symbols.objects.addId(TreeConstants.self, new ObjectData(TreeConstants.SELF_TYPE));
@@ -484,9 +511,6 @@ public class CoolAnalysis {
       // Attributes
       if (f instanceof attr) {
         attr a = (attr) f;
-
-        // Cannot use name self
-        noSelfReference(a.getName(), f, symbols.class_);
 
         // Cannot use same name as attribute in any ancestor
         AbstractSymbol nextName = classGraph.get(C.getName());
@@ -500,10 +524,10 @@ public class CoolAnalysis {
 
         // Check the attr's expression, if any
         Expression val = a.getExpression();
-        if (!(val instanceof no_expr)) {
-          typeCheckExpression(val, symbols);
-        } else {
+        if (val instanceof no_expr) {
           val.set_type(TreeConstants.No_type);
+        } else {
+          typeCheckExpression(val, symbols);
         }
         validateOrError(a.getType(), val.get_type(), errorTypeMismatch(a.getName(), a.getType(), val.get_type()), a, C); 
       } 
@@ -885,13 +909,13 @@ public class CoolAnalysis {
     errorCount++;
     System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
     System.out.println("Compilation halted due to static semantic errors.");
-    throw new RuntimeException();
+    throw new SemanticErrorException();
   }
 
   private void error(String error) {
     errorCount++;
     System.out.printf("%s\n", error);
     System.out.println("Compilation halted due to static semantic errors.");
-    throw new RuntimeException();
+    throw new SemanticErrorException();
   }
 }
