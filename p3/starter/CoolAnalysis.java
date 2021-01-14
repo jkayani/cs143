@@ -182,32 +182,35 @@ public class CoolAnalysis {
     init();
 
     // Check for well formed class graph
-    buildGraph(classes);
-    // System.out.printf("\n---Inheritance Graph---\n");
-    // printGraph();
-    // System.out.printf("\n\n");
-    // System.out.printf("---Undefined Classes---\n");
-    undefinedClasses();
-    // System.out.printf("\n\n");
-    // System.out.printf("---Cycles---\n");
-    findCycles();
-    // System.out.printf("\n\n");
-    // System.out.printf("---Main class---\n");
+    try {
+      buildGraph(classes);
+      discoverPublicMembers(classes);
+      // System.out.printf("\n---Inheritance Graph---\n");
+      // printGraph();
+      // System.out.printf("\n\n");
+      // System.out.printf("---Undefined Classes---\n");
+      undefinedClasses();
+      // System.out.printf("\n\n");
+      // System.out.printf("---Cycles---\n");
+      findCycles();
+      // System.out.printf("\n\n");
+      // System.out.printf("---Main class---\n");
 
-    // TODO: Reenable
-    // findMainClass();
-
-    if (errorCount > 0) {
-      error("cannot proceed with semantic analysis");
+      // TODO: Reenable
+      // findMainClass();
+    } catch (RuntimeException e) {
       return errorCount;
     }
 
-    discoverPublicMembers(classes);
-    for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
-      typeCheckClass((class_c) e.nextElement());
+    try {
+      for (Enumeration e = classes.getElements(); e.hasMoreElements();) {
+        typeCheckClass((class_c) e.nextElement());
+      }
+    } catch (RuntimeException e) {
+      return errorCount;
     }
 
-    return errorCount;
+    return 0;
   }
 
   private void init() {
@@ -264,10 +267,13 @@ public class CoolAnalysis {
 
   private void undefinedClasses() {
     for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
-      AbstractSymbol className = e.getValue();
-      ClassTable c = programSymbols.get(className);
-      if (c == null) {
-        error(String.format("missing definition for class %s", className));
+      AbstractSymbol parentName = e.getValue();
+      if (!classGraph.containsKey(parentName) && parentName != null) {
+        ClassTable c = programSymbols.get(e.getKey());
+        if (c != null) {
+          error(String.format("missing definition for class %s", parentName), c.class_, c.class_);
+        }
+        error(String.format("missing definition for class %s", parentName));
       }
     }
   }
@@ -887,11 +893,13 @@ public class CoolAnalysis {
     errorCount++;
     System.out.printf("%s:%d: %s\n", filename, t.getLineNumber(), error);
     System.out.println("Compilation halted due to static semantic errors.");
+    throw new RuntimeException();
   }
 
   private void error(String error) {
     errorCount++;
     System.out.printf("%s\n", error);
     System.out.println("Compilation halted due to static semantic errors.");
+    throw new RuntimeException();
   }
 }
