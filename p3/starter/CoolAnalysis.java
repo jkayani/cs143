@@ -372,6 +372,7 @@ public class CoolAnalysis {
     return lub;
   }
 
+
   /* The programSymbols entry for each class */
   private class ClassTable {
     public SymbolTable objects = new SymbolTable();
@@ -425,6 +426,9 @@ public class CoolAnalysis {
       Feature f = (Feature) e2.nextElement();
       if (f instanceof method) {
         method m = (method) f;
+
+        // TODO: Possibly check for duplicate names
+
         AbstractSymbol returnType = m.getReturnType();
         if (returnType.equals(TreeConstants.SELF_TYPE)) {
           returnType = C.getName();
@@ -447,7 +451,11 @@ public class CoolAnalysis {
         if (type.equals(TreeConstants.SELF_TYPE)) {
           type = C.getName();
         }
-        currTable.objects.addId(a.getName(), new ObjectData(type));
+        if (currTable.objects.lookup(a.getName()) != null) {
+          error(String.format("attribute %s already defined", a.getName()), a, C);
+        } else {
+          currTable.objects.addId(a.getName(), new ObjectData(type));
+        }
       }
     }
     return currTable;
@@ -457,35 +465,65 @@ public class CoolAnalysis {
     ClassTable symbols = discoverAttributes(C);
 
     // Add self type
-    // TODO: add `self` as the literal SELF_TYPE
-    symbols.objects.addId(TreeConstants.self, new ObjectData(C.getName()));
+    symbols.objects.addId(TreeConstants.self, new ObjectData(TreeConstants.SELF_TYPE));
 
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements();) {
       Feature f = (Feature) e.nextElement();
 
       // Attributes
-      // TODO: error if same as attribute in ancestor class
       if (f instanceof attr) {
         attr a = (attr) f;
 
         // Cannot use name self
         noSelfReference(a.getName(), f, symbols.class_);
 
+        // Cannot use same name as attribute in any ancestor
+        AbstractSymbol nextName = classGraph.get(C.getName());
+        while (nextName != null) {
+          ClassTable next = programSymbols.get(nextName);
+          if (next.objects.lookup(a.getName()) != null) {
+            error(String.format("attribute %s already defined in superclass %s", a.getName(), nextName), a, C);
+          }
+          nextName = classGraph.get(nextName);
+        } 
+
         // Check the attr's expression, if any
-        // TODO: Use no_type
         Expression val = a.getExpression();
         if (!(val instanceof no_expr)) {
           typeCheckExpression(val, symbols);
         } else {
-          val.set_type(a.getType());
+          val.set_type(TreeConstants.No_type);
         }
         validateOrError(a.getType(), val.get_type(), errorTypeMismatch(a.getName(), a.getType(), val.get_type()), a, C); 
       } 
 
       // Method declarations
-      // TODO: error if method name same as in ancestor class but mismatching signatures
       else if (f instanceof method) {
         method m = (method) f;
+        
+        // Cannot use same method name with different signatures
+        AbstractSymbol nextName = classGraph.get(C.getName());
+        MethodData currentM = (MethodData) symbols.methods.lookup(m.getName());
+        while (nextName != null) {
+          ClassTable next = programSymbols.get(nextName);
+          MethodData ancestorM = (MethodData) next.methods.lookup(m.getName());
+          if (ancestorM != null) {
+            if (!ancestorM.returnType.equals(currentM.returnType)) {
+              error(String.format("method override for %s.%s has bad return type in %s", nextName, m.getName(), C.getName()), m, C);
+            }
+            for (int k = 0; k < currentM.args.getLength(); k++) {
+              if (k >= ancestorM.args.getLength()) {
+                error(String.format("method override for %s.%s has wrong parameter count in %s", nextName, m.getName(), C.getName()), m, C);
+                break;
+              }
+              if (! ((formalc)currentM.args.getNth(k)).getType().equals( ((formalc)ancestorM.args.getNth(k)).getType())) {
+                error(String.format("method override for %s.%s has wrong parameter type in %s", nextName, m.getName(), C.getName()), m, C);
+                break;
+              }
+            }
+          }
+          nextName = classGraph.get(nextName);
+        }
 
         // Add method parameters to symbols
         symbols.objects.enterScope();
@@ -495,15 +533,22 @@ public class CoolAnalysis {
           // Cannot use self
           noSelfReference(f3.getName(), f, C);
 
-          // TODO: error if parameter name already used
-          symbols.objects.addId(f3.getName(), new ObjectData(f3.getType()));
+          // Cannot shadow other parameters
+          if (symbols.objects.probe(f3.getName()) != null) {
+            error(String.format("parameter named %s already exists for method %s.%s", f3.getName(), C.getName(), m.getName()), m, C);
+          } else {
+            symbols.objects.addId(f3.getName(), new ObjectData(f3.getType()));
+          }
+        }
+
+        // Return type must be a known class
+        AbstractSymbol expected = m.getReturnType();
+        if (!classGraph.containsKey(getClassName(expected, C))) {
+          error(String.format("method %s.%s returns non-existent type %s", C.getName(), m.getName(), getClassName(expected, C)), m, C);
         }
 
         // Declared return type must match method's expression type
-        // TODO: check that return type is a known class
-        // TODO: handle SELF_TYPE
         typeCheckExpression(m.getExpression(), symbols);
-        AbstractSymbol expected = m.getReturnType();
         AbstractSymbol t = m.getExpression().get_type();
         validateOrError(expected, t, errorTypeMismatch(m.getName(), expected, t), f, C);
 
@@ -513,11 +558,20 @@ public class CoolAnalysis {
   }
 
   private void typeCheckDispatch(Expression node, AbstractSymbol name, AbstractSymbol className, Expressions args, ClassTable symbols) {
-    ClassTable c = programSymbols.get(className);
+    AbstractSymbol actualClassName = getClassName(className, symbols.class_);
+    ClassTable c = programSymbols.get(actualClassName);
     MethodData m = (MethodData) c.methods.lookup(name);
     if (m == null) {
-      error(errorNoSuchMethod(name, c.class_.getName()), node, symbols.class_);
-      node.set_type(TreeConstants.Object_);
+      System.out.printf("Looked in class %s for method %s, no dice\n", actualClassName, name);
+
+      // Methods from ancestors can be called in children, so check there
+      // and give up when no more ancestors
+      if (classGraph.get(actualClassName) == null) {
+        error(errorNoSuchMethod(name, actualClassName), node, symbols.class_);
+        node.set_type(TreeConstants.Object_);
+      } else {
+        typeCheckDispatch(node, name, classGraph.get(actualClassName), args, symbols);
+      }
     }
     else {
       int parameterCount = m.args.getLength();
@@ -549,7 +603,7 @@ public class CoolAnalysis {
       e.set_type(s.getType());
     }
 
-    // Simple method calls
+    // Simple method cals
     if (e instanceof dispatch) {
       dispatch d = (dispatch) e;
 
@@ -560,17 +614,19 @@ public class CoolAnalysis {
       typeCheckDispatch(e, d.getName(), className, d.getArgs(), symbols);
     }
 
-    // Superclass method calls
+    // Explicit superclass method calls
     if (e instanceof static_dispatch) {
       static_dispatch d = (static_dispatch) e;
 
       // Calculate the expression type to know which method table to use
       typeCheckExpression(d.getExpression(), symbols);
-      AbstractSymbol className = d.getExpression().get_type();
+      AbstractSymbol className = getClassName(d.getExpression().get_type(), symbols.class_);
+
+      // TODO: Possible restrict self from appearing here
       AbstractSymbol superclassName = d.getType();
 
       if (!isAncestor(superclassName, className)) {
-        error(String.format("%s is not a superclass of %s", className, superclassName), e, symbols.class_);
+        error(String.format("%s is not a superclass of %s", superclassName, className), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       } else {
         typeCheckDispatch(e, d.getName(), superclassName, d.getArgs(), symbols);
@@ -686,8 +742,7 @@ public class CoolAnalysis {
       // Cannot use name self
       noSelfReference(l.getName(), e, symbols.class_);
 
-      // Variables with no immediate bindings are assumed to be good
-      // TODO: Use no_type instead
+      // Let variables with no immediate bindings are assumed to be good
       if (l.getInit() instanceof no_expr) {
         l.getInit().set_type(expectedType);
       } else {
@@ -784,6 +839,10 @@ public class CoolAnalysis {
     return left.get_type().equals(TreeConstants.Int) && right.get_type().equals(TreeConstants.Int);
   }
 
+  private AbstractSymbol getClassName(AbstractSymbol type, class_c currentClass) {
+    return type.equals(TreeConstants.SELF_TYPE) ? currentClass.getName() : type;
+  }
+
   private String errorTypeMismatch(AbstractSymbol a, AbstractSymbol expected, AbstractSymbol actual) {
     return String.format("%s declared to have type %s but has type %s", a, expected, actual);
   }
@@ -813,7 +872,7 @@ public class CoolAnalysis {
     if (actual.equals(TreeConstants.SELF_TYPE)) {
       actual = currentClass.getName();
     }
-    if (!(expected.equals(actual) || isAncestor(expected, actual))) {
+    if (!actual.equals(TreeConstants.No_type) && (!(expected.equals(actual) || isAncestor(expected, actual)))) {
       error(error, t, currentClass);
     }
   }

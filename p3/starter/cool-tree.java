@@ -467,7 +467,6 @@ class formalc extends Formal {
         dump_AbstractSymbol(out, n + 2, name);
         dump_AbstractSymbol(out, n + 2, type_decl);
     }
-
 }
 
 
