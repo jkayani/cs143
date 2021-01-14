@@ -254,6 +254,9 @@ public class CoolAnalysis {
       } 
       else {
         AbstractSymbol parentName = class_.getParent();
+        if (parentName.equals(TreeConstants.SELF_TYPE) || name.equals(TreeConstants.SELF_TYPE)) {
+          error(String.format("cannot use SELF_TYPE as name of class"));
+        }
         classGraph.put(name, parentName);
       }
     }
@@ -261,8 +264,10 @@ public class CoolAnalysis {
 
   private void undefinedClasses() {
     for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
-      if (!classGraph.containsKey(e.getValue()) && e.getValue() != null) {
-        error(String.format("missing class definition for class %s", e.getValue()));
+      AbstractSymbol className = e.getValue();
+      ClassTable c = programSymbols.get(className);
+      if (c == null) {
+        error(String.format("missing definition for class %s", className));
       }
     }
   }
