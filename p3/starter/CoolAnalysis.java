@@ -573,8 +573,6 @@ public class CoolAnalysis {
     ClassTable c = programSymbols.get(actualClassName);
     MethodData m = (MethodData) c.methods.lookup(name);
     if (m == null) {
-      System.out.printf("Looked in class %s for method %s, no dice\n", actualClassName, name);
-
       // Methods from ancestors can be called in children, so check there
       // and give up when no more ancestors
       if (classGraph.get(actualClassName) == null) {
@@ -781,13 +779,7 @@ public class CoolAnalysis {
     // New
     if (e instanceof new_) {
       new_ n = (new_) e;
-      AbstractSymbol t;
-      if (n.getType().equals(TreeConstants.SELF_TYPE)) {
-        t = symbols.class_.getName();
-      } else {
-        t = n.getType();
-      }
-      e.set_type(t);
+      e.set_type(n.getType());
     }
 
     // Binary Int operations
