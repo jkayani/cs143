@@ -268,9 +268,7 @@ public class CoolAnalysis {
       } 
       else {
         AbstractSymbol parentName = class_.getParent();
-        if (name.equals(TreeConstants.SELF_TYPE)) {
-          error(String.format("cannot use SELF_TYPE as name of class"));
-        }
+        noSelfTypeReference(name, class_, class_);
         classGraph.put(name, parentName);
       }
     }
@@ -557,8 +555,9 @@ public class CoolAnalysis {
         for (Enumeration f2 = m.getFormals().getElements(); f2.hasMoreElements();) {
           formalc f3 = (formalc) f2.nextElement();
 
-          // Cannot use self
+          // Cannot use self nor SELF_TYPE
           noSelfReference(f3.getName(), f, C);
+          noSelfTypeReference(f3.getType(), f, C);
 
           // Cannot shadow other parameters
           if (symbols.objects.probe(f3.getName()) != null) {
@@ -787,16 +786,16 @@ public class CoolAnalysis {
 
       // Let variables with no immediate bindings are assumed to be good
       if (l.getInit() instanceof no_expr) {
-        l.getInit().set_type(expectedType);
+        l.getInit().set_type(TreeConstants.No_type);
       } else {
         typeCheckExpression(l.getInit(), symbols);
-      }
-      AbstractSymbol initType = l.getInit().get_type();
-      validateOrError(expectedType, initType, errorTypeMismatch(l.getName(), expectedType, initType), e, symbols.class_);
+        AbstractSymbol initType = l.getInit().get_type();
+        validateOrError(expectedType, initType, errorTypeMismatch(l.getName(), expectedType, initType), e, symbols.class_);
 
-      // The types are conforming, but we set_type to whatever the code says,
-      // in case the assigned type is an ancestor of the computed type
-      l.getInit().set_type(expectedType);
+        // The types are conforming, but we set_type to whatever the code says,
+        // in case the assigned type is an ancestor of the computed type
+        l.getInit().set_type(expectedType);
+      }
 
       // Check the body, taking into the account the newly introduced variable 
       symbols.objects.enterScope();
@@ -906,14 +905,26 @@ public class CoolAnalysis {
     }
   }
 
+  private void noSelfTypeReference(AbstractSymbol s, TreeNode t, class_c currentClass) {
+    if (s.equals(TreeConstants.SELF_TYPE)) {
+      error("SELF_TYPE cannot appear here", t, currentClass);
+    }
+  }
+
   private void validateOrError(AbstractSymbol expected, AbstractSymbol actual, String error, TreeNode t, class_c currentClass) {
-    if (expected.equals(TreeConstants.SELF_TYPE)) {
-      expected = currentClass.getName();
+
+    // SELF_TYPE as an expected return value must be matched with SELF_TYPE
+    // but SELF_TYPE as an actual return value can match with a type matching the current class
+    if (!expected.equals(TreeConstants.SELF_TYPE)) {
+      if (actual.equals(TreeConstants.SELF_TYPE)) {
+        actual = currentClass.getName();
+      }
     }
-    if (actual.equals(TreeConstants.SELF_TYPE)) {
-      actual = currentClass.getName();
-    }
-    if (!actual.equals(TreeConstants.No_type) && (!(expected.equals(actual) || isAncestor(expected, actual)))) {
+    boolean badSelf = expected.equals(TreeConstants.SELF_TYPE) && !actual.equals(TreeConstants.SELF_TYPE);
+    boolean hasConcreteType = !actual.equals(TreeConstants.No_type);
+    boolean conforming = !(expected.equals(actual) || isAncestor(expected, actual));
+
+    if (badSelf || (hasConcreteType && !conforming) {
       error(error, t, currentClass);
     }
   }
