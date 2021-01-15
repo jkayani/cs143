@@ -462,9 +462,6 @@ public class CoolAnalysis {
         // TODO: Possibly check for duplicate names
 
         AbstractSymbol returnType = m.getReturnType();
-        if (returnType.equals(TreeConstants.SELF_TYPE)) {
-          returnType = C.getName();
-        }
         currTable.methods.addId(m.getName(), new MethodData(C.getName(), returnType, m.getFormals()));
       }
     }
@@ -797,9 +794,13 @@ public class CoolAnalysis {
       AbstractSymbol initType = l.getInit().get_type();
       validateOrError(expectedType, initType, errorTypeMismatch(l.getName(), expectedType, initType), e, symbols.class_);
 
+      // The types are conforming, but we set_type to whatever the code says,
+      // in case the assigned type is an ancestor of the computed type
+      l.getInit().set_type(expectedType);
+
       // Check the body, taking into the account the newly introduced variable 
       symbols.objects.enterScope();
-      symbols.objects.addId(l.getName(), new ObjectData(initType));
+      symbols.objects.addId(l.getName(), new ObjectData(expectedType));
       typeCheckExpression(l.getBody(), symbols);
       symbols.objects.exitScope();
 

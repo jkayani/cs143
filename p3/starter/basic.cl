@@ -1,8 +1,8 @@
 class A {
-	foo : Int;
-	fooz : Int <- 4;
+	trick : A <- new B;
+	trickier : Int <- trick.foo();
 };
 
 class B inherits A {
-	flerm() : Int { foo <- 3 };
+	foo() : Int { 0 };
 };
