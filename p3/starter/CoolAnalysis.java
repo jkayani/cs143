@@ -758,7 +758,12 @@ public class CoolAnalysis {
     if (e instanceof typcase) {
       typcase t = (typcase) e;
       Cases c = t.getCases();
+
+      // The types that are checked against
       List<AbstractSymbol> types = new ArrayList<AbstractSymbol>();
+
+      // The types result from each branch
+      List<AbstractSymbol> expressionTypes = new ArrayList<AbstractSymbol>();
 
       // Type check the case's switch statement
       typeCheckExpression(t.getExpression(), symbols);
@@ -781,10 +786,11 @@ public class CoolAnalysis {
         }
 
         types.add(b.getType());
+        expressionTypes.add(b.getExpression().get_type());
       }
 
-      // Result is LUB among all types
-      e.set_type(findLUB(types));
+      // Result is LUB among all types of the result expressions
+      e.set_type(findLUB(expressionTypes));
     }
 
     // Let statements
