@@ -259,7 +259,6 @@ public class CoolAnalysis {
     }
   }
 
-  // TODO: error on inheriting from any builtin but Object
   private void buildGraph(Classes classes) {
     for (int i = 0; i < classes.getLength(); i++) {
       class_c class_ = (class_c) classes.getNth(i);
@@ -295,10 +294,7 @@ public class CoolAnalysis {
       AbstractSymbol parentName = e.getValue();
       if (!classGraph.containsKey(parentName) && parentName != null) {
         ClassTable c = programSymbols.get(e.getKey());
-        if (c != null) {
-          error(String.format("missing definition for class %s", parentName), c.class_, c.class_);
-        }
-        error(String.format("missing definition for class %s", parentName));
+        error(String.format("missing definition for class %s", parentName), c.class_, c.class_);
       }
     }
   }
@@ -408,7 +404,6 @@ public class CoolAnalysis {
     return lub;
   }
 
-
   /* The programSymbols entry for each class */
   private class ClassTable {
     public SymbolTable objects = new SymbolTable();
@@ -517,10 +512,10 @@ public class CoolAnalysis {
         while (nextName != null) {
           ClassTable next = programSymbols.get(nextName);
           if (next.objects.lookup(a.getName()) != null) {
-            error(String.format("attribute %s already defined in superclass %s", a.getName(), nextName), a, C);
+            error(String.format("attribute %s already defined in superclass", a.getName()), a, C);
           }
           nextName = classGraph.get(nextName);
-        } 
+        }
 
         // Check the attr's expression, if any
         Expression val = a.getExpression();
@@ -670,32 +665,50 @@ public class CoolAnalysis {
     // Variable reference
     if (e instanceof object) {
       object o = (object) e;
-      ObjectData a = (ObjectData) symbols.objects.lookup(o.getName());
-      if (a == null) {
+      AbstractSymbol nextName = symbols.class_.getName();
+      boolean found = false;
+      while (nextName != null) {
+        ClassTable next = programSymbols.get(nextName);
+        ObjectData od = (ObjectData) next.objects.lookup(o.getName());
+        if (od != null) {
+          found = true;
+          e.set_type(od.type);
+          break;
+        }
+        nextName = classGraph.get(nextName);
+      }
+      if (!found) {
         error(errorNoSuchVariable(o.getName()), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
-      } else {
-        e.set_type(a.type);
       }
-    }
+    } 
 
     // Variable assignment
     if (e instanceof assign) {
       assign a = (assign) e;
-      ObjectData o = (ObjectData) symbols.objects.lookup(a.getName());
-      if (o == null) {
+
+      // Cannot assign to self
+      noSelfReference(a.getName(), e, symbols.class_);
+
+      AbstractSymbol nextName = symbols.class_.getName();
+      boolean found = false;
+      while (nextName != null) {
+        ClassTable next = programSymbols.get(nextName);
+        ObjectData od = (ObjectData) next.objects.lookup(a.getName());
+        if (od != null) {
+          found = true;
+          AbstractSymbol expectedType = od.type;
+          typeCheckExpression(a.getExpression(), symbols);
+          AbstractSymbol t = a.getExpression().get_type();
+          validateOrError(expectedType, t, errorTypeMismatch(a.getName(), expectedType, t), e, symbols.class_);
+          e.set_type(t);
+          break;
+        }
+        nextName = classGraph.get(nextName);
+      }
+      if (!found) {
         error(errorNoSuchVariable(a.getName()), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
-      } else {
-
-        // Cannot assign to self
-        noSelfReference(a.getName(), e, symbols.class_);
-
-        AbstractSymbol expectedType = o.type;
-        typeCheckExpression(a.getExpression(), symbols);
-        AbstractSymbol t = a.getExpression().get_type();
-        validateOrError(expectedType, t, errorTypeMismatch(a.getName(), expectedType, t), e, symbols.class_);
-        e.set_type(t);
       }
     }
 
