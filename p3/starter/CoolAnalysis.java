@@ -649,7 +649,7 @@ public class CoolAnalysis {
       // TODO: Possible restrict self from appearing here
       AbstractSymbol superclassName = d.getType();
 
-      if (!isAncestor(superclassName, className)) {
+      if (!(superclassName.equals(className) || isAncestor(superclassName, className))) {
         error(String.format("%s is not a superclass of %s", superclassName, className), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       } else {
@@ -727,7 +727,10 @@ public class CoolAnalysis {
       if (predType.equals(TreeConstants.Bool)) {
         typeCheckExpression(c.getThen(), symbols);
         typeCheckExpression(c.getElse(), symbols);
-        e.set_type(findLUB(c.getThen().get_type(), c.getElse().get_type()));
+        e.set_type(
+          findLUB(
+            getClassName(c.getThen().get_type(), symbols.class_), 
+            getClassName(c.getElse().get_type(), symbols.class_)));
       } else {
         error(String.format("conditional has predicate of type %s", predType), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
@@ -920,12 +923,16 @@ public class CoolAnalysis {
         actual = currentClass.getName();
       }
     }
+
     boolean badSelf = expected.equals(TreeConstants.SELF_TYPE) && !actual.equals(TreeConstants.SELF_TYPE);
     boolean hasConcreteType = !actual.equals(TreeConstants.No_type);
-    boolean conforming = !(expected.equals(actual) || isAncestor(expected, actual));
-
-    if (badSelf || (hasConcreteType && !conforming) {
+    if (badSelf) {
       error(error, t, currentClass);
+    } else if (hasConcreteType) {
+      boolean conforming = expected.equals(actual) || isAncestor(expected, actual);
+      if (!conforming) {
+        error(error, t, currentClass);
+      }
     }
   }
 
