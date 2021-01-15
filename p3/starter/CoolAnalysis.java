@@ -202,9 +202,7 @@ public class CoolAnalysis {
       findCycles();
       // System.out.printf("\n\n");
       // System.out.printf("---Main class---\n");
-
-      // TODO: Reenable
-      // findMainClass();
+      findMainClass();
     } catch (SemanticErrorException e) {
       return errorCount;
     }
@@ -298,10 +296,19 @@ public class CoolAnalysis {
   }
 
   private void findMainClass() {
-    if (!classGraph.containsKey("Main")) {
-      error("no class Main found");
+    if (!classGraph.containsKey(TreeConstants.Main)) {
+      // This exact message is mandated by the grading scripts
+      error("Class Main is not defined.");
+    } else {
+      ClassTable c = programSymbols.get(TreeConstants.Main);
+      MethodData m = (MethodData) c.methods.lookup(TreeConstants.main_meth);
+      if (m == null) {
+        error(String.format("no method Main.main found"), c.class_, c.class_);
+      }
+      else if (m.args.getLength() > 0) {
+        error(String.format("main method must accept 0 parameters"), c.class_, c.class_);
+      }
     }
-    // TODO, look for main method with 0 parameters
   }
 
   private void findCycles() {
@@ -664,7 +671,6 @@ public class CoolAnalysis {
         typeCheckDispatch(e, className, d.getName(), superclassName, d.getArgs(), symbols);
       }
     }
-
 
     // Variable reference
     if (e instanceof object) {
