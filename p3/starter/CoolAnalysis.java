@@ -583,18 +583,19 @@ public class CoolAnalysis {
     }
   }
 
-  private void typeCheckDispatch(Expression node, AbstractSymbol name, AbstractSymbol className, Expressions args, ClassTable symbols) {
+  private void typeCheckDispatch(Expression node, AbstractSymbol subjectType, AbstractSymbol name, AbstractSymbol className, Expressions args, ClassTable symbols) {
     AbstractSymbol actualClassName = getClassName(className, symbols.class_);
     ClassTable c = programSymbols.get(actualClassName);
     MethodData m = (MethodData) c.methods.lookup(name);
     if (m == null) {
+
       // Methods from ancestors can be called in children, so check there
       // and give up when no more ancestors
       if (classGraph.get(actualClassName) == null) {
         error(errorNoSuchMethod(name, actualClassName), node, symbols.class_);
         node.set_type(TreeConstants.Object_);
       } else {
-        typeCheckDispatch(node, name, classGraph.get(actualClassName), args, symbols);
+        typeCheckDispatch(node, subjectType, name, classGraph.get(actualClassName), args, symbols);
       }
     }
     else {
@@ -615,7 +616,14 @@ public class CoolAnalysis {
           validateOrError(parameter.getType(), actual, errorTypeMismatch(parameter.getName(), parameter.getType(), actual), arg, symbols.class_);
         }
       }
-      node.set_type(m.returnType);
+
+      // If this method returns SELF_TYPE, then the actual return type
+      // of this dispatch is the type of the expression it was called on
+      if (m.returnType == TreeConstants.SELF_TYPE) {
+        node.set_type(subjectType);
+      } else {
+        node.set_type(m.returnType);
+      }
     }
   }
 
@@ -635,7 +643,7 @@ public class CoolAnalysis {
       typeCheckExpression(d.getExpression(), symbols);
       AbstractSymbol className = d.getExpression().get_type();
 
-      typeCheckDispatch(e, d.getName(), className, d.getArgs(), symbols);
+      typeCheckDispatch(d, className, d.getName(), className, d.getArgs(), symbols);
     }
 
     // Explicit superclass method calls
@@ -653,7 +661,7 @@ public class CoolAnalysis {
         error(String.format("%s is not a superclass of %s", superclassName, className), e, symbols.class_);
         e.set_type(TreeConstants.Object_);
       } else {
-        typeCheckDispatch(e, d.getName(), superclassName, d.getArgs(), symbols);
+        typeCheckDispatch(e, className, d.getName(), superclassName, d.getArgs(), symbols);
       }
     }
 
