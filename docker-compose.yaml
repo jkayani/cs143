@@ -7,11 +7,15 @@ services:
     volumes:
       - type: bind
         source: ./p1
-        target: /usr/class/p1
+        target: /usr/class/cs143/p1
       - type: bind
         source: ./p2
-        target: /usr/class/p2
+        target: /usr/class/cs143/p2
       - type: bind
         source: ./p3
-        target: /usr/class/p3
+        target: /usr/class/cs143/p3
+      - type: bind
+        source: ./p4
+        target: /usr/class/cs143/p4
+
 
