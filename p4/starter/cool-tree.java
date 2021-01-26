@@ -227,19 +227,19 @@ class Cases extends ListNode {
 /** Defines AST constructor 'program'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class program extends Program {
+class programc extends Program {
     public Classes classes;
     /** Creates "program" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for classes
       */
-    public program(int lineNumber, Classes a1) {
+    public programc(int lineNumber, Classes a1) {
         super(lineNumber);
         classes = a1;
     }
     public TreeNode copy() {
-        return new program(lineNumber, (Classes)classes.copy());
+        return new programc(lineNumber, (Classes)classes.copy());
     }
     public void dump(PrintStream out, int n) {
         out.print(Utilities.pad(n) + "program\n");
@@ -271,14 +271,14 @@ class program extends Program {
     */
     public void semant() {
 	/* ClassTable constructor may do some semantic analysis */
-	ClassTable classTable = new ClassTable(classes);
+	// ClassTable classTable = new ClassTable(classes);
 	
 	/* some semantic analysis code may go here */
 
-	if (classTable.errors()) {
-	    System.err.println("Compilation halted due to static semantic errors.");
-	    System.exit(1);
-	}
+	// if (classTable.errors()) {
+	//     System.err.println("Compilation halted due to static semantic errors.");
+	//     System.exit(1);
+	// }
     }
     /** This method is the entry point to the code generator.  All of the work
       * of the code generator takes place within CgenClassTable constructor.
@@ -290,7 +290,7 @@ class program extends Program {
         // spim wants comments to start with '#'
         s.print("# start of generated code\n");
 
-	CgenClassTable codegen_classtable = new CgenClassTable(classes, s);
+	// CgenClassTable codegen_classtable = new CgenClassTable(classes, s);
 
 	s.print("\n# end of generated code\n");
     }
@@ -301,7 +301,7 @@ class program extends Program {
 /** Defines AST constructor 'class_'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class class_ extends Class_ {
+class classc extends Class_ {
     public AbstractSymbol name;
     public AbstractSymbol parent;
     public Features features;
@@ -314,7 +314,7 @@ class class_ extends Class_ {
       * @param a2 initial value for features
       * @param a3 initial value for filename
       */
-    public class_(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Features a3, AbstractSymbol a4) {
+    public classc(int lineNumber, AbstractSymbol a1, AbstractSymbol a2, Features a3, AbstractSymbol a4) {
         super(lineNumber);
         name = a1;
         parent = a2;
@@ -322,7 +322,7 @@ class class_ extends Class_ {
         filename = a4;
     }
     public TreeNode copy() {
-        return new class_(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(parent), (Features)features.copy(), copy_AbstractSymbol(filename));
+        return new classc(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(parent), (Features)features.copy(), copy_AbstractSymbol(filename));
     }
     public void dump(PrintStream out, int n) {
         out.print(Utilities.pad(n) + "class_\n");
@@ -448,22 +448,22 @@ class attr extends Feature {
 /** Defines AST constructor 'formal'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class formal extends Formal {
+class formalc extends Formal {
     public AbstractSymbol name;
     public AbstractSymbol type_decl;
-    /** Creates "formal" AST node. 
+    /** Creates "formalc" AST node. 
       *
       * @param lineNumber the line in the source file from which this node came.
       * @param a0 initial value for name
       * @param a1 initial value for type_decl
       */
-    public formal(int lineNumber, AbstractSymbol a1, AbstractSymbol a2) {
+    public formalc(int lineNumber, AbstractSymbol a1, AbstractSymbol a2) {
         super(lineNumber);
         name = a1;
         type_decl = a2;
     }
     public TreeNode copy() {
-        return new formal(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl));
+        return new formalc(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl));
     }
     public void dump(PrintStream out, int n) {
         out.print(Utilities.pad(n) + "formal\n");
