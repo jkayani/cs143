@@ -270,15 +270,15 @@ class programc extends Program {
 	to test the complete compiler.
     */
     public void semant() {
-	/* ClassTable constructor may do some semantic analysis */
-	// ClassTable classTable = new ClassTable(classes);
-	
-	/* some semantic analysis code may go here */
+        /* ClassTable constructor may do some semantic analysis */
+        // ClassTable classTable = new ClassTable(classes);
+        
+        /* some semantic analysis code may go here */
 
-	// if (classTable.errors()) {
-	//     System.err.println("Compilation halted due to static semantic errors.");
-	//     System.exit(1);
-	// }
+        // if (classTable.errors()) {
+        //     System.err.println("Compilation halted due to static semantic errors.");
+        //     System.exit(1);
+        // }
     }
     /** This method is the entry point to the code generator.  All of the work
       * of the code generator takes place within CgenClassTable constructor.
@@ -290,9 +290,17 @@ class programc extends Program {
         // spim wants comments to start with '#'
         s.print("# start of generated code\n");
 
-	// CgenClassTable codegen_classtable = new CgenClassTable(classes, s);
+        CoolMap c = new CoolMap(classes);
+        c.codeGenInit();
 
-	s.print("\n# end of generated code\n");
+        // System.out.println(c.classGraph);
+        // System.out.println(c.programSymbols);
+        // System.out.println(c.classtags);
+
+        CoolGen g = new CoolGen(c, s);
+        g.layoutObjects();
+
+        s.print("\n# end of generated code\n");
     }
 
 }
