@@ -11,8 +11,13 @@ public class CoolGen {
   public CoolMap map;
   public PrintStream out;
   private boolean inLabel = false;
+
+  private final String GLOBAL = ".globl";
   private final String WORD = ".word";
   private final String ASCIIZ = ".asciiz";
+  private final String PROTOBJ = "%s_protObj";
+  private final String METHODTAB = "%s_methodTab";
+  private final String METHODREF = "%s.%s";
 
   private void emit(String s) {
     out.printf((inLabel ? "\t%s\n" : "%s\n"), s);
@@ -24,6 +29,7 @@ public class CoolGen {
     out.printf((inLabel ? "\t%s %d\n" : "%s %d\n"), size, s);
   }
   private void emitLabel(String s) {
+    out.printf("%s %s\n", GLOBAL, s);
     out.printf("%s:\n", s);
     inLabel = true;
   }
@@ -48,7 +54,7 @@ public class CoolGen {
   private void stringDefault(AbstractSymbol attrName) {
     switch (attrName.toString()) {
       case "_val": {
-        emit("Int_protoObj");
+        emit(WORD, String.format(PROTOBJ, "Int"));
         return;
       }
       case "_str_field": {
@@ -69,15 +75,15 @@ public class CoolGen {
     */
     switch (type.toString()) {
       case "Int": {
-        emit("Int_protObj");
+        emit(WORD, String.format(PROTOBJ, "Int"));
         return;
       }
       case "Bool": {
-        emit("bool_const0");
+        emit(WORD, "bool_const0");
         return;
       }
       case "String": {
-        emit("String_protObj");
+        emit(WORD, String.format(PROTOBJ, "String"));
         return;
       }
       default: {
@@ -122,8 +128,29 @@ public class CoolGen {
   private void writeClassTab() {
     emitLabel("class_nameTab");
     for (AbstractSymbol className : map.classtags) {
-      emit(String.format("%s_name", className));
+      emit(WORD, String.format("%s_name", className));
     }
+    endLabel();
+  }
+
+  private void writeDispatchTab(AbstractSymbol className, LinkedList<AbstractSymbol> ancestry) {
+    Map<String, CoolMap.MethodData> methods = new HashMap<String, CoolMap.MethodData>();
+    
+    // Collect the set of methods inherited/overidden
+    for (AbstractSymbol ancestor : ancestry) {
+      for (CoolMap.MethodData m : map.classMethods.get(ancestor)) {
+        methods.put(m.name.toString(), m);
+      }
+    }
+
+    // Build a table, associating each inherited method to the address of the definition
+    // Since methods can be shared across descendants, we need this table
+    emitLabel(String.format(METHODTAB, className));
+    methods.forEach((String name, CoolMap.MethodData m) -> {
+      emitLabel(String.format("%s_method_%s", className, name));
+      emit(WORD, String.format(METHODREF, m.className, name));
+      endLabel();
+    });
     endLabel();
   }
 
@@ -140,15 +167,16 @@ public class CoolGen {
       if (className.toString().equals("Bool")) {
         emitLabel("bool_const0");
       } else {
-        emitLabel(String.format("%s_protObj", className));
+        emitLabel(String.format(PROTOBJ, className));
       }
 
       emit(WORD, String.format("%d # classtag", map.classtags.indexOf(className)));
 
       emit(WORD, String.format("%d # size", objectSize(className)));
 
-      // TODO: add pointer to dispatch table
-      emit(WORD, String.format("%d # method table", 1234));
+      emit(WORD, String.format(METHODTAB, className));
+
+      // Layout attributes
       LinkedList<AbstractSymbol> ancestry = map.getAncestry(className);
       for (AbstractSymbol ancestor : ancestry) {
         for (CoolMap.AttributeData a : map.classAttributes.get(ancestor)) {
@@ -173,6 +201,8 @@ public class CoolGen {
             }
         }
       }
+
+      writeDispatchTab(className, ancestry);
       endLabel();
     }
   }

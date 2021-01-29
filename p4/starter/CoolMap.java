@@ -26,6 +26,7 @@ public class CoolMap {
   public List<AbstractSymbol> classtags = new ArrayList<AbstractSymbol>();
 
   public Map<AbstractSymbol, ArrayList<AttributeData>> classAttributes = new HashMap<AbstractSymbol, ArrayList<AttributeData>>();
+  public Map<AbstractSymbol, ArrayList<MethodData>> classMethods = new HashMap<AbstractSymbol, ArrayList<MethodData>>();
 
   /* Returns AST's for the builtin method types. Copied from starter code */
   private ArrayList<classc> getBuiltinClasses() {
@@ -188,10 +189,13 @@ public class CoolMap {
   }
   /* The SymbolTable entry for methods */
   public class MethodData {
+    public AbstractSymbol name;
     public AbstractSymbol className;
     public AbstractSymbol returnType;
     public Formals args;
-    public MethodData(AbstractSymbol a, AbstractSymbol c, Formals f) { className = a; returnType = c; args = f; }
+    public MethodData(AbstractSymbol n, AbstractSymbol a, AbstractSymbol c, Formals f) { 
+      className = a; returnType = c; args = f; name = n;
+    }
   }
 
   public class AttributeData {
@@ -326,19 +330,18 @@ public class CoolMap {
   * Discover all of the methods of a class, and
   * create a MethodData entry for each in programSymbols
   */
-  private ClassTable discoverMethods(classc C) {
-    ClassTable symbols = programSymbols.get(C.name);
-    symbols.methods.enterScope();
+  private void discoverMethods(classc C) {
+    ArrayList<MethodData> list = new ArrayList<MethodData>();
 
     for (Enumeration e2 = C.getFeatures().getElements(); e2.hasMoreElements(); ) {
       Feature f = (Feature) e2.nextElement();
       if (f instanceof method) {
         method m = (method) f;
         AbstractSymbol returnType = m.return_type;
-        symbols.methods.addId(m.name, new MethodData(C.name, returnType, m.formals));
+        list.add(new MethodData(m.name, C.name, returnType, m.formals));
       }
     }
-    return symbols;
+    classMethods.put(C.name, list);
   }
 
   /* 
