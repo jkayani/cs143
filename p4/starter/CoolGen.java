@@ -154,8 +154,8 @@ public class CoolGen {
     endLabel();
   }
 
-  public void layoutObjects() {
-    out.println(".data");
+  public void layoutStaticData() {
+    emit(".data");
 
     writeClassNames();
     writeClassTags();
@@ -205,5 +205,31 @@ public class CoolGen {
       writeDispatchTab(className, ancestry);
       endLabel();
     }
+
+    // Disable GC for now
+    emitLabel("_MemMgr_INITIALIZER");
+    emit(WORD, "_NoGC_Init");
+    emitLabel("_MemMgr_COLLECTOR");
+    emit(WORD, "_NoGC_Collect");
+    emitLabel("_MemMgr_TEST");
+    emit(WORD, 0);
+
+    // Marks end of static data, heap can start now
+    emitLabel("heap_start");
+    endLabel();
+  }
+
+  public void layoutCode() {
+    emit(".text");
+
+    // Add a bunch of nops
+    emitLabel("Int_init");
+    emitLabel("String_init");
+    emitLabel("Main_init");
+    emitLabel("Main.main");
+    emitLabel("main");
+    emit("add $t0 $t0 $t1");
+    emit("jr $ra");
+    endLabel();
   }
 }

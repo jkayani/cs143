@@ -298,7 +298,8 @@ class programc extends Program {
         // System.out.println(c.classtags);
 
         CoolGen g = new CoolGen(c, s);
-        g.layoutObjects();
+        g.layoutStaticData();
+        g.layoutCode();
 
         s.print("\n# end of generated code\n");
     }
