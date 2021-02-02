@@ -288,7 +288,7 @@ class programc extends Program {
     public void cgen(PrintStream s) 
     {
         // spim wants comments to start with '#'
-        s.print("# start of generated code\n");
+        // s.print("# start of generated code\n");
 
         CoolMap c = new CoolMap(classes);
         c.codeGenInit();
@@ -301,7 +301,7 @@ class programc extends Program {
         g.layoutStaticData();
         g.layoutCode();
 
-        s.print("\n# end of generated code\n");
+        // s.print("\n# end of generated code\n");
     }
 
 }
@@ -978,9 +978,25 @@ class plus extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s) {
+        e1.code(s);
+        e2.code(s);
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t4"),
+            CoolGen.pop("$t5"),
+
+            "# get int values",
+            ("lw $t6 12($t4)"),
+            ("lw $t7 12($t5)"),
+
+            "# compute sum",
+            ("add $a0 $t6 $t7"),
+            CoolGen.push("$a0")
+        }, s);
+
+        // Create a new num with that value (pushed to stack)
+        CoolGen.newInt(s);
     }
-
-
 }
 
 
@@ -1376,8 +1392,9 @@ class int_const extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s) {
-	CgenSupport.emitLoadInt(CgenSupport.ACC,
-                                (IntSymbol)AbstractTable.inttable.lookup(token.getString()), s);
+        CgenSupport.emitLoadInt(CgenSupport.ACC,
+                                    (IntSymbol)AbstractTable.inttable.lookup(token.getString()), s);
+        CoolGen.emitPadded(new String[] { CoolGen.push("$a0") }, s);
     }
 
 }

@@ -11,14 +11,46 @@ public class CoolGen {
   public CoolMap map;
   public PrintStream out;
   private boolean inLabel = false;
+  private int INT_CLASS_TAG = 0; private int STR_CLASS_TAG = 0;
 
-  private final String GLOBAL = ".globl";
-  private final String WORD = ".word";
-  private final String ASCIIZ = ".asciiz";
-  private final String PROTOBJ = "%s_protObj";
-  private final String METHODTAB = "%s_methodTab";
-  private final String METHODREF = "%s.%s";
+  private static final String GLOBAL = ".globl";
+  private static final String WORD = ".word";
+  private static final String ASCIIZ = ".asciiz";
+  private static final String PROTOBJ = "%s_protObj";
+  private static final String METHODTAB = "%s_methodTab";
+  private static final String METHODREF = "%s.%s";
+  private static final String ATTRREF = "%s_attr_%s";
 
+  public static String pop(String reg) {
+    return String.format("# pop stack\n\t%s\n\t%s\n", "lw " + reg + " ($sp)", "add $sp $sp 4");
+  }
+  public static String push(String reg) {
+    return String.format("# push stack\n\t%s\n\t%s\n", "sub $sp $sp 4", "sw " + reg + " ($sp)");
+  }
+  public static void newInt(PrintStream out) {
+    emitPadded(new String[] {
+      "# create new int",
+      pop("$t4"),
+
+      // Call Object.copy
+      "la $a0 " + String.format(PROTOBJ, "Int"),
+      "sub $sp $sp 4",
+      "move $fp $sp",
+      // TODO: Call Int_method_copy 
+      "jal Object.copy",
+
+      // Use result
+      "move $t5 $a0",
+      "sw $t4 12($t5)",
+      push("$t5")
+    }, out);
+  }
+
+  public static void emitPadded(String[] s, PrintStream out) {
+    for (String a : s) {
+      out.printf("\t%s\n", a);
+    }
+  }
   private void emit(String s) {
     out.printf((inLabel ? "\t%s\n" : "%s\n"), s);
   }
@@ -105,6 +137,7 @@ public class CoolGen {
       AbstractSymbol className = map.classtags.get(i);
       switch (className.toString()) {
         case "Int": {
+          INT_CLASS_TAG = i;
           emitLabel("_int_tag");
           break;
         }
@@ -113,6 +146,7 @@ public class CoolGen {
           break;
         }
         case "String": {
+          STR_CLASS_TAG = i;
           emitLabel("_string_tag");
           break;
         }
@@ -155,6 +189,7 @@ public class CoolGen {
   }
 
   public void layoutStaticData() {
+    emit("##### START DATA #####");
     emit(".data");
 
     writeClassNames();
@@ -206,6 +241,8 @@ public class CoolGen {
       endLabel();
     }
 
+    AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
+
     // Disable GC for now
     emitLabel("_MemMgr_INITIALIZER");
     emit(WORD, "_NoGC_Init");
@@ -213,23 +250,60 @@ public class CoolGen {
     emit(WORD, "_NoGC_Collect");
     emitLabel("_MemMgr_TEST");
     emit(WORD, 0);
+    endLabel();
 
     // Marks end of static data, heap can start now
     emitLabel("heap_start");
     endLabel();
+    emit("##### END DATA #####\n\n");
   }
 
+  private void initAttributes() {
+    for (Enumeration e = map.classes.getElements(); e.hasMoreElements(); ) {
+      classc currentClass = (classc) e.nextElement();
+      for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
+        Feature f = (Feature) e2.nextElement();
+        if (f instanceof attr) {
+          attr a = (attr) f;
+          plus p = (plus) a.init;
+          p.code(out);
+          emit(pop("$a0"));
+          emit("sw $a0 " +  String.format(ATTRREF, currentClass.name, a.name));
+        }
+      }
+    }
+  }
   public void layoutCode() {
+    emit("##### START CODE #####");
     emit(".text");
 
-    // Add a bunch of nops
+    // Skip inits for Int and String
     emitLabel("Int_init");
     emitLabel("String_init");
+    emit("add $a0 $a0 $a0");
+    endLabel();
+
     emitLabel("Main_init");
-    emitLabel("Main.main");
-    emitLabel("main");
-    emit("add $t0 $t0 $t1");
+    emit(push("$ra"));
+    initAttributes();
+    emit(pop("$ra"));
     emit("jr $ra");
     endLabel();
+
+    emitLabel("Main.main");
+    // emit(push("$ra"));
+
+    // sanity test
+    // emit("la $a0 String_protObj");
+    // emit(push("$a0"));
+    // // emit("sub $sp $sp 4");
+    // emit("move $fp $sp");
+    // emit("jal IO.out_string");
+
+    // emit(pop("$ra"));
+    emit("jr $ra");
+    endLabel();
+
+    emit("##### END CODE #####");
   }
 }
