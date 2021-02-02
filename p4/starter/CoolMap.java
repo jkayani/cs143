@@ -25,7 +25,7 @@ public class CoolMap {
 
   public List<AbstractSymbol> classtags = new ArrayList<AbstractSymbol>();
 
-  public Map<AbstractSymbol, ArrayList<AttributeData>> classAttributes = new HashMap<AbstractSymbol, ArrayList<AttributeData>>();
+  public Map<AbstractSymbol, HashMap<AbstractSymbol, AttributeData>> classAttributes = new HashMap<AbstractSymbol, HashMap<AbstractSymbol, AttributeData>>();
   public Map<AbstractSymbol, ArrayList<MethodData>> classMethods = new HashMap<AbstractSymbol, ArrayList<MethodData>>();
 
   /* Returns AST's for the builtin method types. Copied from starter code */
@@ -201,6 +201,7 @@ public class CoolMap {
   public class AttributeData {
     public AbstractSymbol name;
     public AbstractSymbol type;
+    public int offset = 0;
     public AttributeData(AbstractSymbol n, AbstractSymbol t) { name = n; type = t; }
   }
 
@@ -349,13 +350,13 @@ public class CoolMap {
   * create a ObjectData entry for each in programSymbols
   */
   private void discoverAttributes(classc C) {
-    ArrayList<AttributeData> list = new ArrayList<AttributeData>();
+    HashMap<AbstractSymbol, AttributeData> list = new HashMap<AbstractSymbol, AttributeData>();
 
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
-        list.add(new AttributeData(a.name, a.type_decl));
+        list.put(a.name, new AttributeData(a.name, a.type_decl));
       }
     }
     classAttributes.put(C.name, list);

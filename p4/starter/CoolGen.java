@@ -8,7 +8,7 @@ public class CoolGen {
     out = s;
   }
 
-  public CoolMap map;
+  public static CoolMap map;
   public PrintStream out;
   private boolean inLabel = false;
   private int INT_CLASS_TAG = 0; private int STR_CLASS_TAG = 0;
@@ -28,22 +28,32 @@ public class CoolGen {
     return String.format("# push stack\n\t%s\n\t%s\n", "sub $sp $sp 4", "sw " + reg + " ($sp)");
   }
   public static void newInt(PrintStream out) {
+    int valOffset = CoolGen.lookupAttrOffset("Int", "_val");
+
     emitPadded(new String[] {
       "# create new int",
       pop("$t4"),
 
-      // Call Object.copy
+      // Make a new Int object
       "la $a0 " + String.format(PROTOBJ, "Int"),
       "sub $sp $sp 4",
       "move $fp $sp",
-      // TODO: Call Int_method_copy 
       "jal Object.copy",
 
-      // Use result
+      // Set it's val to the value
       "move $t5 $a0",
-      "sw $t4 12($t5)",
+      "sw $t4 " + valOffset + "($t5)",
+
+      // Push to stack
       push("$t5")
     }, out);
+  }
+
+  public static int lookupAttrOffset(String className, String attrName) {
+    return map.classAttributes.get(
+      AbstractTable.idtable.lookup(className))
+      .get(AbstractTable.idtable.lookup(attrName))
+      .offset;
   }
 
   public static void emitPadded(String[] s, PrintStream out) {
@@ -214,7 +224,9 @@ public class CoolGen {
       // Layout attributes
       LinkedList<AbstractSymbol> ancestry = map.getAncestry(className);
       for (AbstractSymbol ancestor : ancestry) {
-        for (CoolMap.AttributeData a : map.classAttributes.get(ancestor)) {
+
+        int offset = 12;
+        for (CoolMap.AttributeData a : map.classAttributes.get(ancestor).values()) {
             emitLabel(String.format("%s_attr_%s", className, a.name));
 
             switch (ancestor.toString()) {
@@ -234,6 +246,10 @@ public class CoolGen {
                 emitDefault(a.type, a.name);
               }
             }
+
+            // Keep track of the attribute offset, we'll need it later
+            a.offset = offset;
+            offset += 4;
         }
       }
 
@@ -266,7 +282,7 @@ public class CoolGen {
         if (f instanceof attr) {
           attr a = (attr) f;
           plus p = (plus) a.init;
-          p.code(out);
+          p.code(out, map);
           emit(pop("$a0"));
           emit("sw $a0 " +  String.format(ATTRREF, currentClass.name, a.name));
         }
@@ -291,7 +307,7 @@ public class CoolGen {
     endLabel();
 
     emitLabel("Main.main");
-    // emit(push("$ra"));
+    emit(push("$ra"));
 
     // sanity test
     // emit("la $a0 String_protObj");
@@ -300,7 +316,7 @@ public class CoolGen {
     // emit("move $fp $sp");
     // emit("jal IO.out_string");
 
-    // emit(pop("$ra"));
+    emit(pop("$ra"));
     emit("jr $ra");
     endLabel();
 
