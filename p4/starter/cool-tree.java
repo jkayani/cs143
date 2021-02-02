@@ -977,28 +977,27 @@ class plus extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {}
-
-    public void code(PrintStream s, CoolMap m) {
+    public void code(PrintStream s) {
         e1.code(s);
         e2.code(s);
 
         int valOffset = CoolGen.lookupAttrOffset("Int", "_val");
 
         CoolGen.emitPadded(new String[] {
+            CoolGen.blockComment("load Int operands from stack"),
             CoolGen.pop("$t4"),
             CoolGen.pop("$t5"),
 
-            "# get int values",
+            CoolGen.blockComment("load values of Int operands"),
             ("lw $t6 " + valOffset + "($t4)"),
             ("lw $t7 " + valOffset + "($t5)"),
 
-            "# compute sum",
+            CoolGen.blockComment("compute sum of Int operands"),
             ("add $a0 $t6 $t7"),
             CoolGen.push("$a0")
         }, s);
 
-        // Create a new num with that value (pushed to stack)
+        CoolGen.blockComment("save sum into new Int");
         CoolGen.newInt(s);
     }
 }

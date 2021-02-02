@@ -198,11 +198,15 @@ public class CoolMap {
     }
   }
 
-  public class AttributeData {
+  public class AttributeData implements Comparable {
     public AbstractSymbol name;
     public AbstractSymbol type;
     public int offset = 0;
-    public AttributeData(AbstractSymbol n, AbstractSymbol t) { name = n; type = t; }
+    public int order;
+    public AttributeData(AbstractSymbol n, AbstractSymbol t, int o) { name = n; type = t; order = o; }
+    public int compareTo(Object other) {
+      return order - ((AttributeData) other).order;
+    }
   }
 
   public void codeGenInit() {
@@ -352,11 +356,12 @@ public class CoolMap {
   private void discoverAttributes(classc C) {
     HashMap<AbstractSymbol, AttributeData> list = new HashMap<AbstractSymbol, AttributeData>();
 
+    int idx = 0;
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
-        list.put(a.name, new AttributeData(a.name, a.type_decl));
+        list.put(a.name, new AttributeData(a.name, a.type_decl, idx++));
       }
     }
     classAttributes.put(C.name, list);
