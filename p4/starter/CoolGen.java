@@ -23,10 +23,10 @@ public class CoolGen {
   private static final String ATTRREF = "%s_attr_%s";
 
   public static String pop(String reg) {
-    return String.format("%s\n\t%s", "lw " + reg + " ($sp)", "add $sp $sp 4");
+    return String.format("%s # pop\n\t%s# pop", "lw " + reg + " ($sp)", "add $sp $sp 4");
   }
   public static String push(String reg) {
-    return String.format("%s\n\t%s", "sub $sp $sp 4", "sw " + reg + " ($sp)");
+    return String.format("%s # push\n\t%s# push", "sub $sp $sp 4", "sw " + reg + " ($sp)");
   }
   public static String blockComment(String c) {
     return "\n# " + c;
@@ -34,29 +34,46 @@ public class CoolGen {
   public static String comment(String c) {
     return "# " + c;
   }
+  public static void emitObjectCopy(String className, PrintStream out) {
+    emitPadded(new String[] {
+      blockComment("call to Object.copy"),
+      push("$ra"),
+
+      comment("save a0 since it's argument"),
+      push("$a0"), 
+      "la $a0 " + String.format(PROTOBJ, className),
+      comment("prepare frame"),
+      "sub $sp $sp 4",
+      "move $fp $sp",
+      "jal Object.copy",
+      comment("destroy frame"),
+      "add $sp $sp 4",
+
+      comment("restore a0"),
+      pop("$t1"),
+      pop("$ra"),
+      push("$a0"),
+      "move $a0, $t1",
+    }, out);
+  }
   public static void newInt(PrintStream out) {
     int valOffset = CoolGen.lookupAttrOffset("Int", "_val");
 
     emitPadded(new String[] {
-      comment("save value of soon to be created Int"),
-      pop("$t4"),
+    }, out);
 
-      comment("create int object"),
-      comment("setup, call fn, destroy frame"),
-      push("$ra"),
-      "la $a0 " + String.format(PROTOBJ, "Int"),
-      "sub $sp $sp 4",
-      "move $fp $sp",
-      "jal Object.copy",
-      "add $sp $sp 4",
-      pop("$ra"),
+    emitObjectCopy("Int", out);
+
+    emitPadded(new String[]{       
+      pop("$t2"),
+      comment("get value of soon to be created Int"),
+      pop("$t1"),
 
       comment("assign value to int object"),
-      "move $t5 $a0",
-      "sw $t4 " + valOffset + "($t5)",
+      "sw $t1 " + valOffset + "($t2)",
 
       comment("push result"),
-      push("$t5"),
+      push("$t2"),
     }, out);
   }
 
@@ -275,6 +292,16 @@ public class CoolGen {
 
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
 
+    // Sanity check string to be printed out
+    // TODO: remove this sanity check
+    emit(WORD, -1);
+    emitLabel("temp_test");
+    emit(WORD, 3);
+    emit(WORD, 5);
+    emit(WORD, String.format(METHODTAB, "String"));
+    emit(WORD, "int_const0");
+    emit(ASCIIZ, "\"Hello, from Main.main\\n\"");
+
     // Disable GC for now
     emitLabel("_MemMgr_INITIALIZER");
     emit(WORD, "_NoGC_Init");
@@ -283,16 +310,6 @@ public class CoolGen {
     emitLabel("_MemMgr_TEST");
     emit(WORD, 0);
     endLabel(); 
-
-    // TODO: remove this sanity check
-    // emit(WORD, -1);
-    // emitLabel("temp_test");
-    // emit(WORD, 3);
-    // emit(WORD, 5);
-    // emit(WORD, String.format(METHODTAB, "String"));
-    // emit(WORD, "int_const0");
-    // emit(ASCIIZ, "\"HelloWorld\"");
-
 
     // Marks end of static data, heap can start now
     emitLabel("heap_start");
@@ -310,8 +327,8 @@ public class CoolGen {
           plus p = (plus) a.init;
           p.code(out);
           emit(blockComment("store value to attribute"));
-          emit(pop("$a0"));
-          emit("sw $a0 " +  String.format(ATTRREF, currentClass.name, a.name));
+          emit(pop("$t1"));
+          emit("sw $t1 " +  String.format(ATTRREF, currentClass.name, a.name));
         }
       }
     }
@@ -323,8 +340,8 @@ public class CoolGen {
     // Skip inits for Int and String
     emitLabel("Int_init");
     emitLabel("String_init");
-    emit(comment("nop"));
-    emit("add $a0 $a0 $a0");
+    emit(comment("TODO: do something meaningful"));
+    emit("add $t1 $t1 $t1");
     endLabel();
 
     emitLabel("Main_init");
@@ -339,12 +356,12 @@ public class CoolGen {
 
     // sanity test
     emit(push("$ra"));
-    // emit("la $a0 temp_test");
-    // emit(push("$a0"));
-    // emit("move $fp $sp");
-    // emit("sub $fp $fp 4");
-    // emit("jal IO.out_string");
-    // emit("add $sp $sp 4");
+    emit("la $t1 temp_test");
+    emit(push("$t1"));
+    emit("sub $sp $sp 4");
+    emit("move $fp $sp");
+    emit("jal IO.out_string");
+    emit("add $sp $sp 4");
     emit(pop("$ra"));
 
     emit("jr $ra");

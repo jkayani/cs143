@@ -989,12 +989,12 @@ class plus extends Expression {
             CoolGen.pop("$t5"),
 
             CoolGen.blockComment("load values of Int operands"),
-            ("lw $t6 " + valOffset + "($t4)"),
-            ("lw $t7 " + valOffset + "($t5)"),
+            ("lw $t4 " + valOffset + "($t4)"),
+            ("lw $t5 " + valOffset + "($t5)"),
 
             CoolGen.blockComment("compute sum of Int operands"),
-            ("add $a0 $t6 $t7"),
-            CoolGen.push("$a0")
+            ("add $t4 $t4 $t5"),
+            CoolGen.push("$t4")
         }, s);
 
         CoolGen.blockComment("save sum into new Int");
@@ -1395,9 +1395,9 @@ class int_const extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s) {
-        CgenSupport.emitLoadInt(CgenSupport.ACC,
+        CgenSupport.emitLoadInt("$t1",
                                     (IntSymbol)AbstractTable.inttable.lookup(token.getString()), s);
-        CoolGen.emitPadded(new String[] { CoolGen.push("$a0") }, s);
+        CoolGen.emitPadded(new String[] { CoolGen.push("$t1") }, s);
     }
 
 }
