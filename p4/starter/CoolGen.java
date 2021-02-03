@@ -356,7 +356,9 @@ public class CoolGen {
 
     emitLabel("Main.main");
 
-    // sanity test
+    // Sanity tests
+
+    // Print a string message
     emit(push("$ra"));
     emit("la $t1 temp_test");
     emit(push("$t1"));
@@ -365,6 +367,20 @@ public class CoolGen {
     emit("jal IO.out_string");
     emit("add $sp $sp 4");
     emit(pop("$ra"));
+
+    int attrCount = 4;
+    int distance = 4;
+    for (int i = 0; i < attrCount; i++) {
+      emit(push("$ra"));
+      emit("addi $t1 $a0 " + (12 + i * distance));
+      emit("lw $t1 ($t1)");
+      emit(push("$t1"));
+      emit("sub $sp $sp 4");
+      emit("move $fp $sp");
+      emit("jal IO.out_int");
+      emit("add $sp $sp 4");
+      emit(pop("$ra"));
+    }
 
     emit("jr $ra");
     endLabel();
