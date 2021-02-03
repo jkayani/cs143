@@ -141,7 +141,7 @@ class Formals extends ListNode {
 
 
 /** Defines simple phylum Expression */
-abstract class Expression extends TreeNode {
+abstract class Expression extends TreeNode implements AttributeExpression {
     protected Expression(int lineNumber) {
         super(lineNumber);
     }
@@ -156,7 +156,11 @@ abstract class Expression extends TreeNode {
             { out.println(Utilities.pad(n) + ": _no_type"); }
     }
     public abstract void code(PrintStream s);
+    public void code(PrintStream s, AbstractSymbol containingClassName) {};
+}
 
+interface AttributeExpression {
+    public void code(PrintStream s, AbstractSymbol containingClassName);
 }
 
 
@@ -941,7 +945,7 @@ class let extends Expression {
 /** Defines AST constructor 'plus'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class plus extends Expression {
+class plus extends Expression implements AttributeExpression {
     public Expression e1;
     public Expression e2;
     /** Creates "plus" AST node. 
@@ -977,9 +981,11 @@ class plus extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
-        e1.code(s);
-        e2.code(s);
+    public void code(PrintStream s) {}
+
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        e1.code(s, containingClassName);
+        e2.code(s, containingClassName);
 
         int valOffset = CoolGen.lookupAttrOffset("Int", "_val");
 
@@ -1364,7 +1370,7 @@ class comp extends Expression {
 /** Defines AST constructor 'int_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class int_const extends Expression {
+class int_const extends Expression implements AttributeExpression {
     public AbstractSymbol token;
     /** Creates "int_const" AST node. 
       *
@@ -1394,7 +1400,8 @@ class int_const extends Expression {
       * to you as an example of code generation.
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
         CgenSupport.emitLoadInt("$t1",
                                     (IntSymbol)AbstractTable.inttable.lookup(token.getString()), s);
         CoolGen.emitPadded(new String[] { CoolGen.push("$t1") }, s);
@@ -1638,9 +1645,17 @@ class object extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        int offset = CoolGen.lookupAttrOffset(containingClassName.toString(), name.toString());
+        CoolGen.emitPadded(new String[] {
+            CoolGen.comment(String.format("# lookup for attr %s for current class %s", name, containingClassName)),
+            "addi $t1 $a0 " + offset,
+            "lw $t1 ($t1)",
+            CoolGen.push("$t1"),
+        }, s);
     }
-
+ 
 
 }
 

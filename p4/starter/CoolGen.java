@@ -324,11 +324,13 @@ public class CoolGen {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
           attr a = (attr) f;
+          int offset = lookupAttrOffset(currentClass.name.toString(), a.name.toString());
           plus p = (plus) a.init;
-          p.code(out);
+
+          p.code(out, currentClass.name);
           emit(blockComment("store value to attribute"));
           emit(pop("$t1"));
-          emit("sw $t1 " +  String.format(ATTRREF, currentClass.name, a.name));
+          emit("sw $t1 " + offset + "($a0)");
         }
       }
     }
