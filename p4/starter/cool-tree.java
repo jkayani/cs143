@@ -987,7 +987,10 @@ class plus extends Expression implements AttributeExpression {
         e1.code(s, containingClassName);
         e2.code(s, containingClassName);
 
-        int valOffset = CoolGen.lookupAttrOffset("Int", "_val");
+        int valOffset = (Integer) CoolGen.lookupObject(
+            AbstractTable.idtable.lookup("Int"),
+            AbstractTable.idtable.lookup("_val")
+        )[1];
 
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment("load Int operands from stack"),
@@ -1645,12 +1648,16 @@ class object extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {}
+    public void code(PrintStream s) {
+    }
     public void code(PrintStream s, AbstractSymbol containingClassName) {
-        int offset = CoolGen.lookupAttrOffset(containingClassName.toString(), name.toString());
+        Object[] ref = CoolGen.lookupObject(containingClassName, name);
+        String reg = (String) ref[0];
+        Integer offset = (Integer) ref[1];
+
         CoolGen.emitPadded(new String[] {
-            CoolGen.comment(String.format("# lookup for attr %s for current class %s", name, containingClassName)),
-            "addi $t1 $a0 " + offset,
+            CoolGen.comment(String.format("# lookup for symbol %s for current class %s", name, containingClassName)),
+            String.format("addi $t1 %s %s", reg, offset),
             "lw $t1 ($t1)",
             CoolGen.push("$t1"),
         }, s);

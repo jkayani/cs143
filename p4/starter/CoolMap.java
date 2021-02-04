@@ -21,12 +21,12 @@ public class CoolMap {
   public Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
 
   /* The entire symbol table, mapping each class to it's symbol table */
-  public Map<AbstractSymbol, ClassTable> programSymbols = new HashMap<AbstractSymbol, ClassTable>();
+  public static Map<AbstractSymbol, ClassTable> programSymbols = new HashMap<AbstractSymbol, ClassTable>();
 
   public List<AbstractSymbol> classtags = new ArrayList<AbstractSymbol>();
 
   public Map<AbstractSymbol, HashMap<AbstractSymbol, AttributeData>> classAttributes = new HashMap<AbstractSymbol, HashMap<AbstractSymbol, AttributeData>>();
-  public Map<AbstractSymbol, ArrayList<MethodData>> classMethods = new HashMap<AbstractSymbol, ArrayList<MethodData>>();
+  public Map<AbstractSymbol, HashMap<AbstractSymbol, MethodData>> classMethods = new HashMap<AbstractSymbol, HashMap<AbstractSymbol, MethodData>>();
 
   /* Returns AST's for the builtin method types. Copied from starter code */
   private ArrayList<classc> getBuiltinClasses() {
@@ -182,10 +182,17 @@ public class CoolMap {
     public classc classc;
     public ClassTable(classc c) { classc = c; }
   }
+  public enum SymbolType {
+    ATTR, ARG, LOCAL
+  }
   /* The SymbolTable entry for variables */
   public class ObjectData {
     public AbstractSymbol type;
-    public ObjectData(AbstractSymbol a) { type = a; }
+    public SymbolType sym;
+    int offset = 0;
+    public ObjectData(AbstractSymbol t, SymbolType s, int o) {
+      type = t; sym = s; offset = o;
+     }
   }
   /* The SymbolTable entry for methods */
   public class MethodData {
@@ -193,8 +200,13 @@ public class CoolMap {
     public AbstractSymbol className;
     public AbstractSymbol returnType;
     public Formals args;
+    // public HashMap<AbstractSymbol, AbstractSymbol> argTypes = new HashMap<AbstractSymbol, AbstractSymbol>();
     public MethodData(AbstractSymbol n, AbstractSymbol a, AbstractSymbol c, Formals f) { 
       className = a; returnType = c; args = f; name = n;
+      // for (Enumeration e = f.getElements(); e.hasMoreElements(); ) {
+      //   formalc f2 = (formalc) e.nextElement();
+      //   argTypes.put(f2.name, f2.type_decl);
+      // }
     }
   }
 
@@ -336,14 +348,14 @@ public class CoolMap {
   * create a MethodData entry for each in programSymbols
   */
   private void discoverMethods(classc C) {
-    ArrayList<MethodData> list = new ArrayList<MethodData>();
+    HashMap<AbstractSymbol, MethodData> list = new HashMap<AbstractSymbol, MethodData>();
 
     for (Enumeration e2 = C.getFeatures().getElements(); e2.hasMoreElements(); ) {
       Feature f = (Feature) e2.nextElement();
       if (f instanceof method) {
         method m = (method) f;
         AbstractSymbol returnType = m.return_type;
-        list.add(new MethodData(m.name, C.name, returnType, m.formals));
+        list.put(m.name, new MethodData(m.name, C.name, returnType, m.formals));
       }
     }
     classMethods.put(C.name, list);
@@ -355,13 +367,19 @@ public class CoolMap {
   */
   private void discoverAttributes(classc C) {
     HashMap<AbstractSymbol, AttributeData> list = new HashMap<AbstractSymbol, AttributeData>();
+    ClassTable symbols = programSymbols.get(C.name);
 
+    symbols.objects.enterScope();
     int idx = 0;
     for (Enumeration e = C.getFeatures().getElements(); e.hasMoreElements(); ) {
       Feature f = (Feature) e.nextElement();
       if (f instanceof attr) {
         attr a = (attr) f;
-        list.put(a.name, new AttributeData(a.name, a.type_decl, idx++));
+        list.put(a.name, new AttributeData(a.name, a.type_decl, idx));
+
+        // Attributes start after object header (12), 4 bytes per pointer
+        symbols.objects.addId(a.name, new ObjectData(a.type_decl, SymbolType.ATTR, (12 + 4 * idx)));
+        idx++;
       }
     }
     classAttributes.put(C.name, list);

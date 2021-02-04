@@ -57,7 +57,10 @@ public class CoolGen {
     }, out);
   }
   public static void newInt(PrintStream out) {
-    int valOffset = CoolGen.lookupAttrOffset("Int", "_val");
+    Integer valOffset = (Integer) CoolGen.lookupObject(
+      AbstractTable.idtable.lookup("Int"),
+      AbstractTable.idtable.lookup("_val")
+    )[1];
 
     emitPadded(new String[] {
     }, out);
@@ -77,11 +80,32 @@ public class CoolGen {
     }, out);
   }
 
-  public static int lookupAttrOffset(String className, String attrName) {
-    return map.classAttributes.get(
-      AbstractTable.idtable.lookup(className))
-      .get(AbstractTable.idtable.lookup(attrName))
-      .offset;
+  public static Object[] lookupObject(AbstractSymbol className, AbstractSymbol symName) {
+    CoolMap.ClassTable symbols = map.programSymbols.get(className);
+    CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
+
+    // Assuming that current self is always $a0, args are from $fp, and locals are from $sp
+    Object[] res = new Object[]{ "$a0", o.offset };
+    switch (o.sym) {
+      case LOCAL: {
+        res[0] = "$sp";
+        break;
+      }
+      case ARG: {
+        res[0] = "$fp";
+        break;
+      }
+    }
+    return res;
+  }
+  public static void newObjectScope(AbstractSymbol className) {
+    CoolMap.ClassTable symbols = map.programSymbols.get(className);
+    symbols.objects.enterScope();
+  }
+  public static void addObject(AbstractSymbol className, AbstractSymbol symName) {
+    CoolMap.ClassTable symbols = map.programSymbols.get(className);
+    // symbols.addId()
+    // TODO: How will I know the offset of a local variable (i.e, introduced in let)?
   }
 
   public static void emitPadded(String[] s, PrintStream out) {
@@ -210,7 +234,7 @@ public class CoolGen {
     
     // Collect the set of methods inherited/overidden
     for (AbstractSymbol ancestor : ancestry) {
-      for (CoolMap.MethodData m : map.classMethods.get(ancestor)) {
+      for (CoolMap.MethodData m : map.classMethods.get(ancestor).values()) {
         methods.put(m.name.toString(), m);
       }
     }
@@ -324,13 +348,45 @@ public class CoolGen {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
           attr a = (attr) f;
-          int offset = lookupAttrOffset(currentClass.name.toString(), a.name.toString());
+          Integer offset = (Integer) lookupObject(currentClass.name, a.name)[1];
           plus p = (plus) a.init;
 
           p.code(out, currentClass.name);
           emit(blockComment("store value to attribute"));
           emit(pop("$t1"));
           emit("sw $t1 " + offset + "($a0)");
+        }
+      }
+    }
+  }
+
+  private void writeMethods() {
+    for (Enumeration e = map.classes.getElements(); e.hasMoreElements(); ) {
+      classc currentClass = (classc) e.nextElement();
+      CoolMap.ClassTable symbols = map.programSymbols.get(currentClass.name);
+      for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
+        Feature f = (Feature) e2.nextElement();
+        if (f instanceof method) {
+          method m = (method) f;
+          plus p = (plus) m.expr;
+          symbols.objects.enterScope();
+
+          // Arguments start at $fp
+          int offset = 0;
+          for (Enumeration e3 = m.formals.getElements(); e3.hasMoreElements(); ) {
+            formalc f2 = (formalc) e3.nextElement();
+            symbols.objects.addId(
+              f2.name, 
+
+              // TOOD: wtf is this
+              map.new ObjectData(f2.type_decl, CoolMap.SymbolType.ARG, offset)
+            );
+            offset += 4;
+          }
+
+          emitLabel(String.format(METHODREF, currentClass.name, m.name));
+          p.code(out, currentClass.name);
+          endLabel();
         }
       }
     }
@@ -354,33 +410,32 @@ public class CoolGen {
     emit("jr $ra");
     endLabel();
 
-    emitLabel("Main.main");
+    writeMethods();
 
-    // Sanity tests
-
-    // Print a string message
-    emit(push("$ra"));
-    emit("la $t1 temp_test");
-    emit(push("$t1"));
-    emit("sub $sp $sp 4");
-    emit("move $fp $sp");
-    emit("jal IO.out_string");
-    emit("add $sp $sp 4");
-    emit(pop("$ra"));
-
-    int attrCount = 4;
-    int distance = 4;
-    for (int i = 0; i < attrCount; i++) {
-      emit(push("$ra"));
-      emit("addi $t1 $a0 " + (12 + i * distance));
-      emit("lw $t1 ($t1)");
-      emit(push("$t1"));
-      emit("sub $sp $sp 4");
-      emit("move $fp $sp");
-      emit("jal IO.out_int");
-      emit("add $sp $sp 4");
-      emit(pop("$ra"));
-    }
+    // emitLabel("Main.main");
+    // // Sanity tests
+    // // Print a string message
+    // emit(push("$ra"));
+    // emit("la $t1 temp_test");
+    // emit(push("$t1"));
+    // emit("sub $sp $sp 4");
+    // emit("move $fp $sp");
+    // emit("jal IO.out_string");
+    // emit("add $sp $sp 4");
+    // emit(pop("$ra"));
+    // int attrCount = 4;
+    // int distance = 4;
+    // for (int i = 0; i < attrCount; i++) {
+    //   emit(push("$ra"));
+    //   emit("addi $t1 $a0 " + (12 + i * distance));
+    //   emit("lw $t1 ($t1)");
+    //   emit(push("$t1"));
+    //   emit("sub $sp $sp 4");
+    //   emit("move $fp $sp");
+    //   emit("jal IO.out_int");
+    //   emit("add $sp $sp 4");
+    //   emit(pop("$ra"));
+    // }
 
     emit("jr $ra");
     endLabel();
