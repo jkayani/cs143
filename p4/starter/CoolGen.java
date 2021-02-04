@@ -386,11 +386,15 @@ public class CoolGen {
 
           emitLabel(String.format(METHODREF, currentClass.name, m.name));
           p.code(out, currentClass.name);
+
+          // Assuming convention of return value in $a0
+          emit(pop("$a0"));
           endLabel();
         }
       }
     }
   }
+
   public void layoutCode() {
     emit("##### START CODE #####");
     emit(".text");
