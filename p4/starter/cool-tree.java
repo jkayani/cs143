@@ -8,9 +8,8 @@
 
 
 
-import java.util.Enumeration;
 import java.io.PrintStream;
-import java.util.Vector;
+import java.util.*;
 
 
 /** Defines simple phylum Program */
@@ -646,7 +645,7 @@ class static_dispatch extends Expression {
 /** Defines AST constructor 'dispatch'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class dispatch extends Expression {
+class dispatch extends Expression implements AttributeExpression {
     public Expression expr;
     public AbstractSymbol name;
     public Expressions actual;
@@ -691,37 +690,41 @@ class dispatch extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
-        String[] args = new String[actual.getLength() * 2];
+        List<String> args = new ArrayList<String>(actual.getLength());
 
         // Preserve registers and setup frame
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment(String.format("call to %s.%s", subjectType, name)),
+            CoolGen.comment("preserve registers"),
             CoolGen.push("$a0"),
             CoolGen.push("$ra"),
+            CoolGen.comment("setup frame"),
+
+            // TODO: ensure args start at $fp
             "sub $sp $sp 4",
             "move $fp $sp",
-        });
+            CoolGen.comment("push args"),
+        }, s);
 
         // Push arguments
         for (int i = 0; i < actual.getLength(); i += 2) {
-
-            // TODO: Figure out which class contains this method call to resolve attr references
-            Object[] argRef = CoolGen.lookupObject();
-            args[i] =  String.format("addi $t1 %s %d", (String) argRef[0], (Integer) argRef[1]);
-            args[i + 1] = CoolGen.push("$t1");
+            AttributeExpression e = (AttributeExpression) actual.getNth(i);
+            e.code(s, containingClassName);
         }
 
         // Make call, destroy frame, and push the return on stack
         CoolGen.emitPadded(new String[] {
-            String.format("jal %s.%s", subjectType, name);
+            // TODO: Put subject of dispatch into $a0
+            String.format("jal %s.%s", subjectType, name),
             "add $sp $sp 4",
             CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
             CoolGen.push("$a0"),
             "move $a0 $t1"
-        });
+        }, s);
     }
 
 

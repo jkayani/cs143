@@ -81,6 +81,8 @@ public class CoolGen {
   }
 
   public static Object[] lookupObject(AbstractSymbol className, AbstractSymbol symName) {
+    
+    // TODO: handle SELF_TYPE
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
 
@@ -349,7 +351,7 @@ public class CoolGen {
         if (f instanceof attr) {
           attr a = (attr) f;
           Integer offset = (Integer) lookupObject(currentClass.name, a.name)[1];
-          plus p = (plus) a.init;
+          AttributeExpression p = (AttributeExpression) a.init;
 
           p.code(out, currentClass.name);
           emit(blockComment("store value to attribute"));
@@ -368,7 +370,7 @@ public class CoolGen {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof method) {
           method m = (method) f;
-          plus p = (plus) m.expr;
+          AttributeExpression p = (AttributeExpression) m.expr;
           symbols.objects.enterScope();
 
           // Arguments start at $fp
