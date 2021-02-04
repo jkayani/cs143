@@ -692,6 +692,36 @@ class dispatch extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s) {
+        AbstractSymbol subjectType = expr.get_type();
+        String[] args = new String[actual.getLength() * 2];
+
+        // Preserve registers and setup frame
+        CoolGen.emitPadded(new String[] {
+            CoolGen.blockComment(String.format("call to %s.%s", subjectType, name)),
+            CoolGen.push("$a0"),
+            CoolGen.push("$ra"),
+            "sub $sp $sp 4",
+            "move $fp $sp",
+        });
+
+        // Push arguments
+        for (int i = 0; i < actual.getLength(); i += 2) {
+
+            // TODO: Figure out which class contains this method call to resolve attr references
+            Object[] argRef = CoolGen.lookupObject();
+            args[i] =  String.format("addi $t1 %s %d", (String) argRef[0], (Integer) argRef[1]);
+            args[i + 1] = CoolGen.push("$t1");
+        }
+
+        // Make call, destroy frame, and push the return on stack
+        CoolGen.emitPadded(new String[] {
+            String.format("jal %s.%s", subjectType, name);
+            "add $sp $sp 4",
+            CoolGen.pop("$ra"),
+            CoolGen.pop("$t1"),
+            CoolGen.push("$a0"),
+            "move $a0 $t1"
+        });
     }
 
 

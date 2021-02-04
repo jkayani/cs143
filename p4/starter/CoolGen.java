@@ -390,6 +390,7 @@ public class CoolGen {
           // Assuming convention of return value in $a0
           emit(pop("$a0"));
           endLabel();
+          symbols.objects.exitScope();
         }
       }
     }
