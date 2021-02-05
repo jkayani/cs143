@@ -41,6 +41,7 @@ public class CoolGen {
 
       comment("save a0 since it's argument"),
       push("$a0"), 
+      push("$fp"),
       "la $a0 " + String.format(PROTOBJ, className),
       comment("prepare frame"),
       "sub $sp $sp 4",
@@ -48,6 +49,7 @@ public class CoolGen {
       "jal Object.copy",
       comment("destroy frame"),
       "add $sp $sp 4",
+      pop("$fp"),
 
       comment("restore a0"),
       pop("$t1"),
@@ -81,22 +83,25 @@ public class CoolGen {
   }
 
   public static Object[] lookupObject(AbstractSymbol className, AbstractSymbol symName) {
-    
-    // TODO: handle SELF_TYPE
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
 
     // Assuming that current self is always $a0, args are from $fp, and locals are from $sp
-    Object[] res = new Object[]{ "$a0", o.offset };
-    switch (o.sym) {
-      case LOCAL: {
-        res[0] = "$sp";
-        break;
+    Object[] res = new Object[]{ "$a0", 0 };
+    if (symName.equals(TreeConstants.self)) {
+      res[1] = 0;
+    } else {
+      switch (o.sym) {
+        case LOCAL: {
+          res[0] = "$sp";
+          break;
+        }
+        case ARG: {
+          res[0] = "$fp";
+          break;
+        }
       }
-      case ARG: {
-        res[0] = "$fp";
-        break;
-      }
+      res[1] = o.offset;
     }
     return res;
   }
@@ -392,6 +397,7 @@ public class CoolGen {
           // Assuming convention of return value in $a0
           emit(pop("$a0"));
           endLabel();
+          emit("jr $ra");
           symbols.objects.exitScope();
         }
       }
@@ -444,7 +450,7 @@ public class CoolGen {
     //   emit(pop("$ra"));
     // }
 
-    emit("jr $ra");
+    // emit("jr $ra");
     endLabel();
 
     emit("##### END CODE #####");

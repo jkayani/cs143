@@ -694,17 +694,26 @@ class dispatch extends Expression implements AttributeExpression {
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
         List<String> args = new ArrayList<String>(actual.getLength());
+        AttributeExpression ae = (AttributeExpression) expr;
 
-        // Preserve registers and setup frame
+        if (subjectType.equals(TreeConstants.SELF_TYPE)) {
+            subjectType = containingClassName;
+        }
+
+        // Emit subject of dispatch to stack
+        ae.code(s, containingClassName);
+
+        // Store subject of dispatch, preserve registers and setup frame
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment(String.format("call to %s.%s", subjectType, name)),
+            CoolGen.pop("$a0"),
             CoolGen.comment("preserve registers"),
             CoolGen.push("$a0"),
             CoolGen.push("$ra"),
-            CoolGen.comment("setup frame"),
 
-            // TODO: ensure args start at $fp
-            "sub $sp $sp 4",
+            // TODO: Figure out where current $fp should be preserved in case of 
+            // nested function calls
+            CoolGen.comment("setup frame"),
             "move $fp $sp",
             CoolGen.comment("push args"),
         }, s);
@@ -717,9 +726,12 @@ class dispatch extends Expression implements AttributeExpression {
 
         // Make call, destroy frame, and push the return on stack
         CoolGen.emitPadded(new String[] {
-            // TODO: Put subject of dispatch into $a0
-            String.format("jal %s.%s", subjectType, name),
-            "add $sp $sp 4",
+            "sub $fp $fp 4", // Make $fp point to first arg
+            String.format("lw $t1 %s_method_%s", subjectType, name),
+            "jalr $t1", 
+            ".globl debug\ndebug:\n",
+            "move $sp $fp",
+            "add $sp $sp 4", // Return to top of stack before-call
             CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
             CoolGen.push("$a0"),
@@ -1029,6 +1041,9 @@ class plus extends Expression implements AttributeExpression {
             CoolGen.blockComment("load Int operands from stack"),
             CoolGen.pop("$t4"),
             CoolGen.pop("$t5"),
+
+            (e1 instanceof object) ? "lw $t5 ($t5) # deref pointer to Int" : "",
+            (e2 instanceof object) ? "lw $t4 ($t4) # deref pointer to Int" : "",
 
             CoolGen.blockComment("load values of Int operands"),
             ("lw $t4 " + valOffset + "($t4)"),
@@ -1691,7 +1706,6 @@ class object extends Expression {
         CoolGen.emitPadded(new String[] {
             CoolGen.comment(String.format("# lookup for symbol %s for current class %s", name, containingClassName)),
             String.format("addi $t1 %s %s", reg, offset),
-            "lw $t1 ($t1)",
             CoolGen.push("$t1"),
         }, s);
     }
