@@ -182,7 +182,7 @@ public class CoolMap {
     public classc classc;
     public ClassTable(classc c) { classc = c; }
   }
-  public enum SymbolType {
+  public static enum SymbolType {
     ATTR, ARG, LOCAL
   }
   /* The SymbolTable entry for variables */

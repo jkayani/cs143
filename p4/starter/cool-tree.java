@@ -710,28 +710,34 @@ class dispatch extends Expression implements AttributeExpression {
             CoolGen.comment("preserve registers"),
             CoolGen.push("$a0"),
             CoolGen.push("$ra"),
-
-            // TODO: Figure out where current $fp should be preserved in case of 
-            // nested function calls
-            CoolGen.comment("setup frame"),
-            "move $fp $sp",
+            CoolGen.push("$fp"),
             CoolGen.comment("push args"),
         }, s);
 
         // Push arguments
-        for (int i = 0; i < actual.getLength(); i += 2) {
+        for (int i = 0; i < actual.getLength(); i++) {
             AttributeExpression e = (AttributeExpression) actual.getNth(i);
             e.code(s, containingClassName);
+
+            // Pass current arguments as callee arguments directly, 
+            // by pushing an absolute address, not one relative to the current frame
+            if (e instanceof object) {
+                CoolGen.emitObjectDeref(s);
+            }
         }
 
         // Make call, destroy frame, and push the return on stack
         CoolGen.emitPadded(new String[] {
-            "sub $fp $fp 4", // Make $fp point to first arg
+            "move $t1 $sp",
+            "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
+            "move $fp $t1", // $fp points to first arg
             String.format("lw $t1 %s_method_%s", subjectType, name),
+            ".globl preCall" + name + "\n" + "preCall" + name + ":\n",
             "jalr $t1", 
-            ".globl debug\ndebug:\n",
+            ".globl postCall" + name + "\n" + "postCall" + name + ":\n",
             "move $sp $fp",
             "add $sp $sp 4", // Return to top of stack before-call
+            CoolGen.pop("$fp"),
             CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
             CoolGen.push("$a0"),
@@ -1030,7 +1036,15 @@ class plus extends Expression implements AttributeExpression {
 
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         e1.code(s, containingClassName);
+        if (e1 instanceof object) {
+            object o = (object) e1;
+            CoolGen.emitObjectDeref(s);
+        }
         e2.code(s, containingClassName);
+        if (e2 instanceof object) {
+            object o = (object) e2;
+            CoolGen.emitObjectDeref(s);
+        }
 
         int valOffset = (Integer) CoolGen.lookupObject(
             AbstractTable.idtable.lookup("Int"),
@@ -1041,9 +1055,6 @@ class plus extends Expression implements AttributeExpression {
             CoolGen.blockComment("load Int operands from stack"),
             CoolGen.pop("$t4"),
             CoolGen.pop("$t5"),
-
-            (e1 instanceof object) ? "lw $t5 ($t5) # deref pointer to Int" : "",
-            (e2 instanceof object) ? "lw $t4 ($t4) # deref pointer to Int" : "",
 
             CoolGen.blockComment("load values of Int operands"),
             ("lw $t4 " + valOffset + "($t4)"),

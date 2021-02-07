@@ -29,7 +29,7 @@ public class CoolGen {
     return String.format("%s # push\n\t%s# push", "sub $sp $sp 4", "sw " + reg + " ($sp)");
   }
   public static String blockComment(String c) {
-    return "\n# " + c;
+    return "\n\t# " + c;
   }
   public static String comment(String c) {
     return "# " + c;
@@ -37,23 +37,23 @@ public class CoolGen {
   public static void emitObjectCopy(String className, PrintStream out) {
     emitPadded(new String[] {
       blockComment("call to Object.copy"),
-      push("$ra"),
 
-      comment("save a0 since it's argument"),
+      comment("preserve registers"),
       push("$a0"), 
+      push("$ra"),
       push("$fp"),
+      comment("setup argument"),
       "la $a0 " + String.format(PROTOBJ, className),
-      comment("prepare frame"),
       "sub $sp $sp 4",
-      "move $fp $sp",
+      "move $fp $sp", // $fp points to nothing (thing after top of stack since no args on stack)
       "jal Object.copy",
-      comment("destroy frame"),
+
+      comment("restore registers"),
+      "move $sp $fp",
       "add $sp $sp 4",
       pop("$fp"),
-
-      comment("restore a0"),
-      pop("$t1"),
       pop("$ra"),
+      pop("$t1"),
       push("$a0"),
       "move $a0, $t1",
     }, out);
@@ -81,6 +81,14 @@ public class CoolGen {
       push("$t2"),
     }, out);
   }
+  public static void emitObjectDeref(PrintStream out) {
+    emitPadded(new String[] {
+      comment("dereferencing pointer to Int"),
+      pop("$t1"),
+      "lw $t1 ($t1)",
+      push("$t1")
+    }, out);
+  }
 
   public static Object[] lookupObject(AbstractSymbol className, AbstractSymbol symName) {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
@@ -94,16 +102,27 @@ public class CoolGen {
       switch (o.sym) {
         case LOCAL: {
           res[0] = "$sp";
+          // TODO where is the offset?
           break;
         }
         case ARG: {
           res[0] = "$fp";
+          // Stack grows with decreasing values
+          res[1] = -1 * o.offset;
+          break;
+        }
+        default: {
+          res[1] = o.offset;
           break;
         }
       }
-      res[1] = o.offset;
     }
     return res;
+  }
+  public static CoolMap.SymbolType lookupSymbolType(AbstractSymbol className, AbstractSymbol symName) {
+    CoolMap.ClassTable symbols = map.programSymbols.get(className);
+    CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
+    return o.sym;
   }
   public static void newObjectScope(AbstractSymbol className) {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
@@ -395,7 +414,13 @@ public class CoolGen {
           p.code(out, currentClass.name);
 
           // Assuming convention of return value in $a0
+          // TODO: If return type is Int, String, or Bool and 
+          // the expression of the method if instanceof object, deref that pointer
+
           emit(pop("$a0"));
+          if (m.return_type.equals(TreeConstants.Int) && p instanceof object) {
+            emit("lw $a0 ($a0)");
+          }
           endLabel();
           emit("jr $ra");
           symbols.objects.exitScope();
@@ -449,9 +474,8 @@ public class CoolGen {
     //   emit("add $sp $sp 4");
     //   emit(pop("$ra"));
     // }
-
     // emit("jr $ra");
-    endLabel();
+    // endLabel();
 
     emit("##### END CODE #####");
   }
