@@ -15,3 +15,11 @@ Decided Conventions:
 
 - $fp points to first argument of method. Arguments aren't popped off the stack, they 
 are referenced relative to $fp
+
+
+Next steps:
+- assign
+- new
+- let 
+- static_dispatch
+- case

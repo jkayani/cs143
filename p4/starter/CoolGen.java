@@ -58,7 +58,7 @@ public class CoolGen {
       "move $a0, $t1",
     }, out);
   }
-  public static void newInt(PrintStream out) {
+  public static void emitNewInt(PrintStream out) {
     Integer valOffset = (Integer) CoolGen.lookupObject(
       AbstractTable.idtable.lookup("Int"),
       AbstractTable.idtable.lookup("_val")
@@ -378,7 +378,7 @@ public class CoolGen {
           AttributeExpression p = (AttributeExpression) a.init;
 
           p.code(out, currentClass.name);
-          emit(blockComment("store value to attribute"));
+          emit(blockComment(String.format("store value to attribute %s.%s", currentClass.name, a.name)));
           emit(pop("$t1"));
           emit("sw $t1 " + offset + "($a0)");
         }
@@ -416,10 +416,12 @@ public class CoolGen {
           // Assuming convention of return value in $a0
           // TODO: If return type is Int, String, or Bool and 
           // the expression of the method if instanceof object, deref that pointer
-
           emit(pop("$a0"));
-          if (m.return_type.equals(TreeConstants.Int) && p instanceof object) {
-            emit("lw $a0 ($a0)");
+          if (p instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) p;
+            if (o.requiresDereference()) {
+              emit("lw $a0 ($a0)");
+            }
           }
           endLabel();
           emit("jr $ra");

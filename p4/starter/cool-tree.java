@@ -161,6 +161,9 @@ abstract class Expression extends TreeNode implements AttributeExpression {
 interface AttributeExpression {
     public void code(PrintStream s, AbstractSymbol containingClassName);
 }
+interface ObjectReturnable {
+    public boolean requiresDereference();
+}
 
 
 /** Defines list phylum Expressions
@@ -539,7 +542,7 @@ class branch extends Case {
 /** Defines AST constructor 'assign'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class assign extends Expression {
+class assign extends Expression implements ObjectReturnable {
     public AbstractSymbol name;
     public Expression expr;
     /** Creates "assign" AST node. 
@@ -575,10 +578,48 @@ class assign extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+
+    public boolean requiresDereference() {
+        if (expr instanceof ObjectReturnable) {
+            return ((ObjectReturnable) expr).requiresDereference();
+        }
+        return false;
     }
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
 
+        // Push expr's value to stack
+        expr.code(s, containingClassName);
 
+        // Find the location of `name`
+        Object[] ref = CoolGen.lookupObject(containingClassName, name);
+        String reg = (String) ref[0];
+        int offset = (Integer) ref[1];
+
+        // If this assign's expression is an object, we need to 
+        // dereference it for the purpose of assigning, but then 
+        // push that pointer on the stack so that later code properly dereference it
+        if (requiresDereference()) {
+            CoolGen.emitPadded(new String[] {
+                CoolGen.blockComment("store to " + name),
+                CoolGen.pop("$t2"), // pop pointer to target (need it for later)
+                CoolGen.push("$t2")
+            }, s);
+            CoolGen.emitObjectDeref(s);
+            CoolGen.emitPadded(new String[] {
+                CoolGen.pop("$t1"),
+                String.format("sw $t1 %d(%s)", offset, reg),
+                CoolGen.push("$t2"),
+            }, s);
+        } else {
+            CoolGen.emitPadded(new String[] {
+                CoolGen.blockComment("store to " + name),
+                CoolGen.pop("$t1"),
+                String.format("sw $t1 %d(%s)", offset, reg),
+                CoolGen.push("$t1")
+            }, s);
+        }
+    }
 }
 
 
@@ -644,7 +685,11 @@ class static_dispatch extends Expression {
 
 /** Defines AST constructor 'dispatch'.
     <p>
-    See <a href="TreeNode.html">TreeNode</a> for full documentation. */
+    See <a href="TreeNode.html">TreeNode</a> for full documentation. 
+
+Note: these are not ObjectReturnable b/c the method epilogue always deref's the
+method's final expression if necessary
+*/
 class dispatch extends Expression implements AttributeExpression {
     public Expression expr;
     public AbstractSymbol name;
@@ -693,7 +738,6 @@ class dispatch extends Expression implements AttributeExpression {
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
-        List<String> args = new ArrayList<String>(actual.getLength());
         AttributeExpression ae = (AttributeExpression) expr;
 
         if (subjectType.equals(TreeConstants.SELF_TYPE)) {
@@ -721,8 +765,11 @@ class dispatch extends Expression implements AttributeExpression {
 
             // Pass current arguments as callee arguments directly, 
             // by pushing an absolute address, not one relative to the current frame
-            if (e instanceof object) {
-                CoolGen.emitObjectDeref(s);
+            if (e instanceof ObjectReturnable) {
+                ObjectReturnable o = (ObjectReturnable) e;
+                if (o.requiresDereference()) {
+                    CoolGen.emitObjectDeref(s);
+                }
             }
         }
 
@@ -1036,14 +1083,18 @@ class plus extends Expression implements AttributeExpression {
 
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         e1.code(s, containingClassName);
-        if (e1 instanceof object) {
-            object o = (object) e1;
-            CoolGen.emitObjectDeref(s);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
         }
         e2.code(s, containingClassName);
-        if (e2 instanceof object) {
-            object o = (object) e2;
-            CoolGen.emitObjectDeref(s);
+        if (e2 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e2;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
         }
 
         int valOffset = (Integer) CoolGen.lookupObject(
@@ -1066,7 +1117,7 @@ class plus extends Expression implements AttributeExpression {
         }, s);
 
         CoolGen.blockComment("save sum into new Int");
-        CoolGen.newInt(s);
+        CoolGen.emitNewInt(s);
     }
 }
 
@@ -1676,7 +1727,7 @@ class no_expr extends Expression {
 /** Defines AST constructor 'object'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class object extends Expression {
+class object extends Expression implements ObjectReturnable {
     public AbstractSymbol name;
     /** Creates "object" AST node. 
       *
@@ -1709,6 +1760,9 @@ class object extends Expression {
       * */
     public void code(PrintStream s) {
     }
+    public boolean requiresDereference() {
+        return true;
+    }
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         Object[] ref = CoolGen.lookupObject(containingClassName, name);
         String reg = (String) ref[0];
@@ -1720,8 +1774,6 @@ class object extends Expression {
             CoolGen.push("$t1"),
         }, s);
     }
- 
-
 }
 
 
