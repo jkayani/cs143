@@ -746,15 +746,23 @@ class dispatch extends Expression implements AttributeExpression {
 
         // Emit subject of dispatch to stack
         ae.code(s, containingClassName);
+        if (expr instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) expr;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
 
         // Store subject of dispatch, preserve registers and setup frame
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment(String.format("call to %s.%s", subjectType, name)),
-            CoolGen.pop("$a0"),
+            CoolGen.pop("$t1"),
             CoolGen.comment("preserve registers"),
             CoolGen.push("$a0"),
             CoolGen.push("$ra"),
             CoolGen.push("$fp"),
+            CoolGen.comment("setup self object of dispatch"),
+            "move $a0 $t1",
             CoolGen.comment("push args"),
         }, s);
 
@@ -778,10 +786,14 @@ class dispatch extends Expression implements AttributeExpression {
             "move $t1 $sp",
             "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
             "move $fp $t1", // $fp points to first arg
+
+            // TODO: fix this so that the most recent ancestor of subjectType is used
+            // to lookup where to jump; e.g, for Dogs it should use Dog_method_legs not 
+            // Animal_method_legs
             String.format("lw $t1 %s_method_%s", subjectType, name),
-            ".globl preCall" + name + "\n" + "preCall" + name + ":\n",
+            "\t.globl preCall" + name + "\n" + "\tpreCall" + name + ":\n",
             "jalr $t1", 
-            ".globl postCall" + name + "\n" + "postCall" + name + ":\n",
+            "\t.globl postCall" + name + "\n" + "\tpostCall" + name + ":\n",
             "move $sp $fp",
             "add $sp $sp 4", // Return to top of stack before-call
             CoolGen.pop("$fp"),
@@ -1640,7 +1652,32 @@ class new_ extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+
+        // Call Object.copy on the prototype 
+        CoolGen.emitObjectCopy(type_name.toString(), s);
+
+        // For each ancestor of `type_name`, call it's initialize routine
+        // Skip Object (first ancestor of all classes)
+        ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(type_name).listIterator(1);
+        while (ancestry.hasNext()) {
+            AbstractSymbol ancestor = ancestry.next();
+            CoolGen.emitPadded(new String[] {
+                CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
+                CoolGen.pop("$t1"),
+                CoolGen.push("$a0"),
+                CoolGen.push("$ra"),
+                "move $a0 $t1",
+                String.format("jal " + CoolGen.ATTRINIT, ancestor),
+
+                // Push pointer and restore registers
+                "move $t1 $a0",
+                CoolGen.pop("$ra"),
+                CoolGen.pop("$a0"),
+                CoolGen.push("$t1")
+            }, s);
+        }
     }
 
 
@@ -1761,7 +1798,7 @@ class object extends Expression implements ObjectReturnable {
     public void code(PrintStream s) {
     }
     public boolean requiresDereference() {
-        return true;
+        return !name.equals(TreeConstants.self);
     }
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         Object[] ref = CoolGen.lookupObject(containingClassName, name);

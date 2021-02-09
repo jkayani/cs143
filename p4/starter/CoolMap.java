@@ -18,7 +18,7 @@ public class CoolMap {
   public Classes classes;
 
   /* The inheritance graph, mapping a class to it's parent */
-  public Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
+  public static Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
 
   /* The entire symbol table, mapping each class to it's symbol table */
   public static Map<AbstractSymbol, ClassTable> programSymbols = new HashMap<AbstractSymbol, ClassTable>();
@@ -320,7 +320,7 @@ public class CoolMap {
     return lub;
   }
 
-  public LinkedList<AbstractSymbol> getAncestry(AbstractSymbol className) {
+  public static LinkedList<AbstractSymbol> getAncestry(AbstractSymbol className) {
     LinkedList<AbstractSymbol> l = new LinkedList<AbstractSymbol>();
     AbstractSymbol next = className;
     do {

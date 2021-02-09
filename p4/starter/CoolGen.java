@@ -13,14 +13,15 @@ public class CoolGen {
   private boolean inLabel = false;
   private int INT_CLASS_TAG = 0; private int STR_CLASS_TAG = 0;
 
-  private static final String GLOBAL = ".globl";
-  private static final String WORD = ".word";
-  private static final String ASCIIZ = ".asciiz";
-  private static final String ALIGN = ".align";
-  private static final String PROTOBJ = "%s_protObj";
-  private static final String METHODTAB = "%s_methodTab";
-  private static final String METHODREF = "%s.%s";
-  private static final String ATTRREF = "%s_attr_%s";
+  public static final String GLOBAL = ".globl";
+  public static final String WORD = ".word";
+  public static final String ASCIIZ = ".asciiz";
+  public static final String ALIGN = ".align";
+  public static final String PROTOBJ = "%s_protObj";
+  public static final String METHODTAB = "%s_methodTab";
+  public static final String METHODREF = "%s.%s";
+  public static final String ATTRREF = "%s_attr_%s";
+  public static final String ATTRINIT = "%s_init";
 
   public static String pop(String reg) {
     return String.format("%s # pop\n\t%s# pop", "lw " + reg + " ($sp)", "add $sp $sp 4");
@@ -370,6 +371,8 @@ public class CoolGen {
   private void initAttributes() {
     for (Enumeration e = map.classes.getElements(); e.hasMoreElements(); ) {
       classc currentClass = (classc) e.nextElement();
+      emitLabel(String.format(ATTRINIT, currentClass.name));
+      emit(push("$ra"));
       for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
@@ -383,6 +386,9 @@ public class CoolGen {
           emit("sw $t1 " + offset + "($a0)");
         }
       }
+      emit(pop("$ra"));
+      emit("jr $ra");
+      endLabel();
     }
   }
 
@@ -442,13 +448,7 @@ public class CoolGen {
     emit("add $t1 $t1 $t1");
     endLabel();
 
-    emitLabel("Main_init");
-    emit(push("$ra"));
-    emit(blockComment("init attributes"));
     initAttributes();
-    emit(pop("$ra"));
-    emit("jr $ra");
-    endLabel();
 
     writeMethods();
 
