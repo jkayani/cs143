@@ -26,7 +26,9 @@ class Main {
     a.reflect().legs()
   };
   main(): Int {
-    getLegs(myDog <- (new Dog).reflect().reflect().reflect()) + getLegs(myAnimal.reflect())
+    getLegs(myDog <- (new Dog).reflect().reflect().reflect()) + 
+    new Dog@Animal.legs() + 
+    getLegs(myAnimal.reflect())
   };
 };
 

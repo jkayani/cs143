@@ -676,9 +676,79 @@ class static_dispatch extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
-    }
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        AbstractSymbol subjectType = expr.get_type();
+        AttributeExpression ae = (AttributeExpression) expr;
 
+        if (subjectType.equals(TreeConstants.SELF_TYPE)) {
+            subjectType = containingClassName;
+        }
+
+        // Emit subject of dispatch to stack
+        ae.code(s, containingClassName);
+        if (expr instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) expr;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        // Store subject of dispatch, preserve registers and setup frame
+        CoolGen.emitPadded(new String[] {
+            CoolGen.blockComment(String.format("call to %s@%s.%s", subjectType, type_name, name)),
+            CoolGen.pop("$t1"),
+            CoolGen.comment("preserve registers"),
+            CoolGen.push("$a0"),
+            CoolGen.push("$ra"),
+            CoolGen.push("$fp"),
+            CoolGen.comment("setup self object of dispatch"),
+            "move $a0 $t1",
+            CoolGen.comment("push args"),
+        }, s);
+
+        // Push arguments
+        for (int i = 0; i < actual.getLength(); i++) {
+            AttributeExpression e = (AttributeExpression) actual.getNth(i);
+            e.code(s, containingClassName);
+
+            // Pass current arguments as callee arguments directly, 
+            // by pushing an absolute address, not one relative to the current frame
+            if (e instanceof ObjectReturnable) {
+                ObjectReturnable o = (ObjectReturnable) e;
+                if (o.requiresDereference()) {
+                    CoolGen.emitObjectDeref(s);
+                }
+            }
+        }
+
+        // Setup frame
+        CoolGen.emitPadded(new String[] {
+            "move $t1 $sp",
+            "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
+            "move $fp $t1", // $fp points to first arg
+        }, s);
+
+        // Perform the call
+        CoolGen.emitPadded(new String[] {
+            CoolGen.comment("find jump address and jump"),
+            String.format("lw $t1 %s_method_%s", type_name, name),
+            "jalr $t1",
+        }, s);
+
+        // Destroy frame and restore registers
+        CoolGen.emitPadded(new String[] {
+            // ".globl postCall" + name,
+            // "postCall" + name + ":",
+            "move $sp $fp",
+            "add $sp $sp 4", // Return to top of stack before-call
+            CoolGen.pop("$fp"),
+            CoolGen.pop("$ra"),
+            CoolGen.pop("$t1"),
+            CoolGen.push("$a0"),
+            "move $a0 $t1"
+        }, s);
+    }
 
 }
 
