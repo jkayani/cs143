@@ -120,6 +120,16 @@ public class CoolGen {
     }
     return res;
   }
+  public static CoolMap.MethodData lookupMethod(AbstractSymbol className, AbstractSymbol symName) {
+    Iterator<AbstractSymbol> i = CoolMap.getAncestry(className).descendingIterator();
+    while (i.hasNext()) {
+      CoolMap.MethodData m = CoolMap.classMethods.get(i.next()).get(symName);
+      if (m != null) {
+        return m;
+      }
+    }
+    return null;
+  }
   public static CoolMap.SymbolType lookupSymbolType(AbstractSymbol className, AbstractSymbol symName) {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
@@ -257,23 +267,54 @@ public class CoolGen {
   }
 
   private void writeDispatchTab(AbstractSymbol className, LinkedList<AbstractSymbol> ancestry) {
-    Map<String, CoolMap.MethodData> methods = new HashMap<String, CoolMap.MethodData>();
-    
+    Map<AbstractSymbol, CoolMap.MethodData> methods = new HashMap<AbstractSymbol, CoolMap.MethodData>();
+
     // Collect the set of methods inherited/overidden
     for (AbstractSymbol ancestor : ancestry) {
-      for (CoolMap.MethodData m : map.classMethods.get(ancestor).values()) {
-        methods.put(m.name.toString(), m);
+
+      // First, overwrite any redefined inherited methods
+      Map<AbstractSymbol,  CoolMap.MethodData> currentMethods = map.classMethods.get(ancestor);
+      for (CoolMap.MethodData inherited : methods.values()) {
+        CoolMap.MethodData reDefined = currentMethods.get(inherited.name);
+        if (reDefined != null) {
+          reDefined.order = inherited.order;
+          methods.put(inherited.name, reDefined);
+        }
+      }
+
+      // Then, add any newly defined methods
+      int lastOrder = methods.size();
+      for (CoolMap.MethodData current : currentMethods.values()) {
+        if (methods.get(current.name) == null) {
+          current.order = lastOrder++;
+          methods.put(current.name, current);
+        }
       }
     }
+
+    CoolMap.MethodData[] methodList = methods.values().toArray(new CoolMap.MethodData[] {});
+    Arrays.sort(methodList);
 
     // Build a table, associating each inherited method to the address of the definition
     // Since methods can be shared across descendants, we need this table
     emitLabel(String.format(METHODTAB, className));
-    methods.forEach((String name, CoolMap.MethodData m) -> {
-      emitLabel(String.format("%s_method_%s", className, name));
-      emit(WORD, String.format(METHODREF, m.className, name));
+    for (CoolMap.MethodData m : methodList) {
+      // Assign an offset for this method. Will need this for dispatching to it later
+      // Each method pointer takes 4 bytes
+      m.offset = 4 * m.order;
+
+      emitLabel(String.format("%s_method_%s", className, m.name));
+      emit(WORD, String.format(METHODREF, m.className, m.name));
       endLabel();
-    });
+    }
+    endLabel();
+  }
+
+  private void writeDispatchTabTab() {
+    emitLabel("methodTabTab");
+    for (AbstractSymbol className : map.classtags) {
+      emit(WORD, String.format(METHODTAB, className));
+    }
     endLabel();
   }
 
@@ -340,6 +381,8 @@ public class CoolGen {
       writeDispatchTab(className, ancestry);
       endLabel();
     }
+
+    writeDispatchTabTab();
 
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
 

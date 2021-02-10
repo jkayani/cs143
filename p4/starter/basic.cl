@@ -4,12 +4,12 @@
  *)
 
 class Animal {
-  legs:Int <- 2;
-  legs():Int {
-    legs
-  };
+  legs:Int <- legs <- legs <- legs <- legs <- 2;
   reflect(): SELF_TYPE {
     self
+  };
+  legs():Int {
+    legs
   };
 };
 
@@ -20,13 +20,13 @@ class Dog inherits Animal {
 };
 
 class Main {
-  legs: Int <- 0;
   myAnimal: Animal <- new Animal;
+  myDog: Dog <- new Dog;
   getLegs(a: Animal):Int {
-    a.legs()
+    a.reflect().legs()
   };
   main(): Int {
-    getLegs((new Dog).reflect())
+    getLegs(myDog <- (new Dog).reflect().reflect().reflect()) + getLegs(myAnimal.reflect())
   };
 };
 

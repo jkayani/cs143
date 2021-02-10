@@ -26,7 +26,7 @@ public class CoolMap {
   public List<AbstractSymbol> classtags = new ArrayList<AbstractSymbol>();
 
   public Map<AbstractSymbol, HashMap<AbstractSymbol, AttributeData>> classAttributes = new HashMap<AbstractSymbol, HashMap<AbstractSymbol, AttributeData>>();
-  public Map<AbstractSymbol, HashMap<AbstractSymbol, MethodData>> classMethods = new HashMap<AbstractSymbol, HashMap<AbstractSymbol, MethodData>>();
+  public static Map<AbstractSymbol, HashMap<AbstractSymbol, MethodData>> classMethods = new HashMap<AbstractSymbol, HashMap<AbstractSymbol, MethodData>>();
 
   /* Returns AST's for the builtin method types. Copied from starter code */
   private ArrayList<classc> getBuiltinClasses() {
@@ -195,18 +195,23 @@ public class CoolMap {
      }
   }
   /* The SymbolTable entry for methods */
-  public class MethodData {
+  public class MethodData implements Comparable {
     public AbstractSymbol name;
     public AbstractSymbol className;
     public AbstractSymbol returnType;
     public Formals args;
+    public int offset = 0;
+    public int order;
     // public HashMap<AbstractSymbol, AbstractSymbol> argTypes = new HashMap<AbstractSymbol, AbstractSymbol>();
-    public MethodData(AbstractSymbol n, AbstractSymbol a, AbstractSymbol c, Formals f) { 
-      className = a; returnType = c; args = f; name = n;
+    public MethodData(AbstractSymbol n, AbstractSymbol a, AbstractSymbol c, Formals f, int o) { 
+      className = a; returnType = c; args = f; name = n; order = o;
       // for (Enumeration e = f.getElements(); e.hasMoreElements(); ) {
       //   formalc f2 = (formalc) e.nextElement();
       //   argTypes.put(f2.name, f2.type_decl);
       // }
+    }
+    public int compareTo(Object other) {
+      return order - ((MethodData) other).order;
     }
   }
 
@@ -350,12 +355,13 @@ public class CoolMap {
   private void discoverMethods(classc C) {
     HashMap<AbstractSymbol, MethodData> list = new HashMap<AbstractSymbol, MethodData>();
 
+    int offset = 0;
     for (Enumeration e2 = C.getFeatures().getElements(); e2.hasMoreElements(); ) {
       Feature f = (Feature) e2.nextElement();
       if (f instanceof method) {
         method m = (method) f;
         AbstractSymbol returnType = m.return_type;
-        list.put(m.name, new MethodData(m.name, C.name, returnType, m.formals));
+        list.put(m.name, new MethodData(m.name, C.name, returnType, m.formals, offset++));
       }
     }
     classMethods.put(C.name, list);

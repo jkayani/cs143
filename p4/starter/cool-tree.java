@@ -781,19 +781,36 @@ class dispatch extends Expression implements AttributeExpression {
             }
         }
 
-        // Make call, destroy frame, and push the return on stack
+        // Setup frame
         CoolGen.emitPadded(new String[] {
             "move $t1 $sp",
             "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
             "move $fp $t1", // $fp points to first arg
+        }, s);
 
-            // TODO: fix this so that the most recent ancestor of subjectType is used
-            // to lookup where to jump; e.g, for Dogs it should use Dog_method_legs not 
-            // Animal_method_legs
-            String.format("lw $t1 %s_method_%s", subjectType, name),
-            "\t.globl preCall" + name + "\n" + "\tpreCall" + name + ":\n",
-            "jalr $t1", 
-            "\t.globl postCall" + name + "\n" + "\tpostCall" + name + ":\n",
+        // Perform the call
+        CoolGen.emitPadded(new String[] {
+            CoolGen.comment("find jump address and jump"),
+
+            // Find the appropriate method table
+            "lw $t1 ($a0)",
+            "mul $t1 $t1 4", // classtag * 4 is the offset from methodTabTab for the right method table
+            "la $t2 methodTabTab",
+            "add $t1 $t1 $t2",
+
+            // Find the appropriate method in the table
+            "lw $t1 ($t1)",
+            String.format("addi $t1 $t1 %d", CoolGen.lookupMethod(subjectType, name).offset),
+            "lw $t1 ($t1)",
+            // ".globl preCall" + name,
+            // "preCall" + name + ":",
+            "jalr $t1",
+        }, s);
+
+        // Destroy frame and restore registers
+        CoolGen.emitPadded(new String[] {
+            // ".globl postCall" + name,
+            // "postCall" + name + ":",
             "move $sp $fp",
             "add $sp $sp 4", // Return to top of stack before-call
             CoolGen.pop("$fp"),
@@ -803,8 +820,6 @@ class dispatch extends Expression implements AttributeExpression {
             "move $a0 $t1"
         }, s);
     }
-
-
 }
 
 
