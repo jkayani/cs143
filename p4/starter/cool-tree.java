@@ -702,6 +702,9 @@ class static_dispatch extends Expression {
             CoolGen.push("$a0"),
             CoolGen.push("$ra"),
             CoolGen.push("$fp"),
+            CoolGen.push("$s1"),
+            CoolGen.push("$s2"),
+            CoolGen.push("$s3"),
             CoolGen.comment("setup self object of dispatch"),
             "move $a0 $t1",
             CoolGen.comment("push args"),
@@ -725,6 +728,11 @@ class static_dispatch extends Expression {
         // Setup frame
         CoolGen.emitPadded(new String[] {
             "move $t1 $sp",
+            "move $s1 $sp", 
+            "sub $s1 $s1 4", // where locals begin
+            "move $s3 $s1",
+            "sub $sp $sp " + CoolGen.LOCAL_SIZE,
+            "move $s2 $sp",  // where locals end
             "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
             "move $fp $t1", // $fp points to first arg
         }, s);
@@ -742,6 +750,9 @@ class static_dispatch extends Expression {
             // "postCall" + name + ":",
             "move $sp $fp",
             "add $sp $sp 4", // Return to top of stack before-call
+            CoolGen.pop("$s3"),
+            CoolGen.pop("$s2"),
+            CoolGen.pop("$s1"),
             CoolGen.pop("$fp"),
             CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
@@ -831,6 +842,9 @@ class dispatch extends Expression implements AttributeExpression {
             CoolGen.push("$a0"),
             CoolGen.push("$ra"),
             CoolGen.push("$fp"),
+            CoolGen.push("$s1"),
+            CoolGen.push("$s2"),
+            CoolGen.push("$s3"),
             CoolGen.comment("setup self object of dispatch"),
             "move $a0 $t1",
             CoolGen.comment("push args"),
@@ -854,6 +868,11 @@ class dispatch extends Expression implements AttributeExpression {
         // Setup frame
         CoolGen.emitPadded(new String[] {
             "move $t1 $sp",
+            "move $s1 $sp", 
+            "sub $s1 $s1 4", // where locals begin
+            "move $s3 $s1",
+            "sub $sp $sp " + CoolGen.LOCAL_SIZE,
+            "move $s2 $sp",  // where locals end
             "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
             "move $fp $t1", // $fp points to first arg
         }, s);
@@ -883,6 +902,9 @@ class dispatch extends Expression implements AttributeExpression {
             // "postCall" + name + ":",
             "move $sp $fp",
             "add $sp $sp 4", // Return to top of stack before-call
+            CoolGen.pop("$s3"),
+            CoolGen.pop("$s2"),
+            CoolGen.pop("$s1"),
             CoolGen.pop("$fp"),
             CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
@@ -1119,21 +1141,57 @@ class let extends Expression {
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
         out.println(Utilities.pad(n) + "_let");
-	dump_AbstractSymbol(out, n + 2, identifier);
-	dump_AbstractSymbol(out, n + 2, type_decl);
-	init.dump_with_types(out, n + 2);
-	body.dump_with_types(out, n + 2);
-	dump_type(out, n);
+        dump_AbstractSymbol(out, n + 2, identifier);
+        dump_AbstractSymbol(out, n + 2, type_decl);
+        init.dump_with_types(out, n + 2);
+        body.dump_with_types(out, n + 2);
+        dump_type(out, n);
     }
     /** Generates code for this expression.  This method is to be completed 
       * in programming assignment 5.  (You may add or remove parameters as
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+
+        CoolGen.newObjectScope(containingClassName);
+        CoolGen.addObject(containingClassName, identifier, type_decl);
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.blockComment("new let binding"),
+            CoolGen.comment(String.format("create new local variable %s of type %s", identifier, type_decl))
+        }, s);
+        CoolGen.emitObjectCopy(type_decl.toString(), s);
+
+        // If init !== no_expr, replace local on stack with result
+        if (!(init instanceof no_expr)) {
+            CoolGen.emitPadded(new String[] {
+                CoolGen.comment("evaulate let init"),
+                CoolGen.pop("$t1"),
+            }, s);
+            init.code(s, containingClassName);
+        }
+        CoolGen.emitNewLocal(s);
+
+        // Evaluate body
+        CoolGen.emitPadded(new String[] {
+            CoolGen.comment("evaluate let body")
+        }, s);
+        body.code(s, containingClassName);
+        if (body instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) body;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        // Remove the local since it's unneeded now
+        CoolGen.emitPadded("addi $s1 $s1 4", s);
+
+        // Exit scope
+        CoolGen.endObjectScope(containingClassName);
     }
-
-
 }
 
 
@@ -1186,6 +1244,7 @@ class plus extends Expression implements AttributeExpression {
                 CoolGen.emitObjectDeref(s);
             }
         }
+
         e2.code(s, containingClassName);
         if (e2 instanceof ObjectReturnable) {
             ObjectReturnable o = (ObjectReturnable) e2;
@@ -1200,10 +1259,8 @@ class plus extends Expression implements AttributeExpression {
         )[1];
 
         CoolGen.emitPadded(new String[] {
-            CoolGen.blockComment("load Int operands from stack"),
-            CoolGen.pop("$t4"),
             CoolGen.pop("$t5"),
-
+            CoolGen.pop("$t4"),
             CoolGen.blockComment("load values of Int operands"),
             ("lw $t4 " + valOffset + "($t4)"),
             ("lw $t5 " + valOffset + "($t5)"),

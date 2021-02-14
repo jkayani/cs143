@@ -180,6 +180,7 @@ public class CoolMap {
     public SymbolTable objects = new SymbolTable();
     public SymbolTable methods = new SymbolTable();
     public classc classc;
+    public int localCount = 0;
     public ClassTable(classc c) { classc = c; }
   }
   public static enum SymbolType {

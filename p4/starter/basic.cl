@@ -3,34 +3,45 @@
     as possible.
  *)
 
-class Animal {
-  legs:Int <- legs <- legs <- legs <- legs <- 2;
-  reflect(): SELF_TYPE {
-    self
-  };
-  legs():Int {
-    legs
-  };
-};
+ class Main {
+   foo:Int <- let a:Int <- 1, b:Int <- 2 in a + b;
+   getFoo(): Int { let x:Int <- 0 in x + foo };
+   bar: Int <- self@Main.getFoo() + foo;
+   main():Int {
+     let x: Int <- 50, y: Int <- 60 in bar
+   };
+ };
 
-class Dog inherits Animal {
-  legs():Int {
-    4
+(*
+  class Animal {
+    legs:Int <- legs <- legs <- legs <- legs <- 2;
+    reflect(): SELF_TYPE {
+      self
+    };
+    legs():Int {
+      legs
+    };
   };
-};
 
-class Main {
-  myAnimal: Animal <- new Animal;
-  myDog: Dog <- new Dog;
-  getLegs(a: Animal):Int {
-    a.reflect().legs()
+  class Dog inherits Animal {
+    legs():Int {
+      4
+    };
   };
-  main(): Int {
-    getLegs(myDog <- (new Dog).reflect().reflect().reflect()) + 
-    new Dog@Animal.legs() + 
-    getLegs(myAnimal.reflect())
+
+  class Main {
+    myAnimal: Animal <- new Animal;
+    myDog: Dog <- new Dog;
+    getLegs(a: Animal):Int {
+      a.reflect().legs()
+    };
+    main(): Int {
+      getLegs(myDog <- ((new Dog).reflect())@Animal.reflect().reflect()) + 
+      new Dog@Animal.legs() + 
+      getLegs(myAnimal.reflect())
+    };
   };
-};
+*)
 
 (*
   class Main {

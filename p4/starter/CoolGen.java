@@ -22,6 +22,7 @@ public class CoolGen {
   public static final String METHODREF = "%s.%s";
   public static final String ATTRREF = "%s_attr_%s";
   public static final String ATTRINIT = "%s_init";
+  public static final int LOCAL_SIZE = 4 * 5;
 
   public static String pop(String reg) {
     return String.format("%s # pop\n\t%s# pop", "lw " + reg + " ($sp)", "add $sp $sp 4");
@@ -43,6 +44,9 @@ public class CoolGen {
       push("$a0"), 
       push("$ra"),
       push("$fp"),
+      push("$s1"),
+      push("$s2"),
+      push("$s3"),
       comment("setup argument"),
       "la $a0 " + String.format(PROTOBJ, className),
       "sub $sp $sp 4",
@@ -52,6 +56,9 @@ public class CoolGen {
       comment("restore registers"),
       "move $sp $fp",
       "add $sp $sp 4",
+      pop("$s3"),
+      pop("$s2"),
+      pop("$s1"),
       pop("$fp"),
       pop("$ra"),
       pop("$t1"),
@@ -90,25 +97,33 @@ public class CoolGen {
       push("$t1")
     }, out);
   }
+  public static void emitNewLocal(PrintStream out) {
+    // TODO: Handle when $s1 encroaches on $s2 (out of frame space)
+    emitPadded(new String[] {
+      pop("$t1"),
+      "sw $t1 ($s1)",
+      "sub $s1 $s1 4",
+    }, out);
+  }
 
   public static Object[] lookupObject(AbstractSymbol className, AbstractSymbol symName) {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
 
-    // Assuming that current self is always $a0, args are from $fp, and locals are from $sp
+    // Assuming that current self is always $a0, args are from $fp, and locals are from $s1
     Object[] res = new Object[]{ "$a0", 0 };
     if (symName.equals(TreeConstants.self)) {
       res[1] = 0;
     } else {
       switch (o.sym) {
         case LOCAL: {
-          res[0] = "$sp";
-          // TODO where is the offset?
+          res[0] = "$s3";
+          res[1] = -4 * o.offset;
           break;
         }
         case ARG: {
           res[0] = "$fp";
-          // Stack grows with decreasing values
+          // $fp is fixed at bottom of frame, requiring negative offsets
           res[1] = -1 * o.offset;
           break;
         }
@@ -139,16 +154,23 @@ public class CoolGen {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     symbols.objects.enterScope();
   }
-  public static void addObject(AbstractSymbol className, AbstractSymbol symName) {
+  public static void endObjectScope(AbstractSymbol className) {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
-    // symbols.addId()
-    // TODO: How will I know the offset of a local variable (i.e, introduced in let)?
+    symbols.localCount--;
+    symbols.objects.exitScope();
+  }
+  public static void addObject(AbstractSymbol className, AbstractSymbol symName, AbstractSymbol type) {
+    CoolMap.ClassTable symbols = map.programSymbols.get(className);
+    symbols.objects.addId(symName, map.new ObjectData(type, CoolMap.SymbolType.LOCAL, symbols.localCount++));
   }
 
   public static void emitPadded(String[] s, PrintStream out) {
     for (String a : s) {
       out.printf("\t%s\n", a);
     }
+  }
+  public static void emitPadded(String s, PrintStream out) {
+    out.printf("\t%s\n", s);
   }
   private void emit(String s) {
     out.printf((inLabel ? "\t%s\n" : "%s\n"), s);
@@ -414,8 +436,22 @@ public class CoolGen {
   private void initAttributes() {
     for (Enumeration e = map.classes.getElements(); e.hasMoreElements(); ) {
       classc currentClass = (classc) e.nextElement();
+
+      // Prep a "pseudo-frame" 
       emitLabel(String.format(ATTRINIT, currentClass.name));
       emit(push("$ra"));
+      emit(push("$s1"));
+      emit(push("$s2"));
+      emit(push("$s3"));
+      emitPadded(new String[] {
+        "move $t1 $sp",
+        "move $s1 $sp", 
+        "sub $s1 $s1 4", // where locals begin
+        "move $s3 $s1",
+        "sub $sp $sp " + CoolGen.LOCAL_SIZE,
+        "move $s2 $sp",  // where locals end
+      }, out);
+
       for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
@@ -429,6 +465,16 @@ public class CoolGen {
           emit("sw $t1 " + offset + "($a0)");
         }
       }
+
+      // Clean up pseudo-frame 
+      emitPadded(new String[] {
+        "move $sp $s3",
+        "add $sp $sp 4",
+      }, out);
+      
+      emit(pop("$s3"));
+      emit(pop("$s2"));
+      emit(pop("$s1"));
       emit(pop("$ra"));
       emit("jr $ra");
       endLabel();
@@ -446,6 +492,18 @@ public class CoolGen {
           AttributeExpression p = (AttributeExpression) m.expr;
           symbols.objects.enterScope();
 
+          // For Main.main, we should setup a pseudo-frame for storing locals
+          emitLabel(String.format(METHODREF, currentClass.name, m.name));
+          if (currentClass.name.equals(TreeConstants.Main) && m.name.equals(TreeConstants.main_meth)) {
+            emitPadded(new String[] {
+              blockComment("pseudo-frame for Main.main"),
+              "move $s1 $sp",
+              "move $s3 $sp",
+              "sub $sp $sp " + LOCAL_SIZE,
+              "move $s2 $sp"
+            }, out);
+          }
+
           // Arguments start at $fp
           int offset = 0;
           for (Enumeration e3 = m.formals.getElements(); e3.hasMoreElements(); ) {
@@ -459,7 +517,6 @@ public class CoolGen {
             offset += 4;
           }
 
-          emitLabel(String.format(METHODREF, currentClass.name, m.name));
           p.code(out, currentClass.name);
 
           // Assuming convention of return value in $a0
