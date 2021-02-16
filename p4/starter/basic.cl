@@ -4,11 +4,12 @@
  *)
 
  class Main {
-   foo:Int <- let a:Int <- 1, b:Int <- 2 in a + b;
-   getFoo(): Int { let x:Int <- 0 in x + foo };
-   bar: Int <- self@Main.getFoo() + foo;
-   main():Int {
-     let x: Int <- 50, y: Int <- 60 in bar
+   y: Int <- let x: Int <- 60 in x + test(10);
+   test(x: Int):Int {
+     x
+   };
+   main(): Int {
+     y
    };
  };
 

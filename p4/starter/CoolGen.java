@@ -22,6 +22,8 @@ public class CoolGen {
   public static final String METHODREF = "%s.%s";
   public static final String ATTRREF = "%s_attr_%s";
   public static final String ATTRINIT = "%s_init";
+
+  // TODO: Dynamic frame size based on `let` count?
   public static final int LOCAL_SIZE = 4 * 5;
 
   public static String pop(String reg) {
@@ -49,13 +51,22 @@ public class CoolGen {
       push("$s3"),
       comment("setup argument"),
       "la $a0 " + String.format(PROTOBJ, className),
+
       "sub $sp $sp 4",
-      "move $fp $sp", // $fp points to nothing (thing after top of stack since no args on stack)
+      "move $t1 $sp",
+      "move $s1 $sp", // where locals begin, inclusive
+      "move $s3 $s1",
+      "sub $sp $sp " + CoolGen.LOCAL_SIZE,
+      "move $s2 $sp",  // where locals end, inclusive
+
+      "move $fp $s2", 
+      "sub $fp $fp 4", 
       "jal Object.copy",
 
       comment("restore registers"),
       "move $sp $fp",
       "add $sp $sp 4",
+      "add $sp $sp " + (CoolGen.LOCAL_SIZE + 4),
       pop("$s3"),
       pop("$s2"),
       pop("$s1"),
@@ -437,6 +448,7 @@ public class CoolGen {
     for (Enumeration e = map.classes.getElements(); e.hasMoreElements(); ) {
       classc currentClass = (classc) e.nextElement();
 
+      // TODO: create a frame for each attribute instead of sharing
       // Prep a "pseudo-frame" 
       emitLabel(String.format(ATTRINIT, currentClass.name));
       emit(push("$ra"));

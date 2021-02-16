@@ -677,6 +677,8 @@ class static_dispatch extends Expression {
       * @param s the output stream 
       * */
     public void code(PrintStream s) {}
+
+    // TODO: Fix like dispatch
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
         AttributeExpression ae = (AttributeExpression) expr;
@@ -847,7 +849,17 @@ class dispatch extends Expression implements AttributeExpression {
             CoolGen.push("$s3"),
             CoolGen.comment("setup self object of dispatch"),
             "move $a0 $t1",
-            CoolGen.comment("push args"),
+        }, s);
+
+        // Setup frame
+        CoolGen.emitPadded(new String[] {
+            CoolGen.comment("setup frame"),
+            "sub $sp $sp 4",
+            "move $t1 $sp",
+            "move $s1 $sp", // where locals begin, inclusive
+            "move $s3 $s1",
+            "sub $sp $sp " + CoolGen.LOCAL_SIZE,
+            "move $s2 $sp",  // where locals end, inclusive
         }, s);
 
         // Push arguments
@@ -865,16 +877,10 @@ class dispatch extends Expression implements AttributeExpression {
             }
         }
 
-        // Setup frame
+        // Finish the frame by setting $fp to first argument
         CoolGen.emitPadded(new String[] {
-            "move $t1 $sp",
-            "move $s1 $sp", 
-            "sub $s1 $s1 4", // where locals begin
-            "move $s3 $s1",
-            "sub $sp $sp " + CoolGen.LOCAL_SIZE,
-            "move $s2 $sp",  // where locals end
-            "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
-            "move $fp $t1", // $fp points to first arg
+            "move $fp $s2",
+            "sub $fp $fp 4"
         }, s);
 
         // Perform the call
@@ -901,7 +907,8 @@ class dispatch extends Expression implements AttributeExpression {
             // ".globl postCall" + name,
             // "postCall" + name + ":",
             "move $sp $fp",
-            "add $sp $sp 4", // Return to top of stack before-call
+            "add $sp $sp 4", // Point to end of locals
+            "add $sp $sp " + (CoolGen.LOCAL_SIZE + 4),
             CoolGen.pop("$s3"),
             CoolGen.pop("$s2"),
             CoolGen.pop("$s1"),
