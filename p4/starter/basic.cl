@@ -3,13 +3,32 @@
     as possible.
  *)
 
- class Main {
-   y: Int <- let x: Int <- 60 in x + test(10);
-   test(x: Int):Int {
-     x
+ class Animal {
+   legs: Int;
+   init(): Int {
+     legs <- 2
    };
-   main(): Int {
-     y
+ };
+
+ class Dog inherits Animal {
+   name: String;
+   name(): String {
+     name
+   };
+   init(): Int {
+     legs <- 4
+   };
+ };
+
+ class Main {
+   test(a: Animal): Int {
+      5
+   };
+   test2(a: Dog): String {
+     a.name()
+   };
+   main(): String {
+     test2(new Dog)
    };
  };
 

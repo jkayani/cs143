@@ -11,12 +11,12 @@ Decided Conventions:
   - $a0
   - $ra
   - $fp
+  - // local variables (to be populated by callee as needed)
   - // arguments
-  - // local variables (to be populated by callee)
 
 - $fp points to first argument of method. Arguments aren't popped off the stack they are referenced relative to $fp
 
-- $s1 points to the next free slot for local variables, $s3 is the where the local variables start, and $s2 is where they end
+- $s1 points to the next free slot for local variables, $s3 is the where the local variables start, and $s2 is where they end. $s3 and $s2 are inclusive.
 
 - Method tables are organized so that methods are in order of inherited class, and order within that class. This allows for dynamic dispatch via the classtag, method table table, and a recorded method offset
 

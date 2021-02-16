@@ -125,7 +125,15 @@ public class CoolGen {
     Object[] res = new Object[]{ "$a0", 0 };
     if (symName.equals(TreeConstants.self)) {
       res[1] = 0;
-    } else {
+    } 
+    else if (o == null) {
+      AbstractSymbol next = map.classGraph.get(className);
+      if (next == null) {
+        throw new RuntimeException(String.format("%s cannot be found anywhere", symName));
+      }
+      return lookupObject(next, symName);
+    }
+    else {
       switch (o.sym) {
         case LOCAL: {
           res[0] = "$s3";
@@ -139,7 +147,9 @@ public class CoolGen {
           break;
         }
         default: {
-          res[1] = o.offset;
+          // We need the absolute offset for the attribute in cases of non-inherited attributes
+          // o.offset is relative to the class it originates in and will collide with an inherited attribute at same position
+          res[1] = map.classAttributes.get(className).get(symName).offset;
           break;
         }
       }
@@ -375,11 +385,9 @@ public class CoolGen {
       emit(WORD, String.format(METHODTAB, className));
 
       // Layout attributes
+      int offset = 12;
       LinkedList<AbstractSymbol> ancestry = map.getAncestry(className);
       for (AbstractSymbol ancestor : ancestry) {
-
-        // 3 words are used for standard object header, so rest of attributes start here and onward
-        int offset = 12;
 
         // Have to go in order the attributes are defined
         CoolMap.AttributeData[] attrs = map.classAttributes.get(ancestor).values().toArray(new CoolMap.AttributeData[0]);
