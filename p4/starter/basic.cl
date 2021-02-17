@@ -3,10 +3,14 @@
     as possible.
  *)
 
+(*
  class Animal {
-   legs: Int;
+   legs: Int <- 0;
    init(): Int {
      legs <- 2
+   };
+   legs(): Int {
+     legs
    };
  };
 
@@ -21,16 +25,22 @@
  };
 
  class Main {
-   test(a: Animal): Int {
-      5
+   (*
+    test(a: Animal): Int {
+      case a of 
+        d:Dog => d.legs();
+        e:Animal => e.legs();
+      esac
+    };
+   *)
+   simple(a: Animal) : Int {
+     a.legs()
    };
-   test2(a: Dog): String {
-     a.name()
-   };
-   main(): String {
-     test2(new Dog)
+   main(): Int {
+     let d:Dog <- new Dog, e:Int <- d.init() in simple(d)
    };
  };
+*)
 
 (*
   class Animal {
@@ -63,7 +73,6 @@
   };
 *)
 
-(*
   class Main {
     -- prints the sequence: 0123...
     zero: Int <- 0 + 0 + 0;
@@ -72,10 +81,13 @@
     three: Int <- (two <- two) + 1;
     foo(x:Int): Int {
       x <- (x <- x) + 1
+      -- output: x + 1
     };
     flerm(x:Int): Int {
-      x <- x + foo(one <- two) + one + foo(zero <- 0)
+      let z:Int <- 1 in
+        x <- x + foo(one <- two) + one + foo(zero <- 0) + z
+      -- output: x + 3 + 2 + 1 => x + 7
     };
-    main():Int { flerm(22) };
+    main():Int { let x:Int in flerm(x) };
+    -- output: 7
   };
-*)

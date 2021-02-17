@@ -38,40 +38,78 @@ public class CoolGen {
   public static String comment(String c) {
     return "# " + c;
   }
-  public static void emitObjectCopy(String className, PrintStream out) {
+  public static void emitRegisterPreserve(PrintStream out) {
     emitPadded(new String[] {
-      blockComment("call to Object.copy"),
-
-      comment("preserve registers"),
-      push("$a0"), 
-      push("$ra"),
-      push("$fp"),
-      push("$s1"),
-      push("$s2"),
-      push("$s3"),
-      comment("setup argument"),
-      "la $a0 " + String.format(PROTOBJ, className),
-
-      "sub $sp $sp 4",
-      "move $t1 $sp",
-      "move $s1 $sp", // where locals begin, inclusive
-      "move $s3 $s1",
-      "sub $sp $sp " + CoolGen.LOCAL_SIZE,
-      "move $s2 $sp",  // where locals end, inclusive
-
-      "move $fp $s2", 
-      "sub $fp $fp 4", 
-      "jal Object.copy",
-
-      comment("restore registers"),
+        CoolGen.comment("preserve registers"),
+        CoolGen.push("$a0"),
+        CoolGen.push("$ra"),
+        CoolGen.push("$fp"),
+        CoolGen.push("$s1"),
+        CoolGen.push("$s2"),
+        CoolGen.push("$s3"),
+        CoolGen.push("$s4"),
+    }, out);
+  }
+  public static void emitFramePrologue(PrintStream out) {
+    CoolGen.emitPadded(new String[] {
+        CoolGen.comment("frame setup prologue"),
+        "sub $sp $sp 4",
+        "move $s4 $sp", // where locals being, incl.
+        "sub $sp $sp " + CoolGen.LOCAL_SIZE, // where locals end, incl.
+    }, out);
+  }
+  public static void emitFrameEpilogue(PrintStream out) {
+    CoolGen.emitPadded(new String[] {
+        CoolGen.comment("frame setup: conclusion"),
+        "move $s1 $s4",
+        "move $s3 $s4",
+        "move $s2 $s4",
+        "sub $s2 $s2 " + CoolGen.LOCAL_SIZE,
+        "move $fp $s2",
+        "sub $fp $fp 4"
+    }, out);
+  }
+  public static void emitFrameCleanup(PrintStream out) {
+    CoolGen.emitPadded(new String[] {
+      CoolGen.comment("teardown frame: restore to top of stack before call"),
       "move $sp $fp",
-      "add $sp $sp 4",
+      "add $sp $sp 4", // Point to end of locals
       "add $sp $sp " + (CoolGen.LOCAL_SIZE + 4),
-      pop("$s3"),
-      pop("$s2"),
-      pop("$s1"),
-      pop("$fp"),
-      pop("$ra"),
+    }, out);
+  }
+  public static void emitRegisterRestore(PrintStream out) {
+    CoolGen.emitPadded(new String[] {
+      CoolGen.pop("$s4"),
+      CoolGen.pop("$s3"),
+      CoolGen.pop("$s2"),
+      CoolGen.pop("$s1"),
+      CoolGen.pop("$fp"),
+      CoolGen.pop("$ra"),
+    }, out);
+  }
+  public static void emitObjectCopy(String className, PrintStream out) {
+    emitPadded(blockComment("call to Object.copy"), out);
+
+    emitRegisterPreserve(out);
+
+    emitFramePrologue(out);
+
+    // no stack arguments for Object.copy
+
+    emitPadded(new String[] {
+      comment("frame setup: subject of dispatch"),
+      "la $a0 " + String.format(PROTOBJ, className),
+    }, out);
+
+    emitFrameEpilogue(out);
+
+    emitPadded("jal Object.copy", out);
+
+    emitFrameCleanup(out);
+
+    emitRegisterRestore(out);
+
+    emitPadded(new String[] {
       pop("$t1"),
       push("$a0"),
       "move $a0, $t1",
@@ -115,6 +153,10 @@ public class CoolGen {
       "sw $t1 ($s1)",
       "sub $s1 $s1 4",
     }, out);
+  }
+  public static void emitLabel(String s, PrintStream out) {
+    out.printf("%s %s\n", GLOBAL, s);
+    out.printf("%s:\n", s);
   }
 
   public static Object[] lookupObject(AbstractSymbol className, AbstractSymbol symName) {
@@ -459,20 +501,14 @@ public class CoolGen {
       // TODO: create a frame for each attribute instead of sharing
       // Prep a "pseudo-frame" 
       emitLabel(String.format(ATTRINIT, currentClass.name));
-      emit(push("$ra"));
-      emit(push("$s1"));
-      emit(push("$s2"));
-      emit(push("$s3"));
-      emitPadded(new String[] {
-        "move $t1 $sp",
-        "move $s1 $sp", 
-        "sub $s1 $s1 4", // where locals begin
-        "move $s3 $s1",
-        "sub $sp $sp " + CoolGen.LOCAL_SIZE,
-        "move $s2 $sp",  // where locals end
-      }, out);
+      emitRegisterPreserve(out);
+      emitFramePrologue(out);
+      emitFrameEpilogue(out);
 
       for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
+        // TODO: Seed the symbol table with ancestral attributes to make symbolTable
+        // source of truth on offsets
+
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
           attr a = (attr) f;
@@ -487,15 +523,8 @@ public class CoolGen {
       }
 
       // Clean up pseudo-frame 
-      emitPadded(new String[] {
-        "move $sp $s3",
-        "add $sp $sp 4",
-      }, out);
-      
-      emit(pop("$s3"));
-      emit(pop("$s2"));
-      emit(pop("$s1"));
-      emit(pop("$ra"));
+      emitFrameCleanup(out);
+      emitRegisterRestore(out);
       emit("jr $ra");
       endLabel();
     }
@@ -506,6 +535,9 @@ public class CoolGen {
       classc currentClass = (classc) e.nextElement();
       CoolMap.ClassTable symbols = map.programSymbols.get(currentClass.name);
       for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
+        // TODO: Seed the symbol table with ancestral attributes to make symbolTable
+        // source of truth on offsets
+
         Feature f = (Feature) e2.nextElement();
         if (f instanceof method) {
           method m = (method) f;
@@ -515,13 +547,8 @@ public class CoolGen {
           // For Main.main, we should setup a pseudo-frame for storing locals
           emitLabel(String.format(METHODREF, currentClass.name, m.name));
           if (currentClass.name.equals(TreeConstants.Main) && m.name.equals(TreeConstants.main_meth)) {
-            emitPadded(new String[] {
-              blockComment("pseudo-frame for Main.main"),
-              "move $s1 $sp",
-              "move $s3 $sp",
-              "sub $sp $sp " + LOCAL_SIZE,
-              "move $s2 $sp"
-            }, out);
+            emitFramePrologue(out);
+            emitFrameEpilogue(out);
           }
 
           // Arguments start at $fp
@@ -540,8 +567,6 @@ public class CoolGen {
           p.code(out, currentClass.name);
 
           // Assuming convention of return value in $a0
-          // TODO: If return type is Int, String, or Bool and 
-          // the expression of the method if instanceof object, deref that pointer
           emit(pop("$a0"));
           if (p instanceof ObjectReturnable) {
             ObjectReturnable o = (ObjectReturnable) p;

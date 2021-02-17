@@ -827,42 +827,14 @@ class dispatch extends Expression implements AttributeExpression {
             subjectType = containingClassName;
         }
 
-        // Emit subject of dispatch to stack
-        ae.code(s, containingClassName);
-        if (expr instanceof ObjectReturnable) {
-            ObjectReturnable o = (ObjectReturnable) expr;
-            if (o.requiresDereference()) {
-                CoolGen.emitObjectDeref(s);
-            }
-        }
+        // Preserve registers
+        CoolGen.emitRegisterPreserve(s);
 
-        // Store subject of dispatch, preserve registers and setup frame
-        CoolGen.emitPadded(new String[] {
-            CoolGen.blockComment(String.format("call to %s.%s", subjectType, name)),
-            CoolGen.pop("$t1"),
-            CoolGen.comment("preserve registers"),
-            CoolGen.push("$a0"),
-            CoolGen.push("$ra"),
-            CoolGen.push("$fp"),
-            CoolGen.push("$s1"),
-            CoolGen.push("$s2"),
-            CoolGen.push("$s3"),
-            CoolGen.comment("setup self object of dispatch"),
-            "move $a0 $t1",
-        }, s);
-
-        // Setup frame
-        CoolGen.emitPadded(new String[] {
-            CoolGen.comment("setup frame"),
-            "sub $sp $sp 4",
-            "move $t1 $sp",
-            "move $s1 $sp", // where locals begin, inclusive
-            "move $s3 $s1",
-            "sub $sp $sp " + CoolGen.LOCAL_SIZE,
-            "move $s2 $sp",  // where locals end, inclusive
-        }, s);
+        // Allocate space for callee locals as part of new frame and calculate offsets
+        CoolGen.emitFramePrologue(s);
 
         // Push arguments
+        CoolGen.emitPadded(CoolGen.comment("frame setup: push arguments"), s);
         for (int i = 0; i < actual.getLength(); i++) {
             AttributeExpression e = (AttributeExpression) actual.getNth(i);
             e.code(s, containingClassName);
@@ -877,11 +849,20 @@ class dispatch extends Expression implements AttributeExpression {
             }
         }
 
-        // Finish the frame by setting $fp to first argument
-        CoolGen.emitPadded(new String[] {
-            "move $fp $s2",
-            "sub $fp $fp 4"
-        }, s);
+        // Emit subject of dispatch to $a0
+        CoolGen.emitPadded(CoolGen.comment("frame setup: subject of dispatch"), s);
+        ae.code(s, containingClassName);
+        if (expr instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) expr;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        CoolGen.emitPadded(CoolGen.pop("$a0"), s);
+
+        // Finish the frame by setting up frame registers for callee ($fp, $s1-$s3),
+        // and setup object of dispatch
+        CoolGen.emitFrameEpilogue(s);
 
         // Perform the call
         CoolGen.emitPadded(new String[] {
@@ -903,17 +884,11 @@ class dispatch extends Expression implements AttributeExpression {
         }, s);
 
         // Destroy frame and restore registers
+        CoolGen.emitFrameCleanup(s);
+        CoolGen.emitRegisterRestore(s);
         CoolGen.emitPadded(new String[] {
             // ".globl postCall" + name,
             // "postCall" + name + ":",
-            "move $sp $fp",
-            "add $sp $sp 4", // Point to end of locals
-            "add $sp $sp " + (CoolGen.LOCAL_SIZE + 4),
-            CoolGen.pop("$s3"),
-            CoolGen.pop("$s2"),
-            CoolGen.pop("$s1"),
-            CoolGen.pop("$fp"),
-            CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
             CoolGen.push("$a0"),
             "move $a0 $t1"
@@ -1060,7 +1035,66 @@ class typcase extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_case%d", containingClassName, lineNumber);
+
+        // Evaulate case expression 
+        expr.code(s, containingClassName);
+        if (expr instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) expr;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        CoolGen.emitPadded(CoolGen.pop("$t2"), s);
+        CoolGen.emitPadded(String.format("j %s_decision", here), s);
+
+        // Decide which branch to use based on the classtags
+        CoolGen.emitLabel(String.format("%s_decision", here), s);
+        // Store classtag of case expression in $t3
+        CoolGen.emitPadded(String.format("lw $t3 ($t2)"), s);
+        boolean applicableBranch = false;
+        for (int i = 0; i < cases.getLength(); i++) {
+            branch b = (branch) cases.getNth(i);
+
+            // Store classtag of b into $t4 and jump to appropriate label `${here}_${i}`
+            // if $t3 == $t4
+            CoolGen.emitPadded(new String[] {
+                "lw $t4 " + String.format(CoolGen.PROTOBJ, b.type_decl),
+                "beq $t3 $t4 " + String.format("%s_%d", here, i)
+            }, s);
+        }
+
+        // For each branch, generate a mini-routine
+        for (int i = 0; i < cases.getLength(); i++) {
+            branch b = (branch) cases.getNth(i);
+            CoolGen.emitLabel(String.format("%s_%d", here, i), s);
+
+            // Add the symbol this branch creates to table
+            CoolGen.newObjectScope(containingClassName);
+            CoolGen.addObject(containingClassName, b.name, b.type_decl);
+
+            // Create it in the local section of frame, assigning it
+            // the value of the case expression
+            CoolGen.emitPadded(CoolGen.push("$t2"), s);
+            CoolGen.emitNewLocal(s);
+
+            // Generate it's expression
+            b.expr.code(s, containingClassName);
+            CoolGen.endObjectScope(containingClassName);
+            if (b.expr instanceof ObjectReturnable) {
+                ObjectReturnable o = (ObjectReturnable) b.expr;
+                if (o.requiresDereference()) {
+                    CoolGen.emitObjectDeref(s);
+                }
+            }
+
+            CoolGen.emitPadded(String.format("j %s_epilogue", here), s);
+        }
+
+        // Universal end of expression
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
 
 
@@ -1812,20 +1846,24 @@ class new_ extends Expression {
         ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(type_name).listIterator(1);
         while (ancestry.hasNext()) {
             AbstractSymbol ancestor = ancestry.next();
+
             CoolGen.emitPadded(new String[] {
                 CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
                 CoolGen.pop("$t1"),
-                CoolGen.push("$a0"),
-                CoolGen.push("$ra"),
+            }, s);
+
+            CoolGen.emitRegisterPreserve(s);
+
+            // Inititalize the class
+            CoolGen.emitPadded(new String[] {
                 "move $a0 $t1",
                 String.format("jal " + CoolGen.ATTRINIT, ancestor),
-
-                // Push pointer and restore registers
                 "move $t1 $a0",
-                CoolGen.pop("$ra"),
-                CoolGen.pop("$a0"),
-                CoolGen.push("$t1")
             }, s);
+
+            CoolGen.emitRegisterRestore(s);
+
+            CoolGen.emitPadded(CoolGen.push("$t1"), s);
         }
     }
 
