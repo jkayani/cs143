@@ -24,6 +24,7 @@ public class CoolGen {
   public static final String ATTRINIT = "%s_init";
   public static final String NO_MATCHING_CASE = "_case_abort";
   public static final String NULL_CASE = "_case_abort2";
+  public static final String NULL_DISPATCH = "_dispatch_abort";
 
   // TODO: Dynamic frame size based on `let` count?
   public static final int LOCAL_SIZE = 4 * 5;

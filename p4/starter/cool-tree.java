@@ -860,6 +860,8 @@ class dispatch extends Expression implements AttributeExpression {
         }
         CoolGen.emitPadded(CoolGen.pop("$a0"), s);
 
+        // TODO: handle attempted dispatch on NULL
+
         // Finish the frame by setting up frame registers for callee ($fp, $s1-$s3),
         // and setup object of dispatch
         CoolGen.emitFrameEpilogue(s);

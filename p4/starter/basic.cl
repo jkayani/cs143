@@ -3,7 +3,8 @@
     as possible.
  *)
 
-
+-- case statements
+(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -46,9 +47,9 @@
      out_int(let d:Dog <- new Dog, e:Int <- d.init() in test2())
    };
  };
+*)
 
 -- Local variables, dispatch
-(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -70,22 +71,17 @@
  };
 
  class Main {
-   (*
-    test(a: Animal): Int {
-      case a of 
-        d:Dog => d.legs();
-        e:Animal => e.legs();
-      esac
-    };
-   *)
+   bad(): Int {
+     let a:Animal in a.legs()
+   };
    simple(a: Animal) : Int {
      a.legs()
    };
    main(): Int {
-     let d:Dog <- new Dog, e:Int <- d.init() in simple(d)
+     -- let d:Dog <- new Dog, e:Int <- d.init() in simple(d)
+     bad()
    };
  };
-*)
 
 -- Inheritance and complicated dispatch
 (*
