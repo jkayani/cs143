@@ -62,17 +62,18 @@
   class Main {
     myAnimal: Animal <- new Animal;
     myDog: Dog <- new Dog;
-    getLegs(a: Animal):Int {
-      a.reflect().legs()
-    };
+      getLegs(a: Animal):Int {
+        a.reflect().legs()
+      };
     main(): Int {
-      getLegs(myDog <- ((new Dog).reflect())@Animal.reflect().reflect()) + 
-      new Dog@Animal.legs() + 
-      getLegs(myAnimal.reflect())
+        getLegs(myDog <- ((new Dog).reflect()).reflect().reflect()) + 
+        new Dog.legs() + 
+        getLegs(myAnimal.reflect())
     };
   };
 *)
 
+(*
   class Main {
     -- prints the sequence: 0123...
     zero: Int <- 0 + 0 + 0;
@@ -91,3 +92,4 @@
     main():Int { let x:Int in flerm(x) };
     -- output: 7
   };
+*)

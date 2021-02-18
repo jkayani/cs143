@@ -525,6 +525,8 @@ public class CoolGen {
       // Clean up pseudo-frame 
       emitFrameCleanup(out);
       emitRegisterRestore(out);
+      emitPadded(pop("$a0"), out);
+
       emit("jr $ra");
       endLabel();
     }

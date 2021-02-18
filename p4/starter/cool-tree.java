@@ -1862,8 +1862,10 @@ class new_ extends Expression {
             }, s);
 
             CoolGen.emitRegisterRestore(s);
+            CoolGen.emitPadded(CoolGen.pop("$a0"), s);
 
             CoolGen.emitPadded(CoolGen.push("$t1"), s);
+
         }
     }
 
