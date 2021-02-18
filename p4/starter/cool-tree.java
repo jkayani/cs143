@@ -1041,6 +1041,7 @@ class typcase extends Expression {
 
         // Evaulate case expression 
         expr.code(s, containingClassName);
+
         if (expr instanceof ObjectReturnable) {
             ObjectReturnable o = (ObjectReturnable) expr;
             if (o.requiresDereference()) {
@@ -1048,13 +1049,14 @@ class typcase extends Expression {
             }
         }
         CoolGen.emitPadded(CoolGen.pop("$t2"), s);
-        CoolGen.emitPadded(String.format("j %s_decision", here), s);
 
-        // Decide which branch to use based on the classtags
-        CoolGen.emitLabel(String.format("%s_decision", here), s);
-        // Store classtag of case expression in $t3
+        // Check for null pointer 
+        CoolGen.emitPadded(new String[] {
+            "beq $t2 $zero " + CoolGen.NULL_CASE,
+        }, s);
+
+        // Emit instructions to choose the right case
         CoolGen.emitPadded(String.format("lw $t3 ($t2)"), s);
-        boolean applicableBranch = false;
         for (int i = 0; i < cases.getLength(); i++) {
             branch b = (branch) cases.getNth(i);
 
@@ -1065,6 +1067,9 @@ class typcase extends Expression {
                 "beq $t3 $t4 " + String.format("%s_%d", here, i)
             }, s);
         }
+
+        // No matching case, emit abort 
+        CoolGen.emitPadded("j " + CoolGen.NO_MATCHING_CASE, s);
 
         // For each branch, generate a mini-routine
         for (int i = 0; i < cases.getLength(); i++) {
@@ -1199,11 +1204,18 @@ class let extends Expression {
         CoolGen.newObjectScope(containingClassName);
         CoolGen.addObject(containingClassName, identifier, type_decl);
 
+        // Emit the new local's value to the stack
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment("new let binding"),
             CoolGen.comment(String.format("create new local variable %s of type %s", identifier, type_decl))
         }, s);
-        CoolGen.emitObjectCopy(type_decl.toString(), s);
+        if (CoolGen.initByPrototype(type_decl)) {
+            CoolGen.emitObjectCopy(type_decl.toString(), s);
+        } else {
+            CoolGen.emitPadded(new String[] {
+                CoolGen.push("$zero")
+            }, s);
+        }
 
         // If init !== no_expr, replace local on stack with result
         if (!(init instanceof no_expr)) {

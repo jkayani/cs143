@@ -22,6 +22,8 @@ public class CoolGen {
   public static final String METHODREF = "%s.%s";
   public static final String ATTRREF = "%s_attr_%s";
   public static final String ATTRINIT = "%s_init";
+  public static final String NO_MATCHING_CASE = "_case_abort";
+  public static final String NULL_CASE = "_case_abort2";
 
   // TODO: Dynamic frame size based on `let` count?
   public static final int LOCAL_SIZE = 4 * 5;
@@ -66,7 +68,8 @@ public class CoolGen {
         "move $s2 $s4",
         "sub $s2 $s2 " + CoolGen.LOCAL_SIZE,
         "move $fp $s2",
-        "sub $fp $fp 4"
+        "sub $fp $fp 4", // $fp points to first arg 
+        "sub $sp $sp 4" // seems to be necessary for builtins? Point stack to empty word
     }, out);
   }
   public static void emitFrameCleanup(PrintStream out) {
@@ -226,6 +229,11 @@ public class CoolGen {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     symbols.objects.addId(symName, map.new ObjectData(type, CoolMap.SymbolType.LOCAL, symbols.localCount++));
   }
+  public static boolean initByPrototype(AbstractSymbol className) {
+    return className.equals(TreeConstants.Int) ||
+      className.equals(TreeConstants.Str) ||
+      className.equals(TreeConstants.Bool);
+  }
 
   public static void emitPadded(String[] s, PrintStream out) {
     for (String a : s) {
@@ -308,6 +316,7 @@ public class CoolGen {
     }
   }
 
+  // TODO: write String objects, not raw strings
   private void writeClassNames() {
     for (AbstractSymbol className : map.classtags) {
       emitLabel(String.format("%s_name", className));

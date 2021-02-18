@@ -3,6 +3,51 @@
     as possible.
  *)
 
+
+ class Animal {
+   legs: Int <- 0;
+   init(): Int {
+     legs <- 2
+   };
+   legs(): Int {
+     legs
+   };
+   wishes(): Int {
+     100
+   };
+ };
+
+ class Dog inherits Animal {
+   name: String;
+   name(): String {
+     name
+   };
+   init(): Int {
+     legs <- 4
+   };
+ };
+
+ class Main inherits IO {
+    test2(): Int {
+      let nullAnimal:Animal, notNullAnimal:Animal <- new Animal in 
+        case notNullAnimal of 
+          d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in d.legs();
+          e:Main => e.wishes();
+        esac
+    };
+    test(a: Animal): Int {
+      case a of 
+        d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in d.legs();
+        e:Main => e.wishes();
+      esac
+    };
+    wishes(): Int { 0 };
+   main(): SELF_TYPE {
+     out_int(let d:Dog <- new Dog, e:Int <- d.init() in test2())
+   };
+ };
+
+-- Local variables, dispatch
 (*
  class Animal {
    legs: Int <- 0;
@@ -42,6 +87,7 @@
  };
 *)
 
+-- Inheritance and complicated dispatch
 (*
   class Animal {
     legs:Int <- legs <- legs <- legs <- legs <- 2;
@@ -73,6 +119,7 @@
   };
 *)
 
+-- Attributes, simple dispatch, arithmetic
 (*
   class Main {
     -- prints the sequence: 0123...
