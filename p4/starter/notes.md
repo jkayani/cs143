@@ -22,8 +22,20 @@ Decided Conventions:
 
 
 Next steps:
-- assign
-- new
-- static_dispatch
-- let 
-- case
+- ~assign~
+- ~new~
+- static_dispatch (will do once `dispatch` is finalized)
+- ~let~
+- ~case~
+- block
+- no_expr
+
+Needs boolean:
+- bool_const
+- cond
+- loop
+- lt, leq, eq 
+- isvoid
+
+Finish math:
+- sub, mul, divide, neg

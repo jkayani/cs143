@@ -164,6 +164,7 @@ interface AttributeExpression {
 interface ObjectReturnable {
     public boolean requiresDereference();
 }
+interface LocalIntroducable {}
 
 
 /** Defines list phylum Expressions
@@ -1144,17 +1145,33 @@ class block extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+
+        // Evaluate each expression, removing it's result from the stack
+        // Leave the last expression's result on stack as expression's value
+        CoolGen.emitPadded(CoolGen.comment("block expression"), s);
+        for (int i = 0; i < body.getLength(); i++) {
+            Expression e = (Expression) body.getNth(i);
+            e.code(s, containingClassName);
+            if (i < body.getLength() - 1) {
+                CoolGen.emitPadded(CoolGen.pop("$t1"), s);
+            } 
+            else if (e instanceof ObjectReturnable) {
+                ObjectReturnable o = (ObjectReturnable) e;
+                if (o.requiresDereference()) {
+                    CoolGen.emitObjectDeref(s);
+                }
+            }
+        }
     }
-
-
 }
 
 
 /** Defines AST constructor 'let'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class let extends Expression {
+class let extends Expression implements LocalIntroducable {
     public AbstractSymbol identifier;
     public AbstractSymbol type_decl;
     public Expression init;
@@ -1206,11 +1223,12 @@ class let extends Expression {
         CoolGen.newObjectScope(containingClassName);
         CoolGen.addObject(containingClassName, identifier, type_decl);
 
-        // Emit the new local's value to the stack
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment("new let binding"),
             CoolGen.comment(String.format("create new local variable %s of type %s", identifier, type_decl))
         }, s);
+
+        // Default init for new local
         if (CoolGen.initByPrototype(type_decl)) {
             CoolGen.emitObjectCopy(type_decl.toString(), s);
         } else {
@@ -1218,6 +1236,7 @@ class let extends Expression {
                 CoolGen.push("$zero")
             }, s);
         }
+        CoolGen.emitNewLocal(s);
 
         // If init !== no_expr, replace local on stack with result
         if (!(init instanceof no_expr)) {
@@ -1226,8 +1245,8 @@ class let extends Expression {
                 CoolGen.pop("$t1"),
             }, s);
             init.code(s, containingClassName);
+            CoolGen.replaceLocal(s);
         }
-        CoolGen.emitNewLocal(s);
 
         // Evaluate body
         CoolGen.emitPadded(new String[] {

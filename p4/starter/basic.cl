@@ -3,6 +3,54 @@
     as possible.
  *)
 
+-- blocks
+ class Animal {
+   legs: Int <- 0;
+   init(): Int {
+     legs <- 2
+   };
+   legs(): Int {
+     legs
+   };
+   wishes(): Int {
+     100
+   };
+ };
+
+ class Dog inherits Animal {
+   name: String;
+   name(): String {
+     name
+   };
+   init(): Int {
+     legs <- 4
+   };
+ };
+
+ class Main inherits IO {
+    test2(): Int { {
+      let nullAnimal:Animal,
+          a:Animal,
+          b:Animal,
+          nullAnimal2:Animal,
+          stillNull:Animal,
+          stillNull2:Animal,
+          notNullAnimal:Animal <- new Animal in 
+        case notNullAnimal of 
+          d:Animal => let e:Animal <- new Animal, f:Int <- e.init() in e.legs() + f;
+          e:Main => e.wishes();
+        esac;
+    }
+    };
+    test(): SELF_TYPE {
+      out_int(10)
+    };
+    wishes(): Int { 0 };
+   main(): SELF_TYPE {
+     out_int(let d:Dog <- new Dog, e:Int <- d.init() in test2())
+   };
+ };
+
 -- case statements
 (*
  class Animal {
@@ -50,6 +98,7 @@
 *)
 
 -- Local variables, dispatch
+(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -82,7 +131,7 @@
      bad()
    };
  };
-
+*)
 -- Inheritance and complicated dispatch
 (*
   class Animal {
@@ -117,7 +166,7 @@
 
 -- Attributes, simple dispatch, arithmetic
 (*
-  class Main {
+  class Main inherits IO {
     -- prints the sequence: 0123...
     zero: Int <- 0 + 0 + 0;
     one: Int <- zero + 1 + 0;
@@ -132,7 +181,7 @@
         x <- x + foo(one <- two) + one + foo(zero <- 0) + z
       -- output: x + 3 + 2 + 1 => x + 7
     };
-    main():Int { let x:Int in flerm(x) };
+    main():SELF_TYPE { let x:Int in out_int(flerm(x)) };
     -- output: 7
   };
 *)

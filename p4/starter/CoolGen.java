@@ -27,7 +27,7 @@ public class CoolGen {
   public static final String NULL_DISPATCH = "_dispatch_abort";
 
   // TODO: Dynamic frame size based on `let` count?
-  public static final int LOCAL_SIZE = 4 * 5;
+  public static final int LOCAL_SIZE = 4 * 10;
 
   public static String pop(String reg) {
     return String.format("%s # pop\n\t%s# pop", "lw " + reg + " ($sp)", "add $sp $sp 4");
@@ -156,6 +156,12 @@ public class CoolGen {
       pop("$t1"),
       "sw $t1 ($s1)",
       "sub $s1 $s1 4",
+    }, out);
+  }
+  public static void replaceLocal(PrintStream out) {
+    emitPadded(new String[] {
+      pop("$t1"),
+      "sw $t1 4($s1)", // $s1 is the word directly above last local
     }, out);
   }
   public static void emitLabel(String s, PrintStream out) {
