@@ -1976,7 +1976,9 @@ class no_expr extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        CoolGen.emitPadded(CoolGen.push("$zero"), s);
     }
 
 

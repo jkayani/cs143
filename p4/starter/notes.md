@@ -27,7 +27,7 @@ Next steps:
 - static_dispatch (will do once `dispatch` is finalized)
 - ~let~
 - ~case~
-- block
+- ~block~
 - no_expr
 
 Needs boolean:

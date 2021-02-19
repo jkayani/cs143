@@ -531,7 +531,14 @@ public class CoolGen {
           Integer offset = (Integer) lookupObject(currentClass.name, a.name)[1];
           AttributeExpression p = (AttributeExpression) a.init;
 
-          p.code(out, currentClass.name);
+          // Init attributes of type Int, String, Bool with defaults
+          // Null pointer or their init expression for everything else
+          if (a.init instanceof no_expr && initByPrototype(a.type_decl)) {
+            emitObjectCopy(a.type_decl.toString(), out);
+          } else {
+            p.code(out, currentClass.name);
+          }
+
           emit(blockComment(String.format("store value to attribute %s.%s", currentClass.name, a.name)));
           emit(pop("$t1"));
           emit("sw $t1 " + offset + "($a0)");
