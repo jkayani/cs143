@@ -6,9 +6,9 @@
 class Main inherits IO {
   isMain: Bool <- true;
   main(): Bool {
-    { 
-      isMain <- false;
-      isMain;
+    let x:Bool <- isMain in {
+      x <- not x;
+      x;
     }
   };
 };

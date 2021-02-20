@@ -1701,7 +1701,37 @@ class comp extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_comp_%d_%d", containingClassName, lineNumber, hashCode());
+
+        Object[] ref = CoolGen.lookupObject(TreeConstants.Bool, TreeConstants.val);
+        int offset = (Integer) ref[1];
+
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t1"),  
+            "la $t2 bool_const0",
+            String.format("beq $t1 $t2 %s_false", here),
+            CoolGen.push("$t2"),
+            String.format("j %s_epilogue", here)
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_false", here), s);
+        CoolGen.emitPadded(new String[] {
+            "la $t2 bool_const1",
+            CoolGen.push("$t2"),
+            String.format("j %s_epilogue", here)
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
 
 
