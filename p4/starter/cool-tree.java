@@ -1784,8 +1784,10 @@ class bool_const extends Expression {
       * to you as an example of code generation.
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
-	CgenSupport.emitLoadBool(CgenSupport.ACC, new BoolConst(val), s);
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        CgenSupport.emitLoadBool("$t1", new BoolConst(val), s);
+        CoolGen.emitPadded(CoolGen.push("$t1"), s);
     }
 
 }
@@ -1826,9 +1828,12 @@ class string_const extends Expression {
       * to you as an example of code generation.
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
-	CgenSupport.emitLoadString(CgenSupport.ACC,
-                                   (StringSymbol)AbstractTable.stringtable.lookup(token.getString()), s);
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        CgenSupport.emitLoadString("$t1",
+         (StringSymbol)AbstractTable.stringtable.lookup(token.getString()), s);
+        
+        CoolGen.emitPadded(CoolGen.push("$t1"), s);
     }
 
 }

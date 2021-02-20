@@ -419,6 +419,22 @@ public class CoolGen {
     endLabel();
   }
 
+  private void writeBoolTrue() {
+    AbstractSymbol className = TreeConstants.Bool;
+
+    emit(WORD, -1);
+    emitLabel("bool_const1");
+    emit(WORD, String.format("%d # classtag", map.classtags.indexOf(className)));
+    emit(WORD, String.format("%d # size", objectSize(className)));
+    emit(WORD, String.format(METHODTAB, className));
+
+    // Bool only inherits from Object with has no attributes
+    // Bool only has the _val attribute
+    CoolMap.AttributeData a = map.classAttributes.get(className).get(TreeConstants.val);
+    emit(WORD, "1 # bool_const1 is true");
+    a.offset = 12;
+  }
+
   public void layoutStaticData() {
     emit("##### START DATA #####");
     emit(".data");
@@ -480,10 +496,12 @@ public class CoolGen {
       writeDispatchTab(className, ancestry);
       endLabel();
     }
+    writeBoolTrue();
 
     writeDispatchTabTab();
 
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
+    // AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
 
     // Sanity check string to be printed out
     // TODO: remove this sanity check

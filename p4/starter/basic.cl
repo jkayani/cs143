@@ -3,6 +3,16 @@
     as possible.
  *)
 
+class Main inherits IO {
+  isMain: Bool <- true;
+  main(): Bool {
+    { 
+      isMain <- false;
+      isMain;
+    }
+  };
+};
+
 -- blocks
 (*
  class Animal {
@@ -162,6 +172,7 @@
   };
 *)
 
+(*
 -- Attributes, simple dispatch, arithmetic
   class Main inherits IO {
     -- prints the sequence: 0123...
@@ -182,3 +193,4 @@
     main():SELF_TYPE { let x:Int in out_int(flerm(x)) };
     -- output: 7
   };
+*)

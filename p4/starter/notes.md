@@ -28,10 +28,11 @@ Next steps:
 - ~let~
 - ~case~
 - ~block~
-- no_expr
+- ~no_expr~
 
 Needs boolean:
-- bool_const
+~- bool_const~
+- comp
 - cond
 - loop
 - lt, leq, eq 
