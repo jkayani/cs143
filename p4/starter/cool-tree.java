@@ -1661,10 +1661,73 @@ class eq extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_eq_%d_%d", containingClassName, lineNumber, hashCode());
+
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        e2.code(s, containingClassName);
+        if (e2 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e2;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        // Arguments to equality_test
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t2"),
+            CoolGen.pop("$t1")
+        }, s);
+
+        if (CoolGen.initByPrototype(e1.get_type())) {
+            CoolGen.emitPadded(CoolGen.comment("builtin equality test"), s);
+
+            CoolGen.emitRegisterPreserve(s);
+            CoolGen.emitFramePrologue(s);
+
+            // If equal, true is returned, else false
+            CoolGen.emitPadded(new String[] {
+                "la $a0 bool_const1",
+                "la $a1 bool_const0"
+            }, s);
+
+            CoolGen.emitFrameEpilogue(s);
+            CoolGen.emitPadded(String.format("jal %s", CoolGen.EQ_TEST), s);
+            CoolGen.emitFrameCleanup(s);
+            CoolGen.emitRegisterRestore(s);
+
+            // Push result ($a0) to stack
+            CoolGen.emitPadded(new String[] {
+                "move $t1 $a0",
+                CoolGen.pop("$a0"),
+                CoolGen.push("$t1")
+            }, s);
+        } else {
+
+            // Check if pointed-to values are the same
+            CoolGen.emitPadded(new String[] {
+                String.format("beq $t1 $t2 %s_true", here),
+                "la $t1 bool_const0",
+                CoolGen.push("$t1"),
+                String.format("j %s_epilogue", here)
+            }, s);
+
+            CoolGen.emitLabel(String.format("%s_true", here), s);
+            CoolGen.emitPadded(new String[] {
+                "la $t1 bool_const1",
+                CoolGen.push("$t1"),
+            }, s);
+
+            CoolGen.emitLabel(String.format("%s_epilogue", here), s);
+        }
     }
-
-
 }
 
 

@@ -5,61 +5,94 @@
 
 (*
   class Main inherits IO {
-    div(n: Int, m:Int, res:Int) {
-      if n = 0 then res else div(n - m, res + 1)
-    }
-    fizzBuzz(n: Int, k: Int): SELF_TYPE {
-      if n = k then
-        self 
-      else
-        if div(n, 15, 0) = 0 then 
-          out_string("fizzbuzz\n")
-        else 
-          if div(n, 3, 0) = 0 then 
-            out_string("fizz\n")
+    (*
+      div(n: Int, m:Int, res:Int) {
+        if n = 0 then res else div(n - m, res + 1)
+      }
+    *)
+    (*
+      fizzBuzz(n: Int, k: Int): SELF_TYPE {
+        if n = k then
+          self 
+        else
+          if div(n, 15, 0) = 0 then 
+            out_string("fizzbuzz\n")
           else 
-            if div(n, 5, 0) = 0 then 
-              out_string("buzz\n")
+            if div(n, 3, 0) = 0 then 
+              out_string("fizz\n")
             else 
-              fizzBuzz(n + 1, k)
-            fi
-          fi 
+              if div(n, 5, 0) = 0 then 
+                out_string("buzz\n")
+              else 
+                fizzBuzz(n + 1, k)
+              fi
+            fi 
+          fi
         fi
-      fi
-    }
-    main(): SELF_TYPE {
-      fizzBuzz(0, 15)
-    }
-  }
+      }
+    *)
+    test:Int;
+    main(): SELF_TYPE { {
+      test <- 1 + 1;
+      out_int(if "false" = "false" then 0 else 1 fi);
+      out_int(if 2 = 0 then 0 else 1 fi);
+      out_int(if 2 = test then 0 else 1 fi);
+    } };
+  };
 *)
 
--- bool, comp, cond
-class Main inherits IO {
-  isMain: Bool <- true;
-  anotherBool: Bool <- new Bool;
-  main(): Bool {
-    let x:Bool, y:Bool in {
-      y <- not {
-        if not x then 
-          out_string("true branch") 
+  -- bool, comp, cond, eq
+  class Animal {};
+  class Main inherits IO {
+    isMain: Bool <- true;
+    anotherBool: Bool <- new Bool;
+    test: Int;
+    testAnimal:Animal;
+    testAnimal2:Animal;
+
+    -- output: 01 01 01 0
+    eqTest(): SELF_TYPE {{
+      test <- 1 + 1;
+      out_int(if "false" = "false" then 0 else 1 fi);
+      out_int(if 2 = 0 then 0 else 1 fi);
+
+      out_int(if 2 = test then 0 else 1 fi);
+      out_int(if new Animal = new Animal then 0 else 1 fi);
+
+      out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
+      testAnimal <- new Animal;
+      out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
+
+      testAnimal2 <- testAnimal;
+      out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
+    }};
+    condTest(): Bool {
+      let x:Bool, y:Bool in {
+        y <- not {
+          if not x then 
+            out_string("true branch") 
+          else 
+            out_string("false branch")
+          fi;
+          x;
+        };
+        if y then 
+          if not x then 
+            out_string("consistent")
+          else 
+            out_string("INconsistent")
+          fi
         else 
-          out_string("false branch")
+          out_string("false???")
         fi;
-        x;
-      };
-      if y then 
-        if not x then 
-          out_string("consistent")
-        else 
-          out_string("INconsistent")
-        fi
-      else 
-        out_string("false???")
-      fi;
-      y;
-    } 
+        y;
+      } 
+    };
+    main(): Int { {
+      eqTest();
+      1;
+    }};
   };
-};
 
 -- blocks
 (*

@@ -34,8 +34,8 @@ Needs boolean:
 - ~bool_const~
 - ~comp~
 - ~cond~
+- lt, leq, ~eq~
 - loop
-- lt, leq, eq 
 - isvoid
 
 Finish math:
