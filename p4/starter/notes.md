@@ -31,9 +31,9 @@ Next steps:
 - ~no_expr~
 
 Needs boolean:
-~- bool_const~
-- comp
-- cond
+- ~bool_const~
+- ~comp~
+- ~cond~
 - loop
 - lt, leq, eq 
 - isvoid

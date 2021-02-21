@@ -3,15 +3,60 @@
     as possible.
  *)
 
+(*
+  class Main inherits IO {
+    div(n: Int, m:Int, res:Int) {
+      if n = 0 then res else div(n - m, res + 1)
+    }
+    fizzBuzz(n: Int, k: Int): SELF_TYPE {
+      if n = k then
+        self 
+      else
+        if div(n, 15, 0) = 0 then 
+          out_string("fizzbuzz\n")
+        else 
+          if div(n, 3, 0) = 0 then 
+            out_string("fizz\n")
+          else 
+            if div(n, 5, 0) = 0 then 
+              out_string("buzz\n")
+            else 
+              fizzBuzz(n + 1, k)
+            fi
+          fi 
+        fi
+      fi
+    }
+    main(): SELF_TYPE {
+      fizzBuzz(0, 15)
+    }
+  }
+*)
+
+-- bool, comp, cond
 class Main inherits IO {
   isMain: Bool <- true;
   anotherBool: Bool <- new Bool;
   main(): Bool {
-    let x:Bool in {
-      x <- true;
-      case x of 
-        y:Bool => y;
-      esac;
+    let x:Bool, y:Bool in {
+      y <- not {
+        if not x then 
+          out_string("true branch") 
+        else 
+          out_string("false branch")
+        fi;
+        x;
+      };
+      if y then 
+        if not x then 
+          out_string("consistent")
+        else 
+          out_string("INconsistent")
+        fi
+      else 
+        out_string("false???")
+      fi;
+      y;
     } 
   };
 };

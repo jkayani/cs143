@@ -499,8 +499,8 @@ public class CoolGen {
 
     writeDispatchTabTab();
 
+    AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
-    // AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
 
     // Sanity check string to be printed out
     // TODO: remove this sanity check

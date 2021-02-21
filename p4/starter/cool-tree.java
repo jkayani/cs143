@@ -944,7 +944,47 @@ class cond extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_cond_%d_%d", containingClassName, lineNumber, hashCode());
+
+        // Generate pred expression (deref)
+        pred.code(s, containingClassName);
+        if (pred instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) pred;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        // Compare against bool_const0 , jump to here_false
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t1"),
+            "la $t2 bool_const0",
+            String.format("beq $t1 $t2 %s_false", here),
+        }, s);
+
+        // pred is true
+        then_exp.code(s, containingClassName);
+        if (then_exp instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) then_exp;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        CoolGen.emitPadded(String.format("j %s_epilogue", here), s);
+
+        // pred is false
+        CoolGen.emitLabel(String.format("%s_false", here), s);
+        else_exp.code(s, containingClassName);
+        if (else_exp instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) else_exp;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
 
 
@@ -1171,7 +1211,7 @@ class block extends Expression {
 /** Defines AST constructor 'let'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class let extends Expression implements LocalIntroducable {
+class let extends Expression {
     public AbstractSymbol identifier;
     public AbstractSymbol type_decl;
     public Expression init;
@@ -1735,7 +1775,6 @@ class comp extends Expression {
         CoolGen.emitPadded(new String[] {
             "la $t2 bool_const1",
             CoolGen.push("$t2"),
-            String.format("j %s_epilogue", here)
         }, s);
 
         CoolGen.emitLabel(String.format("%s_epilogue", here), s);
