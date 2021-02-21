@@ -5,11 +5,14 @@
 
 class Main inherits IO {
   isMain: Bool <- true;
+  anotherBool: Bool <- new Bool;
   main(): Bool {
-    let x:Bool <- isMain in {
-      x <- not x;
-      x;
-    }
+    let x:Bool in {
+      x <- true;
+      case x of 
+        y:Bool => y;
+      esac;
+    } 
   };
 };
 

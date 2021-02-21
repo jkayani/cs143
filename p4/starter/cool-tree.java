@@ -1230,7 +1230,14 @@ class let extends Expression implements LocalIntroducable {
 
         // Default init for new local
         if (CoolGen.initByPrototype(type_decl)) {
-            CoolGen.emitObjectCopy(type_decl.toString(), s);
+            if (type_decl.equals(TreeConstants.Bool)) {
+                CoolGen.emitPadded(new String[] {
+                    "la $t1 bool_const0",
+                    CoolGen.push("$t1")
+                }, s);
+            } else {
+                CoolGen.emitObjectCopy(type_decl.toString(), s);
+            }
         } else {
             CoolGen.emitPadded(new String[] {
                 CoolGen.push("$zero")
@@ -1906,34 +1913,43 @@ class new_ extends Expression {
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
 
-        // Call Object.copy on the prototype 
-        CoolGen.emitObjectCopy(type_name.toString(), s);
-
-        // For each ancestor of `type_name`, call it's initialize routine
-        // Skip Object (first ancestor of all classes)
-        ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(type_name).listIterator(1);
-        while (ancestry.hasNext()) {
-            AbstractSymbol ancestor = ancestry.next();
-
+        // Bools are initialized to bool_const0
+        if (type_name.equals(TreeConstants.Bool)) {
             CoolGen.emitPadded(new String[] {
-                CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
-                CoolGen.pop("$t1"),
+                "la $t1 bool_const0",
+                CoolGen.push("$t1")
             }, s);
+        }
+        else {
+            // Call Object.copy on the prototype 
+            CoolGen.emitObjectCopy(type_name.toString(), s);
 
-            CoolGen.emitRegisterPreserve(s);
+            // For each ancestor of `type_name`, call it's initialize routine
+            // Skip Object (first ancestor of all classes)
+            ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(type_name).listIterator(1);
+            while (ancestry.hasNext()) {
+                AbstractSymbol ancestor = ancestry.next();
 
-            // Inititalize the class
-            CoolGen.emitPadded(new String[] {
-                "move $a0 $t1",
-                String.format("jal " + CoolGen.ATTRINIT, ancestor),
-                "move $t1 $a0",
-            }, s);
+                CoolGen.emitPadded(new String[] {
+                    CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
+                    CoolGen.pop("$t1"),
+                }, s);
 
-            CoolGen.emitRegisterRestore(s);
-            CoolGen.emitPadded(CoolGen.pop("$a0"), s);
+                CoolGen.emitRegisterPreserve(s);
 
-            CoolGen.emitPadded(CoolGen.push("$t1"), s);
+                // Inititalize the class
+                CoolGen.emitPadded(new String[] {
+                    "move $a0 $t1",
+                    String.format("jal " + CoolGen.ATTRINIT, ancestor),
+                    "move $t1 $a0",
+                }, s);
 
+                CoolGen.emitRegisterRestore(s);
+                CoolGen.emitPadded(CoolGen.pop("$a0"), s);
+
+                CoolGen.emitPadded(CoolGen.push("$t1"), s);
+
+            }
         }
     }
 

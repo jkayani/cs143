@@ -446,10 +446,9 @@ public class CoolGen {
     for (AbstractSymbol className : map.classtags) {
       emit(WORD, -1);
 
+      emitLabel(String.format(PROTOBJ, className));
       if (className.toString().equals("Bool")) {
         emitLabel("bool_const0");
-      } else {
-        emitLabel(String.format(PROTOBJ, className));
       }
 
       emit(WORD, String.format("%d # classtag", map.classtags.indexOf(className)));
