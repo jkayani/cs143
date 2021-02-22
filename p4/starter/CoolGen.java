@@ -503,16 +503,6 @@ public class CoolGen {
     AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
 
-    // Sanity check string to be printed out
-    // TODO: remove this sanity check
-    emit(WORD, -1);
-    emitLabel("temp_test");
-    emit(WORD, 3);
-    emit(WORD, 5);
-    emit(WORD, String.format(METHODTAB, "String"));
-    emit(WORD, "int_const0");
-    emit(ASCIIZ, "\"Hello, from Main.main\\n\"");
-
     // Disable GC for now
     emitLabel("_MemMgr_INITIALIZER");
     emit(WORD, "_NoGC_Init");

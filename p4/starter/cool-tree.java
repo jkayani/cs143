@@ -1030,10 +1030,38 @@ class loop extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_loop_%d_%d", containingClassName, lineNumber, hashCode());
+
+        CoolGen.emitLabel(String.format("%s_predicate", here), s);
+        pred.code(s, containingClassName);
+        if (pred instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) pred;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t1"),
+            "la $t2 bool_const1",
+            String.format("beq $t1 $t2 %s_true", here),
+            String.format("j %s_epilogue", here),
+        }, s);
+
+        // Loop predicate true
+        CoolGen.emitLabel(String.format("%s_true", here), s);
+        body.code(s, containingClassName);
+        if (body instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) body;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        CoolGen.emitPadded(String.format("j %s_predicate", here), s);
+
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
-
-
 }
 
 

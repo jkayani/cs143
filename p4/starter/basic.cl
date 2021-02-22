@@ -46,50 +46,68 @@
   class Main inherits IO {
     isMain: Bool <- true;
     anotherBool: Bool <- new Bool;
+  (*
+    numTest():Int {
+      let x:Int <- 1, y:Int <- 2 in x
+    };
+
     test: Int;
     testAnimal:Animal;
     testAnimal2:Animal;
-
     -- output: 01 01 01 0
-    eqTest(): SELF_TYPE {{
-      test <- 1 + 1;
-      out_int(if "false" = "false" then 0 else 1 fi);
-      out_int(if 2 = 0 then 0 else 1 fi);
+      eqTest(): SELF_TYPE {{
+        test <- 1 + 1;
+        out_int(if "false" = "false" then 0 else 1 fi);
+        out_int(if 2 = 0 then 0 else 1 fi);
 
-      out_int(if 2 = test then 0 else 1 fi);
-      out_int(if new Animal = new Animal then 0 else 1 fi);
+        out_int(if 2 = test then 0 else 1 fi);
+        out_int(if new Animal = new Animal then 0 else 1 fi);
 
-      out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
-      testAnimal <- new Animal;
-      out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
+        out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
+        testAnimal <- new Animal;
+        out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
 
-      testAnimal2 <- testAnimal;
-      out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
-    }};
-    condTest(): Bool {
-      let x:Bool, y:Bool in {
-        y <- not {
-          if not x then 
-            out_string("true branch") 
+        testAnimal2 <- testAnimal;
+        out_int(if testAnimal = testAnimal2 then 0 else 1 fi);
+      }};
+      condTest(): Bool {
+        let x:Bool, y:Bool in {
+          y <- not {
+            if not x then 
+              out_string("true branch") 
+            else 
+              out_string("false branch")
+            fi;
+            x;
+          };
+          if y then 
+            if not x then 
+              out_string("consistent")
+            else 
+              out_string("INconsistent")
+            fi
           else 
-            out_string("false branch")
+            out_string("false???")
           fi;
-          x;
-        };
-        if y then 
-          if not x then 
-            out_string("consistent")
-          else 
-            out_string("INconsistent")
-          fi
-        else 
-          out_string("false???")
-        fi;
-        y;
-      } 
+          y;
+        } 
+      };
+  *)
+    loopTest(): Int {
+      let x:Object <-
+        let start:Int <- 0, end:Int <- 10, cond:Bool <- not(start = end) in 
+          while cond loop {
+            out_int(start);
+            start <- start + 1;
+            cond <- not(start = end);
+            start;
+          }
+          pool
+      in case x of y:Int => y; esac
     };
     main(): Int { {
-      eqTest();
+      -- eqTest();
+      out_int(loopTest());
       1;
     }};
   };
