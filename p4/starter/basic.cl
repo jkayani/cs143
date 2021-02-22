@@ -41,7 +41,7 @@
   };
 *)
 
-  -- bool, comp, cond, eq
+  -- bool, comp, cond, eq, loop
   class Animal {};
   class Main inherits IO {
     isMain: Bool <- true;
@@ -92,9 +92,8 @@
           y;
         } 
       };
-  *)
-    loopTest(): Int {
-      let x:Object <-
+      loopTest(): Int {
+        let x:Object <-
         let start:Int <- 0, end:Int <- 10, cond:Bool <- not(start = end) in 
           while cond loop {
             out_int(start);
@@ -103,12 +102,18 @@
             start;
           }
           pool
-      in case x of y:Int => y; esac
-    };
+        in case x of y:Int => y; esac
+      };
+  *)
+
     main(): Int { {
       -- eqTest();
-      out_int(loopTest());
-      1;
+      -- out_int(loopTest());
+      let a:Animal in {
+        if isvoid a then out_string("a is null\n") else out_string("wrong") fi;
+        if isvoid isMain then out_string("wrong") else out_string("isMain is non-null\n") fi;
+      };
+      0;
     }};
   };
 

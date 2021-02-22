@@ -35,8 +35,8 @@ Needs boolean:
 - ~comp~
 - ~cond~
 - lt, leq, ~eq~
-- loop
-- isvoid
+- ~loop~
+- ~isvoid~
 
 Finish math:
 - sub, mul, divide, neg

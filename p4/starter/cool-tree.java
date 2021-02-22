@@ -2121,7 +2121,33 @@ class isvoid extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_isvoid_%d_%d", containingClassName, lineNumber, hashCode());
+
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t1"),
+            String.format("beq $t1 $zero %s_true", here),
+            "la $t1 bool_const0",
+            CoolGen.push("$t1"),
+            String.format("j %s_epilogue", here)
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_true", here), s);
+        CoolGen.emitPadded(new String[] {
+            "la $t1 bool_const1",
+            CoolGen.push("$t1"),
+        }, s);
+        
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
 
 
