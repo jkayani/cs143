@@ -92,23 +92,23 @@
           y;
         } 
       };
+  *)
       loopTest(): Int {
         let x:Object <-
-        let start:Int <- 0, end:Int <- 10, cond:Bool <- not(start = end) in 
-          while cond loop {
-            out_int(start);
-            start <- start + 1;
-            cond <- not(start = end);
-            start;
-          }
-          pool
+          let start:Int <- 0, end:Int <- 10, cond:Bool <- start < end in 
+            while cond loop {
+              out_int(start);
+              start <- start + 1;
+              cond <- start < end;
+              start;
+            }
+            pool
         in case x of y:Int => y; esac
       };
-  *)
 
     main(): Int { {
       -- eqTest();
-      -- out_int(loopTest());
+      out_int(loopTest());
       let a:Animal in {
         if isvoid a then out_string("a is null\n") else out_string("wrong") fi;
         if isvoid isMain then out_string("wrong") else out_string("isMain is non-null\n") fi;

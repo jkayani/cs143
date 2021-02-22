@@ -1643,7 +1643,49 @@ class lt extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_lt_%d_%d", containingClassName, lineNumber, hashCode());
+
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        e2.code(s, containingClassName);
+        if (e2 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e2;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        int valOffset = (Integer) CoolGen.lookupObject(
+            TreeConstants.Int,
+            TreeConstants.val
+        )[1];
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t5"),
+            CoolGen.pop("$t4"),
+            ("lw $t4 " + valOffset + "($t4)"),
+            ("lw $t5 " + valOffset + "($t5)"),
+            "slt $t1 $t4 $t5",
+            String.format("beq $t1 $zero %s_false", here),
+            "la $t1 bool_const1",
+            CoolGen.push("$t1"),
+            String.format("j %s_epilogue", here),
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_false", here), s);
+        CoolGen.emitPadded(new String[] {
+            "la $t1 bool_const0",
+            CoolGen.push("$t1"),
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
 
 
@@ -1798,10 +1840,50 @@ class leq extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        String here = String.format("%s_leq_%d_%d", containingClassName, lineNumber, hashCode());
+
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        e2.code(s, containingClassName);
+        if (e2 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e2;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        int valOffset = (Integer) CoolGen.lookupObject(
+            TreeConstants.Int,
+            TreeConstants.val
+        )[1];
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t5"),
+            CoolGen.pop("$t4"),
+            ("lw $t4 " + valOffset + "($t4)"),
+            ("lw $t5 " + valOffset + "($t5)"),
+            "sle $t1 $t4 $t5",
+            String.format("beq $t1 $zero %s_false", here),
+            "la $t1 bool_const1",
+            CoolGen.push("$t1"),
+            String.format("j %s_epilogue", here),
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_false", here), s);
+        CoolGen.emitPadded(new String[] {
+            "la $t1 bool_const0",
+            CoolGen.push("$t1"),
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_epilogue", here), s);
     }
-
-
 }
 
 
