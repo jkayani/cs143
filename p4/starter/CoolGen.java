@@ -291,6 +291,7 @@ public class CoolGen {
       }
       case "_str_field": {
         emit(ASCIIZ, "\"\"");
+        emit(ALIGN, "2");
         return;
       }
     }
@@ -326,15 +327,27 @@ public class CoolGen {
 
   private void writeClassNames() {
 
-    // For each class, create a COOL String containing it's name
+    // For each class, create a COOL Int containing it's name's length
+    for (AbstractSymbol className : map.classtags) {
+      emit(WORD, "-1");
+      emitLabel(String.format("%s_name_length", className));
+      emit(WORD, map.classtags.indexOf(TreeConstants.Int));
+      emit(WORD, 4); 
+      emit(WORD, "Int_methodTab"); 
+      emit(WORD, className.toString().length());
+      endLabel();
+    }
+
+    // Now for each class, create a COOL String containing it's name and referring to the length
     for (AbstractSymbol className : map.classtags) {
       emit(WORD, "-1");
       emitLabel(String.format("%s_name", className));
       emit(WORD, map.classtags.indexOf(TreeConstants.Str));
       emit(WORD, 7); 
       emit(WORD, "String_methodTab"); 
-      emit(WORD, className.toString().length());
+      emit(WORD, String.format("%s_name_length", className));
       emit(ASCIIZ, String.format("\"%s\"", className));
+      emit(ALIGN, "2");
       endLabel();
     }
   }

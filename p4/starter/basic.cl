@@ -3,6 +3,29 @@
     as possible.
  *)
 
+-- builtin methods 
+class Animal {
+
+};
+class Dog {
+
+};
+class Main inherits IO {
+  newline(): Object {
+    out_string("\n")
+  };
+  main(): Object {{
+    out_string("Welcome to the builtin test! What's your name?");
+    newline();
+    let name:String <- in_string() in {
+      out_string(name.concat(", hello! Welcome!"));
+      newline();
+      out_string("Or, put another way, hello: ".concat(name).concat(", glad you're here"));
+      newline();
+    };
+  }};
+};
+
 -- fizzbuzz: dispatch, all arithmetic, loops, conds
 (*
   class Main inherits IO {
@@ -193,6 +216,7 @@
 *)
 
 -- case statements
+(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -243,6 +267,7 @@
      -- out_int(badNull(let a:Animal in a));
    } };
  };
+*)
 
 -- Local variables, dispatch
 (*

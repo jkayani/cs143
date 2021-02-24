@@ -39,4 +39,6 @@ Needs boolean:
 - ~isvoid~
 
 Finish math:
-- sub, mul, divide, neg
+- ~sub, mul, divide, neg~
+
+- Test the builtin methods
