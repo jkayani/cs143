@@ -532,19 +532,17 @@ public class CoolGen {
       for (Enumeration e2 = currentClass.features.getElements(); e2.hasMoreElements(); )  {
         // TODO: Seed the symbol table with ancestral attributes to make symbolTable
         // source of truth on offsets
-
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
           attr a = (attr) f;
           Integer offset = (Integer) lookupObject(currentClass.name, a.name)[1];
-          AttributeExpression p = (AttributeExpression) a.init;
 
           // Init attributes of type Int, String, Bool with defaults
           // Null pointer or their init expression for everything else
           if (a.init instanceof no_expr && initByPrototype(a.type_decl)) {
             emitObjectCopy(a.type_decl.toString(), out);
           } else {
-            p.code(out, currentClass.name);
+            a.init.code(out, currentClass.name);
           }
 
           emit(blockComment(String.format("store value to attribute %s.%s", currentClass.name, a.name)));
@@ -574,7 +572,6 @@ public class CoolGen {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof method) {
           method m = (method) f;
-          AttributeExpression p = (AttributeExpression) m.expr;
           symbols.objects.enterScope();
 
           // For Main.main, we should setup a pseudo-frame for storing locals
@@ -590,19 +587,17 @@ public class CoolGen {
             formalc f2 = (formalc) e3.nextElement();
             symbols.objects.addId(
               f2.name, 
-
-              // TOOD: wtf is this
               map.new ObjectData(f2.type_decl, CoolMap.SymbolType.ARG, offset)
             );
             offset += 4;
           }
 
-          p.code(out, currentClass.name);
+          m.expr.code(out, currentClass.name);
 
           // Assuming convention of return value in $a0
           emit(pop("$a0"));
-          if (p instanceof ObjectReturnable) {
-            ObjectReturnable o = (ObjectReturnable) p;
+          if (m.expr instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) m.expr;
             if (o.requiresDereference()) {
               emit("lw $a0 ($a0)");
             }

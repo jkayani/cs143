@@ -140,7 +140,7 @@ class Formals extends ListNode {
 
 
 /** Defines simple phylum Expression */
-abstract class Expression extends TreeNode implements AttributeExpression {
+abstract class Expression extends TreeNode {
     protected Expression(int lineNumber) {
         super(lineNumber);
     }
@@ -154,17 +154,12 @@ abstract class Expression extends TreeNode implements AttributeExpression {
         else
             { out.println(Utilities.pad(n) + ": _no_type"); }
     }
-    public abstract void code(PrintStream s);
-    public void code(PrintStream s, AbstractSymbol containingClassName) {};
+    public abstract void code(PrintStream s, AbstractSymbol containingClassName);
 }
 
-interface AttributeExpression {
-    public void code(PrintStream s, AbstractSymbol containingClassName);
-}
 interface ObjectReturnable {
     public boolean requiresDereference();
 }
-interface LocalIntroducable {}
 
 
 /** Defines list phylum Expressions
@@ -682,7 +677,7 @@ class static_dispatch extends Expression {
     // TODO: Fix like dispatch
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
-        AttributeExpression ae = (AttributeExpression) expr;
+        Expression ae =  expr;
 
         if (subjectType.equals(TreeConstants.SELF_TYPE)) {
             subjectType = containingClassName;
@@ -715,7 +710,7 @@ class static_dispatch extends Expression {
 
         // Push arguments
         for (int i = 0; i < actual.getLength(); i++) {
-            AttributeExpression e = (AttributeExpression) actual.getNth(i);
+            Expression e = (Expression) actual.getNth(i);
             e.code(s, containingClassName);
 
             // Pass current arguments as callee arguments directly, 
@@ -774,7 +769,7 @@ class static_dispatch extends Expression {
 Note: these are not ObjectReturnable b/c the method epilogue always deref's the
 method's final expression if necessary
 */
-class dispatch extends Expression implements AttributeExpression {
+class dispatch extends Expression {
     public Expression expr;
     public AbstractSymbol name;
     public Expressions actual;
@@ -822,7 +817,6 @@ class dispatch extends Expression implements AttributeExpression {
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
-        AttributeExpression ae = (AttributeExpression) expr;
 
         if (subjectType.equals(TreeConstants.SELF_TYPE)) {
             subjectType = containingClassName;
@@ -837,7 +831,7 @@ class dispatch extends Expression implements AttributeExpression {
         // Push arguments
         CoolGen.emitPadded(CoolGen.comment("frame setup: push arguments"), s);
         for (int i = 0; i < actual.getLength(); i++) {
-            AttributeExpression e = (AttributeExpression) actual.getNth(i);
+            Expression e = (Expression) actual.getNth(i);
             e.code(s, containingClassName);
 
             // Pass current arguments as callee arguments directly, 
@@ -852,7 +846,7 @@ class dispatch extends Expression implements AttributeExpression {
 
         // Emit subject of dispatch to $a0
         CoolGen.emitPadded(CoolGen.comment("frame setup: subject of dispatch"), s);
-        ae.code(s, containingClassName);
+        expr.code(s, containingClassName);
         if (expr instanceof ObjectReturnable) {
             ObjectReturnable o = (ObjectReturnable) expr;
             if (o.requiresDereference()) {
@@ -1347,7 +1341,7 @@ class let extends Expression {
 /** Defines AST constructor 'plus'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class plus extends Expression implements AttributeExpression {
+class plus extends Expression {
     public Expression e1;
     public Expression e2;
     /** Creates "plus" AST node. 
@@ -1701,9 +1695,34 @@ class neg extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
-    }
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
 
+        int valOffset = (Integer) CoolGen.lookupObject(
+            AbstractTable.idtable.lookup("Int"),
+            AbstractTable.idtable.lookup("_val")
+        )[1];
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t4"),
+            CoolGen.comment("load values of Int operand"),
+            ("lw $t4 " + valOffset + "($t4)"),
+
+            CoolGen.comment("multiply Int operand by -1"),
+            ("neg $t4 $t4"),
+            CoolGen.push("$t4")
+        }, s);
+
+        CoolGen.comment("save negated operand into new Int");
+        CoolGen.emitNewInt(s);
+    }
 
 }
 
@@ -2064,7 +2083,7 @@ class comp extends Expression {
 /** Defines AST constructor 'int_const'.
     <p>
     See <a href="TreeNode.html">TreeNode</a> for full documentation. */
-class int_const extends Expression implements AttributeExpression {
+class int_const extends Expression {
     public AbstractSymbol token;
     /** Creates "int_const" AST node. 
       *

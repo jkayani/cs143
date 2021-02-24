@@ -12,7 +12,7 @@
         if n < m
         then res 
         else 
-          if n = 0 then res else div(n - m, m, res + 1) fi
+          if n = 0 then res else div(n + ~m, m, res + 1) fi
         fi
       };
       mod(n: Int, m: Int): Int {
