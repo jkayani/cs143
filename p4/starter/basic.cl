@@ -4,6 +4,7 @@
  *)
 
 -- fizzbuzz: dispatch, all arithmetic, loops, conds
+(*
   class Main inherits IO {
       times(res:Int, n:Int, m:Int, c:Int): Int {
         if c = m then res else times(res + n, n, m, c + 1) fi
@@ -65,9 +66,10 @@
       self;
     } };
   };
+*)
 
+-- bool, comp, cond, eq, loop
 (*
-  -- bool, comp, cond, eq, loop
   class Animal {};
   class Main inherits IO {
     isMain: Bool <- true;
@@ -237,7 +239,6 @@
 *)
 
 -- Local variables, dispatch
-(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -270,7 +271,6 @@
      bad()
    };
  };
-*)
 -- Inheritance and complicated dispatch
 (*
   class Animal {

@@ -64,6 +64,9 @@ class StringSymbol extends AbstractSymbol {
     public void codeRef(PrintStream s) {
 	s.print(CgenSupport.STRCONST_PREFIX + index);
     }
+    public String codeRef() {
+	    return String.format("%s%d", CgenSupport.STRCONST_PREFIX, index);
+    }
 
     /** Returns a copy of this symbol */
     public Object clone() {

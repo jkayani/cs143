@@ -817,6 +817,7 @@ class dispatch extends Expression {
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
+        String here = String.format("%s_dispatch_%d_%d", containingClassName, lineNumber, hashCode());
 
         if (subjectType.equals(TreeConstants.SELF_TYPE)) {
             subjectType = containingClassName;
@@ -855,7 +856,21 @@ class dispatch extends Expression {
         }
         CoolGen.emitPadded(CoolGen.pop("$a0"), s);
 
-        // TODO: handle attempted dispatch on NULL
+        // Handle attempted dispatch on NULL
+        CoolGen.emitPadded(new String[] {
+            CoolGen.comment("null dispatch check"),
+            String.format("bne $a0 $zero %s_notnull", here),
+            String.format(
+                "la $a0 %s", 
+                ((StringSymbol) AbstractTable.stringtable.lookup(
+                    CoolGen.map.programSymbols.get(containingClassName).classc.getFilename().toString()
+                )).codeRef()
+            ),
+            String.format("li $t1 %d", lineNumber),
+            String.format("j %s", CoolGen.NULL_DISPATCH)
+        }, s);
+
+        CoolGen.emitLabel(String.format("%s_notnull", here), s);
 
         // Finish the frame by setting up frame registers for callee ($fp, $s1-$s3),
         // and setup object of dispatch
