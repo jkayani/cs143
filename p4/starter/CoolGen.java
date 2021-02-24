@@ -324,10 +324,16 @@ public class CoolGen {
     }
   }
 
-  // TODO: write String objects, not raw strings
   private void writeClassNames() {
+
+    // For each class, create a COOL String containing it's name
     for (AbstractSymbol className : map.classtags) {
+      emit(WORD, "-1");
       emitLabel(String.format("%s_name", className));
+      emit(WORD, map.classtags.indexOf(TreeConstants.Str));
+      emit(WORD, 7); 
+      emit(WORD, "String_methodTab"); 
+      emit(WORD, className.toString().length());
       emit(ASCIIZ, String.format("\"%s\"", className));
       endLabel();
     }
