@@ -193,7 +193,6 @@
 *)
 
 -- case statements
-(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -218,59 +217,69 @@
  };
 
  class Main inherits IO {
-    test2(): Int {
-      let nullAnimal:Animal, notNullAnimal:Animal <- new Animal in 
+    goodCase(): Int {
+      let nullAnimal:Animal, notNullAnimal:Animal <- new Dog in 
         case notNullAnimal of 
           d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in d.legs();
           e:Main => e.wishes();
         esac
     };
-    test(a: Animal): Int {
+    badNoMatching(a: Animal): Int {
       case a of 
         d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in d.legs();
         e:Main => e.wishes();
       esac
     };
-    wishes(): Int { 0 };
-   main(): SELF_TYPE {
-     out_int(let d:Dog <- new Dog, e:Int <- d.init() in test2())
-   };
+    badNull(a: Animal): Int {
+      case a of 
+        e:Animal => e.wishes();
+        e:Main => e.wishes();
+      esac
+    };
+    wishes(): Int { 50 };
+   main(): Object { {
+     out_int(let d:Dog <- new Dog, e:Int <- d.init() in goodCase());
+     out_int(badNoMatching(let a:Animal <- new Animal in a));
+     -- out_int(badNull(let a:Animal in a));
+   } };
  };
-*)
 
 -- Local variables, dispatch
- class Animal {
-   legs: Int <- 0;
-   init(): Int {
-     legs <- 2
-   };
-   legs(): Int {
-     legs
-   };
- };
+(*
+  class Animal {
+    legs: Int <- 0;
+    init(): Int {
+      legs <- 2
+    };
+    legs(): Int {
+      legs
+    };
+  };
 
- class Dog inherits Animal {
-   name: String;
-   name(): String {
-     name
-   };
-   init(): Int {
-     legs <- 4
-   };
- };
+  class Dog inherits Animal {
+    name: String;
+    name(): String {
+      name
+    };
+    init(): Int {
+      legs <- 4
+    };
+  };
 
- class Main {
-   bad(): Int {
-     let a:Animal in a.legs()
-   };
-   simple(a: Animal) : Int {
-     a.legs()
-   };
-   main(): Int {
-     -- let d:Dog <- new Dog, e:Int <- d.init() in simple(d)
-     bad()
-   };
- };
+  class Main {
+    bad(): Int {
+      let a:Animal in a.legs()
+    };
+    simple(a: Animal) : Int {
+      a.legs()
+    };
+    main(): Int {
+      -- let d:Dog <- new Dog, e:Int <- d.init() in simple(d)
+      bad()
+    };
+  };
+*)
+
 -- Inheritance and complicated dispatch
 (*
   class Animal {

@@ -1132,10 +1132,19 @@ class typcase extends Expression {
 
         // Check for null pointer 
         CoolGen.emitPadded(new String[] {
-            "beq $t2 $zero " + CoolGen.NULL_CASE,
+            String.format("bne $t2 $zero %s_nonnullcase", here),
+            String.format(
+                "la $a0 %s", 
+                ((StringSymbol) AbstractTable.stringtable.lookup(
+                    CoolGen.map.programSymbols.get(containingClassName).classc.getFilename().toString()
+                )).codeRef()
+            ),
+            String.format("li $t1 %d", lineNumber),
+            String.format("j %s", CoolGen.NULL_CASE)
         }, s);
 
         // Emit instructions to choose the right case
+        CoolGen.emitLabel(String.format("%s_nonnullcase", here), s);
         CoolGen.emitPadded(String.format("lw $t3 ($t2)"), s);
         for (int i = 0; i < cases.getLength(); i++) {
             branch b = (branch) cases.getNth(i);
@@ -1322,11 +1331,10 @@ class let extends Expression {
         }
         CoolGen.emitNewLocal(s);
 
-        // If init !== no_expr, replace local on stack with result
+        // If init !== no_expr, replace local with result
         if (!(init instanceof no_expr)) {
             CoolGen.emitPadded(new String[] {
                 CoolGen.comment("evaulate let init"),
-                CoolGen.pop("$t1"),
             }, s);
             init.code(s, containingClassName);
             CoolGen.replaceLocal(s);
