@@ -3,6 +3,7 @@
     as possible.
  *)
 
+-- fizzbuzz: dispatch, all arithmetic, loops, conds
   class Main inherits IO {
       times(res:Int, n:Int, m:Int, c:Int): Int {
         if c = m then res else times(res + n, n, m, c + 1) fi
@@ -16,6 +17,9 @@
       };
       mod(n: Int, m: Int): Int {
         n - times(0, m, div(n, m, 0), 0)
+      };
+      mod2(n: Int, m: Int): Int {
+        n - m * (n / m)
       };
       fizzBuzz(n: Int, k: Int): Object {
         while n < k loop {
@@ -36,8 +40,28 @@
         }
         pool
       };
+      fizzBuzz2(n: Int, k: Int): Object {
+        while n < k loop {
+          if mod2(n, 15) = 0 then out_string("fizzbuzz\n")
+          else 
+            if mod2(n, 5) = 0 then out_string("buzz\n")
+            else
+              if mod2(n, 3) = 0 then out_string("fizz\n")
+              else
+                {
+                  out_int(n);
+                  out_string("\n");
+                }
+              fi
+            fi
+          fi;
+          n <- n + 1;
+        }
+        pool
+      };
     main(): SELF_TYPE { {
       fizzBuzz(1, 20);
+      fizzBuzz2(1, 20);
       self;
     } };
   };
