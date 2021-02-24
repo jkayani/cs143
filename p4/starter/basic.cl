@@ -3,44 +3,46 @@
     as possible.
  *)
 
-(*
   class Main inherits IO {
-    (*
-      div(n: Int, m:Int, res:Int) {
-        if n = 0 then res else div(n - m, res + 1)
-      }
-    *)
-    (*
-      fizzBuzz(n: Int, k: Int): SELF_TYPE {
-        if n = k then
-          self 
-        else
-          if div(n, 15, 0) = 0 then 
-            out_string("fizzbuzz\n")
-          else 
-            if div(n, 3, 0) = 0 then 
-              out_string("fizz\n")
-            else 
-              if div(n, 5, 0) = 0 then 
-                out_string("buzz\n")
-              else 
-                fizzBuzz(n + 1, k)
-              fi
-            fi 
-          fi
+      times(res:Int, n:Int, m:Int, c:Int): Int {
+        if c = m then res else times(res + n, n, m, c + 1) fi
+      };
+      div(n: Int, m:Int, res:Int): Int {
+        if n < m
+        then res 
+        else 
+          if n = 0 then res else div(n - m, m, res + 1) fi
         fi
-      }
-    *)
-    test:Int;
+      };
+      mod(n: Int, m: Int): Int {
+        n - times(0, m, div(n, m, 0), 0)
+      };
+      fizzBuzz(n: Int, k: Int): Object {
+        while n < k loop {
+          if mod(n, 15) = 0 then out_string("fizzbuzz\n")
+          else 
+            if mod(n, 5) = 0 then out_string("buzz\n")
+            else
+              if mod(n, 3) = 0 then out_string("fizz\n")
+              else
+                {
+                  out_int(n);
+                  out_string("\n");
+                }
+              fi
+            fi
+          fi;
+          n <- n + 1;
+        }
+        pool
+      };
     main(): SELF_TYPE { {
-      test <- 1 + 1;
-      out_int(if "false" = "false" then 0 else 1 fi);
-      out_int(if 2 = 0 then 0 else 1 fi);
-      out_int(if 2 = test then 0 else 1 fi);
+      fizzBuzz(1, 20);
+      self;
     } };
   };
-*)
 
+(*
   -- bool, comp, cond, eq, loop
   class Animal {};
   class Main inherits IO {
@@ -116,6 +118,7 @@
       0;
     }};
   };
+*)
 
 -- blocks
 (*

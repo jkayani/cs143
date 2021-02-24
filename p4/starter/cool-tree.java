@@ -1464,10 +1464,44 @@ class sub extends Expression {
       * you wish.)
       * @param s the output stream 
       * */
-    public void code(PrintStream s) {
+    public void code(PrintStream s) {}
+    public void code(PrintStream s, AbstractSymbol containingClassName) {
+        e1.code(s, containingClassName);
+        if (e1 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e1;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        e2.code(s, containingClassName);
+        if (e2 instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) e2;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+
+        int valOffset = (Integer) CoolGen.lookupObject(
+            AbstractTable.idtable.lookup("Int"),
+            AbstractTable.idtable.lookup("_val")
+        )[1];
+
+        CoolGen.emitPadded(new String[] {
+            CoolGen.pop("$t5"),
+            CoolGen.pop("$t4"),
+            CoolGen.comment("load values of Int operands"),
+            ("lw $t4 " + valOffset + "($t4)"),
+            ("lw $t5 " + valOffset + "($t5)"),
+
+            CoolGen.comment("compute difference of Int operands"),
+            ("sub $t4 $t4 $t5"),
+            CoolGen.push("$t4")
+        }, s);
+
+        CoolGen.comment("save difference into new Int");
+        CoolGen.emitNewInt(s);
     }
-
-
 }
 
 
