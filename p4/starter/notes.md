@@ -24,7 +24,7 @@ Decided Conventions:
 Next steps:
 - ~assign~
 - ~new~
-- static_dispatch (will do once `dispatch` is finalized)
+- ~static_dispatch (will do once `dispatch` is finalized)~
 - ~let~
 - ~case~
 - ~block~
@@ -41,4 +41,4 @@ Needs boolean:
 Finish math:
 - ~sub, mul, divide, neg~
 
-- Test the builtin methods
+- ~Test the builtin methods~

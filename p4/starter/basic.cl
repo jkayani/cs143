@@ -5,10 +5,10 @@
 
 -- builtin methods 
 class Animal {
-
+  legs():Int { 2 };
 };
-class Dog {
-
+class Dog inherits Animal {
+  legs():Int { 4 };
 };
 class Main inherits IO {
   newline(): Object {
@@ -18,10 +18,16 @@ class Main inherits IO {
     out_string("Welcome to the builtin test! What's your name?");
     newline();
     let name:String <- in_string() in {
-      out_string(name.concat(", hello! Welcome!"));
+      out_string(name.concat(", hello! Welcome to the main method of ".concat(type_name()).concat("enter 0: ")));
       newline();
-      out_string("Or, put another way, hello: ".concat(name).concat(", glad you're here"));
+      out_string("Or, put another way, hello: ".concat(name.substr(in_int(), name.length())).concat(", glad you're here"));
       newline();
+      let d:Animal <- new Dog in {
+        out_int(d.legs());
+        newline();
+        out_int(d@Animal.legs());
+      };
+      abort();
     };
   }};
 };

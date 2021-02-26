@@ -674,41 +674,22 @@ class static_dispatch extends Expression {
       * */
     public void code(PrintStream s) {}
 
-    // TODO: Fix like dispatch
-    public void code(PrintStream s, AbstractSymbol containingClassName) {
+    public void code (PrintStream s, AbstractSymbol containingClassName) {
         AbstractSymbol subjectType = expr.get_type();
-        Expression ae =  expr;
+        String here = String.format("%s_static_dispatch_%d_%d", containingClassName, lineNumber, hashCode());
 
         if (subjectType.equals(TreeConstants.SELF_TYPE)) {
             subjectType = containingClassName;
         }
 
-        // Emit subject of dispatch to stack
-        ae.code(s, containingClassName);
-        if (expr instanceof ObjectReturnable) {
-            ObjectReturnable o = (ObjectReturnable) expr;
-            if (o.requiresDereference()) {
-                CoolGen.emitObjectDeref(s);
-            }
-        }
+        // Preserve registers
+        CoolGen.emitRegisterPreserve(s);
 
-        // Store subject of dispatch, preserve registers and setup frame
-        CoolGen.emitPadded(new String[] {
-            CoolGen.blockComment(String.format("call to %s@%s.%s", subjectType, type_name, name)),
-            CoolGen.pop("$t1"),
-            CoolGen.comment("preserve registers"),
-            CoolGen.push("$a0"),
-            CoolGen.push("$ra"),
-            CoolGen.push("$fp"),
-            CoolGen.push("$s1"),
-            CoolGen.push("$s2"),
-            CoolGen.push("$s3"),
-            CoolGen.comment("setup self object of dispatch"),
-            "move $a0 $t1",
-            CoolGen.comment("push args"),
-        }, s);
+        // Allocate space for callee locals as part of new frame and calculate offsets
+        CoolGen.emitFramePrologue(s);
 
         // Push arguments
+        CoolGen.emitPadded(CoolGen.comment("frame setup: push arguments"), s);
         for (int i = 0; i < actual.getLength(); i++) {
             Expression e = (Expression) actual.getNth(i);
             e.code(s, containingClassName);
@@ -723,42 +704,57 @@ class static_dispatch extends Expression {
             }
         }
 
-        // Setup frame
+        // Emit subject of dispatch to $a0
+        CoolGen.emitPadded(CoolGen.comment("frame setup: subject of dispatch"), s);
+        expr.code(s, containingClassName);
+        if (expr instanceof ObjectReturnable) {
+            ObjectReturnable o = (ObjectReturnable) expr;
+            if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(s);
+            }
+        }
+        CoolGen.emitPadded(CoolGen.pop("$a0"), s);
+
+        // Handle attempted dispatch on NULL
         CoolGen.emitPadded(new String[] {
-            "move $t1 $sp",
-            "move $s1 $sp", 
-            "sub $s1 $s1 4", // where locals begin
-            "move $s3 $s1",
-            "sub $sp $sp " + CoolGen.LOCAL_SIZE,
-            "move $s2 $sp",  // where locals end
-            "addi $t1 $t1 " + 4 * (actual.getLength() - 1),
-            "move $fp $t1", // $fp points to first arg
+            CoolGen.comment("null dispatch check"),
+            String.format("bne $a0 $zero %s_notnull", here),
+            String.format(
+                "la $a0 %s", 
+                ((StringSymbol) AbstractTable.stringtable.lookup(
+                    CoolGen.map.programSymbols.get(containingClassName).classc.getFilename().toString()
+                )).codeRef()
+            ),
+            String.format("li $t1 %d", lineNumber),
+            String.format("j %s", CoolGen.NULL_DISPATCH)
         }, s);
+
+        CoolGen.emitLabel(String.format("%s_notnull", here), s);
+
+        // Finish the frame by setting up frame registers for callee ($fp, $s1-$s3),
+        // and setup object of dispatch
+        CoolGen.emitFrameEpilogue(s);
 
         // Perform the call
         CoolGen.emitPadded(new String[] {
             CoolGen.comment("find jump address and jump"),
             String.format("lw $t1 %s_method_%s", type_name, name),
+            // ".globl preCall" + name,
+            // "preCall" + name + ":",
             "jalr $t1",
         }, s);
 
         // Destroy frame and restore registers
+        CoolGen.emitFrameCleanup(s);
+        CoolGen.emitRegisterRestore(s);
         CoolGen.emitPadded(new String[] {
             // ".globl postCall" + name,
             // "postCall" + name + ":",
-            "move $sp $fp",
-            "add $sp $sp 4", // Return to top of stack before-call
-            CoolGen.pop("$s3"),
-            CoolGen.pop("$s2"),
-            CoolGen.pop("$s1"),
-            CoolGen.pop("$fp"),
-            CoolGen.pop("$ra"),
             CoolGen.pop("$t1"),
             CoolGen.push("$a0"),
             "move $a0 $t1"
         }, s);
     }
-
 }
 
 
