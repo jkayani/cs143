@@ -2284,6 +2284,16 @@ class new_ extends Expression {
             while (ancestry.hasNext()) {
                 AbstractSymbol ancestor = ancestry.next();
 
+                // Skip IO class since no attributes to initialize
+                if (ancestor.equals(TreeConstants.IO)) {
+                    if (ancestry.hasNext()) {
+                        ancestor = ancestry.next();
+                    }
+                    else {
+                        break;
+                    }
+                }
+
                 CoolGen.emitPadded(new String[] {
                     CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
                     CoolGen.pop("$t1"),

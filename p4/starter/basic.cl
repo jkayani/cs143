@@ -4,7 +4,7 @@
  *)
 
 -- builtin methods 
-class Animal {
+class Animal inherits IO {
   legs():Int { 2 };
 };
 class Dog inherits Animal {

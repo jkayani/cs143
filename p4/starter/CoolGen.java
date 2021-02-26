@@ -634,6 +634,7 @@ public class CoolGen {
     emit(".text");
 
     // Skip inits for Int and String
+    // TODO: Posisble skip init for IO
     emitLabel("Int_init");
     emitLabel("String_init");
     emit(comment("TODO: do something meaningful"));
