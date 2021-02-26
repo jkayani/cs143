@@ -8,9 +8,10 @@ RUN wget -O student-dist.tar.gz https://courses.edx.org/asset-v1:StanfordOnline+
     tar -xf student-dist.tar.gz 
 RUN wget -O spim.zip https://sourceforge.net/code-snapshots/svn/s/sp/spimsimulator/code/spimsimulator-code-r739.zip &&\
     unzip spim.zip -d spim &&\
-    cp lib/trap.handler lib/exceptions.s &&\
+    mkdir -p cool/lib &&\
+    cp lib/trap.handler cool/lib &&\
     cd spim/spimsimulator-code-r739/spim &&\
-    make -e EXCEPTION_DIR=/usr/class/cs143/lib &&\
+    make DEFINES=-DDEFAULT_EXCEPTION_HANDLER='\"/usr/class/cs143/cool/lib/trap.handler\"' &&\
     mv spim /usr/local/bin
 
 FROM spim as cool

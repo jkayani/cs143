@@ -644,6 +644,9 @@ public class CoolGen {
 
     writeMethods();
 
+    emitLabel("main");
+    endLabel();
+
     emit("##### END CODE #####");
   }
 }
