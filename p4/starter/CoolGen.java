@@ -28,7 +28,7 @@ public class CoolGen {
   public static final String EQ_TEST = "equality_test";
 
   // TODO: Dynamic frame size based on `let` count?
-  public static final int LOCAL_SIZE = 4 * 10;
+  public static final int LOCAL_SIZE = 4 * 20;
 
   public static String pop(String reg) {
     return String.format("%s # pop\n\t%s# pop", "lw " + reg + " ($sp)", "add $sp $sp 4");
@@ -559,7 +559,14 @@ public class CoolGen {
           // Init attributes of type Int, String, Bool with defaults
           // Null pointer or their init expression for everything else
           if (a.init instanceof no_expr && initByPrototype(a.type_decl)) {
-            emitObjectCopy(a.type_decl.toString(), out);
+            if (a.type_decl.equals(TreeConstants.Bool)) {
+              emitPadded(new String[] {
+                "la $t1 bool_const0",
+                CoolGen.push("$t1")
+              }, out);
+            } else {
+              emitObjectCopy(a.type_decl.toString(), out);
+            }
           } else {
             a.init.code(out, currentClass.name);
           }

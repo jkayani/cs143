@@ -1333,6 +1333,12 @@ class let extends Expression {
                 CoolGen.comment("evaulate let init"),
             }, s);
             init.code(s, containingClassName);
+            if (init instanceof ObjectReturnable) {
+                ObjectReturnable o = (ObjectReturnable) init;
+                if (o.requiresDereference()) {
+                    CoolGen.emitObjectDeref(s);
+                }
+            }
             CoolGen.replaceLocal(s);
         }
 
@@ -2267,6 +2273,12 @@ class new_ extends Expression {
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
 
+        // Resolve SELF_TYPE
+        AbstractSymbol className = type_name;
+        if (type_name.equals(TreeConstants.SELF_TYPE)) {
+           className = containingClassName; 
+        }
+
         // Bools are initialized to bool_const0
         if (type_name.equals(TreeConstants.Bool)) {
             CoolGen.emitPadded(new String[] {
@@ -2276,11 +2288,11 @@ class new_ extends Expression {
         }
         else {
             // Call Object.copy on the prototype 
-            CoolGen.emitObjectCopy(type_name.toString(), s);
+            CoolGen.emitObjectCopy(className.toString(), s);
 
-            // For each ancestor of `type_name`, call it's initialize routine
+            // For each ancestor of `className`, call it's initialize routine
             // Skip Object (first ancestor of all classes)
-            ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(type_name).listIterator(1);
+            ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(className).listIterator(1);
             while (ancestry.hasNext()) {
                 AbstractSymbol ancestor = ancestry.next();
 
@@ -2295,7 +2307,7 @@ class new_ extends Expression {
                 }
 
                 CoolGen.emitPadded(new String[] {
-                    CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
+                    CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, className)),
                     CoolGen.pop("$t1"),
                 }, s);
 
