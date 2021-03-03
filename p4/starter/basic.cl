@@ -3,34 +3,104 @@
     as possible.
  *)
 
--- builtin methods 
+-- SELF_TYPE (reflection) tests
 class Animal inherits IO {
-  legs():Int { 2 };
+  legs:Int <- 2;
+  name():String { "Animal" };
+  inner: SELF_TYPE;
+  init(): Animal {
+    inner <- new SELF_TYPE
+  };
+  test(): Animal {
+    new SELF_TYPE
+  };
+  getInner():Animal {
+    inner
+  };
+  getLegs():Int {
+    legs
+  };
 };
 class Dog inherits Animal {
-  legs():Int { 4 };
+  name():String { "Dog" };
+  init(): Animal {
+    {
+      legs <- 4;
+      self@Animal.init();
+    }
+  };
 };
 class Main inherits IO {
-  newline(): Object {
-    out_string("\n")
-  };
-  main(): Object {{
-    out_string("Welcome to the builtin test! What's your name?");
-    newline();
-    let name:String <- in_string() in {
-      out_string(name.concat(", hello! Welcome to the main method of ".concat(type_name()).concat("enter 0: ")));
-      newline();
-      out_string("Or, put another way, hello: ".concat(name.substr(in_int(), name.length())).concat(", glad you're here"));
-      newline();
-      let d:Animal <- new Dog in {
-        out_int(d.legs());
-        newline();
-        out_int(d@Animal.legs());
-      };
-      abort();
+    newline(): Object {
+      out_string("\n")
     };
-  }};
+  main():SELF_TYPE {
+    let a:Animal <- new Dog in {
+      out_string("dog has legs: ");
+      out_int(a.getLegs());
+      newline();
+
+      if isvoid a.getInner() then out_string("correct - inner dog of uninit'd dog isvoid") else out_string("WRONG") fi;
+      newline();
+
+      a.init();
+
+      out_string("init'd dog has legs: ");
+      out_int(a.getLegs());
+      newline();
+
+      out_string("init'd dog's inner dog has legs: ");
+      out_int(a.getInner().getLegs());
+      newline();
+
+      a.getInner().init();
+
+      out_string("init'd dog's init'd inner dog has legs: ");
+      out_int(a.getInner().getLegs());
+      newline();
+
+      out_string("Animal is a: ".concat(a.getInner().name()));
+      newline();
+
+      let x:Animal <- a.test() in {
+        out_string("brand new dog has legs: ");
+        out_int(x.getLegs());
+        newline();
+      };
+    }
+  };
 };
+
+-- builtin methods 
+(*
+  class Animal inherits IO {
+    legs():Int { 2 };
+  };
+  class Dog inherits Animal {
+    legs():Int { 4 };
+  };
+  class Main inherits IO {
+    newline(): Object {
+      out_string("\n")
+    };
+    main(): Object {{
+      out_string("Welcome to the builtin test! What's your name?");
+      newline();
+      let name:String <- in_string() in {
+        out_string(name.concat(", hello! Welcome to the main method of ".concat(type_name()).concat("enter 0: ")));
+        newline();
+        out_string("Or, put another way, hello: ".concat(name.substr(in_int(), name.length())).concat(", glad you're here"));
+        newline();
+        let d:Animal <- new Dog in {
+          out_int(d.legs());
+          newline();
+          out_int(d@Animal.legs());
+        };
+        abort();
+      };
+    }};
+  };
+*)
 
 -- fizzbuzz: dispatch, all arithmetic, loops, conds
 (*

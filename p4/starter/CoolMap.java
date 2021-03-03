@@ -19,6 +19,8 @@ public class CoolMap {
 
   /* The inheritance graph, mapping a class to it's parent */
   public static Map<AbstractSymbol, AbstractSymbol> classGraph = new HashMap<AbstractSymbol, AbstractSymbol>();
+  
+  public static Map<AbstractSymbol, ArrayList<AbstractSymbol>> classGraphInverted = new HashMap<AbstractSymbol, ArrayList<AbstractSymbol>>();
 
   /* The entire symbol table, mapping each class to it's symbol table */
   public static Map<AbstractSymbol, ClassTable> programSymbols = new HashMap<AbstractSymbol, ClassTable>();
@@ -263,6 +265,18 @@ public class CoolMap {
       AbstractSymbol name = classc.name;
       AbstractSymbol parentName = classc.getParent();
       classGraph.put(name, parentName);
+    }
+
+    for (Map.Entry<AbstractSymbol, AbstractSymbol> e : classGraph.entrySet()) {
+      AbstractSymbol child = e.getKey();
+      AbstractSymbol parent = e.getValue();
+      if (classGraphInverted.get(parent) == null) {
+        ArrayList<AbstractSymbol> children = new ArrayList<AbstractSymbol>();
+        children.add(child);
+        classGraphInverted.put(parent, children);
+      } else {
+        classGraphInverted.get(parent).add(child);
+      }
     }
   }
 

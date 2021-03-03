@@ -2272,12 +2272,7 @@ class new_ extends Expression {
       * */
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
-
-        // Resolve SELF_TYPE
-        AbstractSymbol className = type_name;
-        if (type_name.equals(TreeConstants.SELF_TYPE)) {
-           className = containingClassName; 
-        }
+        String here = String.format("%s_new_%d_%d", containingClassName, lineNumber, hashCode());
 
         // Bools are initialized to bool_const0
         if (type_name.equals(TreeConstants.Bool)) {
@@ -2286,13 +2281,79 @@ class new_ extends Expression {
                 CoolGen.push("$t1")
             }, s);
         }
+        else if (type_name.equals(TreeConstants.SELF_TYPE)) {
+
+            CoolGen.emitRegisterPreserve(s);
+
+            // Copy the protObj of subject of dispatch
+            CoolGen.emitRegisterPreserve(s);
+            CoolGen.emitFramePrologue(s);
+            CoolGen.emitFrameEpilogue(s);
+            CoolGen.emitPadded("jal Object.copy", s);
+            CoolGen.emitFrameCleanup(s);
+            CoolGen.emitRegisterRestore(s);
+            CoolGen.emitPadded(new String[] {
+                CoolGen.pop("$t1"),
+                CoolGen.push("$a0"),
+                "move $a0 $t1"
+            }, s);
+
+            // Create local variable for address of list of init routines
+            CoolGen.emitPadded(new String[] {
+                "lw $t1 ($a0)", // classtag of thing to init
+                "mul $t1 $t1 4",
+                "la $t2 ancestryTab",
+                "add $t2 $t2 $t1",
+                "lw $t1 ($t2)",
+                CoolGen.push("$t1")
+            }, s);
+            CoolGen.emitNewLocal(s);
+
+            // Create local variable for list index counter, init value 0
+            CoolGen.emitPadded(CoolGen.push("$zero"), s);
+            CoolGen.emitNewLocal(s);
+
+            // Preserve registers and load object to init into $a0
+            CoolGen.emitPadded(CoolGen.pop("$a0"), s);
+
+            // Load word at counter(ancestryTab), jump to address if non-0. Otherwise, done
+            CoolGen.emitLabel(String.format("%s_initAncestor", here), s);
+            CoolGen.emitPadded(new String[] {
+                "lw $t1 4($s1)", // list index counter
+                "mul $t1 $t1 4",
+                "lw $t2 8($s1)", // address of list of init routines
+                "add $t2 $t2 $t1",
+                "lw $t1 ($t2)",
+                String.format("beq $t1 $zero %s_epilogue", here)
+            }, s);
+
+            // CoolGen.emitRegisterPreserve(s);
+            CoolGen.emitPadded(new String[] {
+                "jal $t1"
+            }, s);
+
+            // Increment counter by 4, repeat
+            CoolGen.emitPadded(new String[] {
+                "lw $t1 4($s1)",
+                "add $t1 $t1 4",
+                "sw $t1 4($s1)",
+                String.format("j %s_initAncestor", here)
+            }, s);
+
+            // New instance creation complete
+            CoolGen.emitLabel(String.format("%s_epilogue", here), s);
+            CoolGen.emitPadded("move $t2 $a0", s);
+            CoolGen.emitRegisterRestore(s);
+            CoolGen.emitPadded(CoolGen.pop("$a0"), s);
+            CoolGen.emitPadded(CoolGen.push("$t2"), s);
+        }
         else {
             // Call Object.copy on the prototype 
-            CoolGen.emitObjectCopy(className.toString(), s);
+            CoolGen.emitObjectCopy(type_name.toString(), s);
 
-            // For each ancestor of `className`, call it's initialize routine
+            // For each ancestor of `type_name`, call it's initialize routine
             // Skip Object (first ancestor of all classes)
-            ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(className).listIterator(1);
+            ListIterator<AbstractSymbol> ancestry = CoolGen.map.getAncestry(type_name).listIterator(1);
             while (ancestry.hasNext()) {
                 AbstractSymbol ancestor = ancestry.next();
 
@@ -2307,7 +2368,7 @@ class new_ extends Expression {
                 }
 
                 CoolGen.emitPadded(new String[] {
-                    CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, className)),
+                    CoolGen.comment(String.format("initializing ancestor %s for class %s", ancestor, type_name)),
                     CoolGen.pop("$t1"),
                 }, s);
 
@@ -2322,13 +2383,11 @@ class new_ extends Expression {
 
                 CoolGen.emitRegisterRestore(s);
                 CoolGen.emitPadded(CoolGen.pop("$a0"), s);
-
                 CoolGen.emitPadded(CoolGen.push("$t1"), s);
-
             }
         }
-    }
 
+    }
 
 }
 

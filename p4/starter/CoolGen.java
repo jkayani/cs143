@@ -387,6 +387,52 @@ public class CoolGen {
     endLabel();
   }
 
+  private void writeAncestryTab() {
+    for (AbstractSymbol className : map.classtags) {
+      LinkedList<AbstractSymbol> ancestry = map.getAncestry(className);
+      ListIterator<AbstractSymbol> l = ancestry.listIterator(0);
+      emitLabel(String.format("%s_ancestry", className));
+      while (l.hasNext()) {
+        AbstractSymbol next = l.next();
+
+        // Skip Object and IO since they have no attributes
+        boolean done = false;
+        while (next.equals(TreeConstants.Object_) || next.equals(TreeConstants.IO)) {
+          if (l.hasNext()) {
+            next = l.next();
+          }
+          else {
+            done = true;
+            break;
+          }
+        }
+        if (done) {
+          break;
+        }
+
+        if (!next.equals(TreeConstants.Bool)) {
+          emit(WORD, String.format(ATTRINIT, next));
+        }
+      }
+      emit(WORD, "0");
+      endLabel();
+    }
+
+    emitLabel("ancestryTab");
+    for (AbstractSymbol className : map.classtags) {
+      emit(WORD, String.format("%s_ancestry", className));
+    }
+    endLabel();
+  }
+  
+  private void writeProtoTable() {
+    emitLabel("protObjTab");
+    for (AbstractSymbol className : map.classtags) {
+      emit(WORD, String.format(PROTOBJ, className));
+    }
+    endLabel();
+  }
+
   private void writeDispatchTab(AbstractSymbol className, LinkedList<AbstractSymbol> ancestry) {
     Map<AbstractSymbol, CoolMap.MethodData> methods = new HashMap<AbstractSymbol, CoolMap.MethodData>();
 
@@ -518,6 +564,8 @@ public class CoolGen {
     writeBoolTrue();
 
     writeDispatchTabTab();
+
+    writeAncestryTab();
 
     AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
