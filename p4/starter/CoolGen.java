@@ -567,6 +567,8 @@ public class CoolGen {
 
     writeAncestryTab();
 
+    writeProtoTable();
+
     AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
 

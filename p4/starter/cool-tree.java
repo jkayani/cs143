@@ -2289,6 +2289,13 @@ class new_ extends Expression {
             CoolGen.emitRegisterPreserve(s);
             CoolGen.emitFramePrologue(s);
             CoolGen.emitFrameEpilogue(s);
+            CoolGen.emitPadded(new String[] {
+                "lw $t1 ($a0)", // We need the _prototype_ of subject of disp.
+                "mul $t1 $t1 4",
+                "la $t2 protObjTab",
+                "add $t2 $t2 $t1",
+                "lw $a0 ($t2)"
+            }, s);
             CoolGen.emitPadded("jal Object.copy", s);
             CoolGen.emitFrameCleanup(s);
             CoolGen.emitRegisterRestore(s);
@@ -2329,19 +2336,23 @@ class new_ extends Expression {
 
             // CoolGen.emitRegisterPreserve(s);
             CoolGen.emitPadded(new String[] {
-                "jal $t1"
+                "jalr $t1"
             }, s);
 
-            // Increment counter by 4, repeat
+            // Increment counter, repeat
             CoolGen.emitPadded(new String[] {
                 "lw $t1 4($s1)",
-                "add $t1 $t1 4",
+                "add $t1 $t1 1",
                 "sw $t1 4($s1)",
                 String.format("j %s_initAncestor", here)
             }, s);
 
             // New instance creation complete
             CoolGen.emitLabel(String.format("%s_epilogue", here), s);
+
+            // TODO: Free locals??
+
+            // Restore register, and place result on stack
             CoolGen.emitPadded("move $t2 $a0", s);
             CoolGen.emitRegisterRestore(s);
             CoolGen.emitPadded(CoolGen.pop("$a0"), s);

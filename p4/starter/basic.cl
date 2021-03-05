@@ -34,7 +34,7 @@ class Main inherits IO {
     newline(): Object {
       out_string("\n")
     };
-  main():SELF_TYPE {
+  main():Object {
     let a:Animal <- new Dog in {
       out_string("dog has legs: ");
       out_int(a.getLegs());
@@ -62,9 +62,15 @@ class Main inherits IO {
       out_string("Animal is a: ".concat(a.getInner().name()));
       newline();
 
-      let x:Animal <- a.test() in {
-        out_string("brand new dog has legs: ");
+      let x:Animal <- (new Animal), y:Animal in {
+        out_string("brand new animal has legs: ");
         out_int(x.getLegs());
+        newline();
+
+        y <- x.test();
+
+        out_string("brand new animal via SELF_TYPE has legs: ");
+        out_int(y.getLegs());
         newline();
       };
     }
