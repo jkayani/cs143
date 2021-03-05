@@ -591,9 +591,31 @@ public class CoolGen {
     for (Enumeration e = map.classes.getElements(); e.hasMoreElements(); ) {
       classc currentClass = (classc) e.nextElement();
 
+      emitLabel(String.format(ATTRINIT, currentClass.name));
+      
+      // For Main, we have to ensure the COOL runtime runs all it's ancestral inits first
+      if (currentClass.name.equals(TreeConstants.Main)) {
+        LinkedList<AbstractSymbol> ancestry = map.getAncestry(currentClass.name);
+
+        // Skip Object and IO
+        ancestry.removeFirst();
+        if (ancestry.peekFirst().equals(TreeConstants.IO)) {
+          ancestry.removeFirst();
+        }
+
+        // Skip Main_init since that's what we're defining here!
+        ancestry.removeLast();
+
+        for (AbstractSymbol ancestor : ancestry) {
+          emit(comment(String.format("initializing ancestor %s of Main", ancestor)));
+          emitRegisterPreserve(out);
+          emit(String.format("jal %s", String.format(ATTRINIT, ancestor)));
+          emitRegisterRestore(out);
+        }
+      }
+
       // TODO: create a frame for each attribute instead of sharing
       // Prep a "pseudo-frame" 
-      emitLabel(String.format(ATTRINIT, currentClass.name));
       emitRegisterPreserve(out);
       emitFramePrologue(out);
       emitFrameEpilogue(out);
