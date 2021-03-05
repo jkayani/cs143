@@ -690,12 +690,11 @@ public class CoolGen {
     emit("##### START CODE #####");
     emit(".text");
 
-    // Skip inits for Int and String
-    // TODO: Posisble skip init for IO
+    // Skip inits for Int and String since the 
+    // prototype's have the right default values, so nothing to do
     emitLabel("Int_init");
     emitLabel("String_init");
-    emit(comment("TODO: do something meaningful"));
-    emit("add $t1 $t1 $t1");
+    emit("jr $ra");
     endLabel();
 
     initAttributes();

@@ -3,79 +3,89 @@
     as possible.
  *)
 
--- SELF_TYPE (reflection) tests
-class Animal inherits IO {
-  legs:Int <- 2;
-  name():String { "Animal" };
-  inner: SELF_TYPE;
-  init(): Animal {
-    inner <- new SELF_TYPE
-  };
-  test(): Animal {
-    new SELF_TYPE
-  };
-  getInner():Animal {
-    inner
-  };
-  getLegs():Int {
-    legs
-  };
-};
-class Dog inherits Animal {
-  name():String { "Dog" };
-  init(): Animal {
-    {
-      legs <- 4;
-      self@Animal.init();
-    }
-  };
-};
 class Main inherits IO {
-    newline(): Object {
-      out_string("\n")
-    };
+  --io:IO <- new IO;
+  x:Int <- new Int;
   main():Object {
-    let a:Animal <- new Dog in {
-      out_string("dog has legs: ");
-      out_int(a.getLegs());
-      newline();
-
-      if isvoid a.getInner() then out_string("correct - inner dog of uninit'd dog isvoid") else out_string("WRONG") fi;
-      newline();
-
-      a.init();
-
-      out_string("init'd dog has legs: ");
-      out_int(a.getLegs());
-      newline();
-
-      out_string("init'd dog's inner dog has legs: ");
-      out_int(a.getInner().getLegs());
-      newline();
-
-      a.getInner().init();
-
-      out_string("init'd dog's init'd inner dog has legs: ");
-      out_int(a.getInner().getLegs());
-      newline();
-
-      out_string("Animal is a: ".concat(a.getInner().name()));
-      newline();
-
-      let x:Animal <- (new Animal), y:Animal in {
-        out_string("brand new animal has legs: ");
-        out_int(x.getLegs());
-        newline();
-
-        y <- x.test();
-
-        out_string("brand new animal via SELF_TYPE has legs: ");
-        out_int(y.getLegs());
-        newline();
-      };
-    }
+      out_int((new Int) + 1)
   };
 };
+
+-- SELF_TYPE (reflection) tests
+(*
+  class Animal inherits IO {
+    legs:Int <- 2;
+    name():String { "Animal" };
+    inner: SELF_TYPE;
+    init(): Animal {
+      inner <- new SELF_TYPE
+    };
+    test(): Animal {
+      new SELF_TYPE
+    };
+    getInner():Animal {
+      inner
+    };
+    getLegs():Int {
+      legs
+    };
+  };
+  class Dog inherits Animal {
+    name():String { "Dog" };
+    init(): Animal {
+      {
+        legs <- 4;
+        self@Animal.init();
+      }
+    };
+  };
+  class Main inherits IO {
+      newline(): Object {
+        out_string("\n")
+      };
+    main():Object {
+      let a:Animal <- new Dog in {
+        out_string("dog has legs: ");
+        out_int(a.getLegs());
+        newline();
+
+        if isvoid a.getInner() then out_string("correct - inner dog of uninit'd dog isvoid") else out_string("WRONG") fi;
+        newline();
+
+        a.init();
+
+        out_string("init'd dog has legs: ");
+        out_int(a.getLegs());
+        newline();
+
+        out_string("init'd dog's inner dog has legs: ");
+        out_int(a.getInner().getLegs());
+        newline();
+
+        a.getInner().init();
+
+        out_string("init'd dog's init'd inner dog has legs: ");
+        out_int(a.getInner().getLegs());
+        newline();
+
+        out_string("Animal is a: ".concat(a.getInner().name()));
+        newline();
+
+        let x:Animal <- (new Animal), y:Animal in {
+          out_string("brand new animal has legs: ");
+          out_int(x.getLegs());
+          newline();
+
+          y <- x.test();
+
+          out_string("brand new animal via SELF_TYPE has legs: ");
+          out_int(y.getLegs());
+          newline();
+        };
+      }
+    };
+  };
+*)
 
 -- builtin methods 
 (*

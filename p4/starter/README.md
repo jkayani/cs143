@@ -13,15 +13,14 @@ make: Leaving directory '/usr/class/cs143/p4/starter'
 submission: ..
 
         -1 (init-order-super)    Evaluation order of superclass vs subclass attribute initializers
-        -1 (newbasic)    Use of new with basic classes
         -1 (primes)      prime number program from examples directory
         -1 (scoping)     Scoping test
 [GC Test Case: lam-gc.cl]
         -5 (lam-gc)      Lambda example with garbage collection
 [GC Test Case: simple-gc.cl]
 =====================================================================
-You got a score of 54 out of 63.
+You got a score of 55 out of 63.
 
 Submit code:
-PA4-54:9624fa5933426834b2e028b2b64b16cb
+PA4-55:8ff537e7e84ccfc5d33a85b24a15ee34
 ```
