@@ -1301,10 +1301,6 @@ class let extends Expression {
       * */
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
-
-        CoolGen.newObjectScope(containingClassName);
-        CoolGen.addObject(containingClassName, identifier, type_decl);
-
         CoolGen.emitPadded(new String[] {
             CoolGen.blockComment("new let binding"),
             CoolGen.comment(String.format("create new local variable %s of type %s", identifier, type_decl))
@@ -1341,6 +1337,11 @@ class let extends Expression {
             }
             CoolGen.replaceLocal(s);
         }
+
+        // Now the variable has been fully initialized and is in-scope
+        // for further bindings and the expr body
+        CoolGen.newObjectScope(containingClassName);
+        CoolGen.addObject(containingClassName, identifier, type_decl);
 
         // Evaluate body
         CoolGen.emitPadded(new String[] {
