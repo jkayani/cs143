@@ -641,6 +641,12 @@ public class CoolGen {
             }
           } else {
             a.init.code(out, currentClass.name);
+            if (a.init instanceof ObjectReturnable) {
+              ObjectReturnable o = (ObjectReturnable) a.init;
+              if (o.requiresDereference()) {
+                CoolGen.emitObjectDeref(out);
+              }
+            }
           }
 
           emit(blockComment(String.format("store value to attribute %s.%s", currentClass.name, a.name)));

@@ -12,13 +12,12 @@ make: Leaving directory '/usr/class/cs143/p4/starter'
 =====================================================================
 submission: ..
 
-        -1 (primes)      prime number program from examples directory
 [GC Test Case: lam-gc.cl]
         -5 (lam-gc)      Lambda example with garbage collection
 [GC Test Case: simple-gc.cl]
 =====================================================================
-You got a score of 57 out of 63.
+You got a score of 58 out of 63.
 
 Submit code:
-PA4-57:548a6fadd98124020c74bfccee00b997
+PA4-58:ac6dfe6fa329635cdae12cc1e7491b0f
 ```
