@@ -594,7 +594,7 @@ class assign extends Expression implements ObjectReturnable {
 
         // If this assign's expression is an object, we need to 
         // dereference it for the purpose of assigning, but then 
-        // push that pointer on the stack so that later code properly dereference it
+        // push that pointer on the stack so that later code properly dereferences it
         if (requiresDereference()) {
             CoolGen.emitPadded(new String[] {
                 CoolGen.blockComment("store to " + name),
@@ -614,6 +614,11 @@ class assign extends Expression implements ObjectReturnable {
                 String.format("sw $t1 %d(%s)", offset, reg),
                 CoolGen.push("$t1")
             }, s);
+        }
+
+        // Notify GC of attribute assignment
+        if (CoolGen.GC_ENABLED && reg.equals("$a0")) {
+            CoolGen.emitGCNotify(s, offset);
         }
     }
 }
@@ -1163,7 +1168,8 @@ class typcase extends Expression {
 
             // Add the symbol this branch creates to table
             CoolGen.newObjectScope(containingClassName);
-            CoolGen.addObject(containingClassName, b.name, b.type_decl);
+            CoolGen.addObject(containingClassName);
+            CoolGen.enterObjectScope(containingClassName, b.name, b.type_decl);
 
             // Create it in the local section of frame, assigning it
             // the value of the case expression
@@ -1322,6 +1328,7 @@ class let extends Expression {
             }, s);
         }
         CoolGen.emitNewLocal(s);
+        CoolGen.addObject(containingClassName);
 
         // If init !== no_expr, replace local with result
         if (!(init instanceof no_expr)) {
@@ -1341,7 +1348,7 @@ class let extends Expression {
         // Now the variable has been fully initialized and is in-scope
         // for further bindings and the expr body
         CoolGen.newObjectScope(containingClassName);
-        CoolGen.addObject(containingClassName, identifier, type_decl);
+        CoolGen.enterObjectScope(containingClassName, identifier, type_decl);
 
         // Evaluate body
         CoolGen.emitPadded(new String[] {

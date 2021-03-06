@@ -3,16 +3,18 @@
     as possible.
  *)
 
-class Main inherits IO {
-  --io:IO <- new IO;
-  x:Int <- new Int;
-  main():Object {
-      out_int((new Int) + 1)
-  };
-};
-
--- SELF_TYPE (reflection) tests
 (*
+  class Main inherits IO {
+    --io:IO <- new IO;
+    x:Int <- new Int;
+    main():Object {
+        out_int((new Int) + 1)
+    };
+  };
+*)
+
+(*
+-- SELF_TYPE (reflection) tests
   class Animal inherits IO {
     legs:Int <- 2;
     name():String { "Animal" };
@@ -182,7 +184,6 @@ class Main inherits IO {
     } };
   };
 *)
-
 -- bool, comp, cond, eq, loop
 (*
   class Animal {};
@@ -260,7 +261,6 @@ class Main inherits IO {
     }};
   };
 *)
-
 -- blocks
 (*
  class Animal {
@@ -336,7 +336,7 @@ class Main inherits IO {
     goodCase(): Int {
       let nullAnimal:Animal, notNullAnimal:Animal <- new Dog in 
         case notNullAnimal of 
-          d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in d.legs();
+          d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in { d.init(); d.legs(); };
           e:Main => e.wishes();
         esac
     };
@@ -355,12 +355,11 @@ class Main inherits IO {
     wishes(): Int { 50 };
    main(): Object { {
      out_int(let d:Dog <- new Dog, e:Int <- d.init() in goodCase());
-     out_int(badNoMatching(let a:Animal <- new Animal in a));
+     --out_int(badNoMatching(let a:Animal <- new Animal in a));
      -- out_int(badNull(let a:Animal in a));
    } };
  };
 *)
-
 -- Local variables, dispatch
 (*
   class Animal {

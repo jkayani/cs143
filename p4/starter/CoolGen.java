@@ -26,6 +26,7 @@ public class CoolGen {
   public static final String NULL_CASE = "_case_abort2";
   public static final String NULL_DISPATCH = "_dispatch_abort";
   public static final String EQ_TEST = "equality_test";
+  public static boolean GC_ENABLED = false;
 
   // TODO: Dynamic frame size based on `let` count?
   public static final int LOCAL_SIZE = 4 * 20;
@@ -145,11 +146,25 @@ public class CoolGen {
   }
   public static void emitObjectDeref(PrintStream out) {
     emitPadded(new String[] {
-      comment("dereferencing pointer to Int"),
+      comment("dereferencing pointer"),
       pop("$t1"),
       "lw $t1 ($t1)",
       push("$t1")
     }, out);
+  }
+  public static void emitGCNotify(PrintStream out, int offset) {
+    emitPadded(comment("attribute assignment GC notification"), out);
+    emitRegisterPreserve(out);
+    emitFramePrologue(out);
+    emitFrameEpilogue(out);
+    emitPadded(new String[] {
+      "move $a1 $a0",
+      "add $a1 $a1 " + offset,
+      "jal _GenGC_Assign"
+    }, out);
+    emitFrameCleanup(out);
+    emitRegisterRestore(out);
+    emitPadded(pop("$a0"), out);
   }
   public static void emitNewLocal(PrintStream out) {
     // TODO: Handle when $s1 encroaches on $s2 (out of frame space)
@@ -233,9 +248,13 @@ public class CoolGen {
     symbols.localCount--;
     symbols.objects.exitScope();
   }
-  public static void addObject(AbstractSymbol className, AbstractSymbol symName, AbstractSymbol type) {
+  public static void enterObjectScope(AbstractSymbol className, AbstractSymbol symName, AbstractSymbol type) {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
-    symbols.objects.addId(symName, map.new ObjectData(type, CoolMap.SymbolType.LOCAL, symbols.localCount++));
+    symbols.objects.addId(symName, map.new ObjectData(type, CoolMap.SymbolType.LOCAL, symbols.localCount - 1));
+  }
+  public static void addObject(AbstractSymbol className) {
+    CoolMap.ClassTable symbols = map.programSymbols.get(className);
+    symbols.localCount++;
   }
   public static boolean initByPrototype(AbstractSymbol className) {
     return className.equals(TreeConstants.Int) ||
@@ -583,6 +602,7 @@ public class CoolGen {
       endLabel(); 
     }
     else if (Flags.cgen_Memmgr == Flags.GC_GENGC) {
+      GC_ENABLED = true;
       emitLabel("_MemMgr_INITIALIZER");
       emit(WORD, "_GenGC_Init");
       emitLabel("_MemMgr_COLLECTOR");
@@ -637,7 +657,7 @@ public class CoolGen {
         Feature f = (Feature) e2.nextElement();
         if (f instanceof attr) {
           attr a = (attr) f;
-          Integer offset = (Integer) lookupObject(currentClass.name, a.name)[1];
+          int offset = (Integer) lookupObject(currentClass.name, a.name)[1];
 
           // Init attributes of type Int, String, Bool with defaults
           // Null pointer or their init expression for everything else
@@ -663,6 +683,11 @@ public class CoolGen {
           emit(blockComment(String.format("store value to attribute %s.%s", currentClass.name, a.name)));
           emit(pop("$t1"));
           emit("sw $t1 " + offset + "($a0)");
+
+          // Notify GC of attribute assignment
+          if (GC_ENABLED) {
+            emitGCNotify(out, offset);
+          }
         }
       }
 
