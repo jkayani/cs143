@@ -27,9 +27,10 @@ public class CoolGen {
   public static final String NULL_DISPATCH = "_dispatch_abort";
   public static final String EQ_TEST = "equality_test";
   public static boolean GC_ENABLED = false;
+  public static boolean GC_DEBUG = false;
 
   // TODO: Dynamic frame size based on `let` count?
-  public static final int LOCAL_SIZE = 4 * 20;
+  public static final int LOCAL_SIZE = 4 * 80;
 
   public static String pop(String reg) {
     return String.format("%s # pop\n\t%s# pop", "lw " + reg + " ($sp)", "add $sp $sp 4");
@@ -607,8 +608,16 @@ public class CoolGen {
       emit(WORD, "_GenGC_Init");
       emitLabel("_MemMgr_COLLECTOR");
       emit(WORD, "_GenGC_Collect");
+
       emitLabel("_MemMgr_TEST");
-      emit(WORD, 1);
+      if (Flags.cgen_Memmgr_Debug == Flags.GC_DEBUG) {
+        GC_DEBUG = true;
+        emit(WORD, 1);
+      }
+      else {
+        emit(WORD, 0);
+      }
+
       endLabel(); 
     }
 
