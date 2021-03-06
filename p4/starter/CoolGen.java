@@ -572,14 +572,25 @@ public class CoolGen {
     AbstractTable.stringtable.codeStringTable(STR_CLASS_TAG, out);
     AbstractTable.inttable.codeStringTable(INT_CLASS_TAG, out);
 
-    // Disable GC for now
-    emitLabel("_MemMgr_INITIALIZER");
-    emit(WORD, "_NoGC_Init");
-    emitLabel("_MemMgr_COLLECTOR");
-    emit(WORD, "_NoGC_Collect");
-    emitLabel("_MemMgr_TEST");
-    emit(WORD, 0);
-    endLabel(); 
+    // Set GC options
+    if (Flags.cgen_Memmgr == Flags.GC_NOGC) {
+      emitLabel("_MemMgr_INITIALIZER");
+      emit(WORD, "_NoGC_Init");
+      emitLabel("_MemMgr_COLLECTOR");
+      emit(WORD, "_NoGC_Collect");
+      emitLabel("_MemMgr_TEST");
+      emit(WORD, 0);
+      endLabel(); 
+    }
+    else if (Flags.cgen_Memmgr == Flags.GC_GENGC) {
+      emitLabel("_MemMgr_INITIALIZER");
+      emit(WORD, "_GenGC_Init");
+      emitLabel("_MemMgr_COLLECTOR");
+      emit(WORD, "_GenGC_Collect");
+      emitLabel("_MemMgr_TEST");
+      emit(WORD, 1);
+      endLabel(); 
+    }
 
     // Marks end of static data, heap can start now
     emitLabel("heap_start");
