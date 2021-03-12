@@ -308,7 +308,6 @@
 *)
 
 -- case statements
-(*
  class Animal {
    legs: Int <- 0;
    init(): Int {
@@ -340,6 +339,14 @@
           e:Main => e.wishes();
         esac
     };
+    lubCase(): Object {
+      let d:Dog <- new Dog in 
+        case self of 
+          g:Object => out_string("close");
+          f:Main => out_string("no idea what this is");
+          e:Animal => out_string("perfect");
+        esac
+    };
     badNoMatching(a: Animal): Int {
       case a of 
         d:Dog => let e:Animal <- new Animal, f:Int <- e.init() in d.legs();
@@ -354,12 +361,13 @@
     };
     wishes(): Int { 50 };
    main(): Object { {
-     out_int(let d:Dog <- new Dog, e:Int <- d.init() in goodCase());
+     lubCase();
+     -- out_int(let d:Dog <- new Dog, e:Int <- d.init() in goodCase());
      --out_int(badNoMatching(let a:Animal <- new Animal in a));
      -- out_int(badNull(let a:Animal in a));
    } };
  };
-*)
+ 
 -- Local variables, dispatch
 (*
   class Animal {

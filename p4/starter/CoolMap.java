@@ -286,7 +286,7 @@ public class CoolMap {
   */
 
   /* Calculate if A is the ancestor of B */
-  private boolean isAncestor(AbstractSymbol a, AbstractSymbol b) {
+  public static boolean isAncestor(AbstractSymbol a, AbstractSymbol b) {
     // Direct ancestry
     if (!b.equals(TreeConstants.Object_) && classGraph.get(b).equals(a)) {
       return true;
@@ -338,6 +338,18 @@ public class CoolMap {
       lub = findLUB(lub, l.get(i));
     }
     return lub;
+  }
+
+  /* Calculate closest ancestor of a among elements of l*/
+  public static AbstractSymbol findClosestAncestor(AbstractSymbol a, List<AbstractSymbol> l) {
+    Iterator<AbstractSymbol> i = getAncestry(a).descendingIterator();
+    while (i.hasNext()) {
+      AbstractSymbol ancestor = i.next();
+      if (l.contains(ancestor)) {
+        return ancestor;
+      }
+    }
+    return TreeConstants.Object_;
   }
 
   public static LinkedList<AbstractSymbol> getAncestry(AbstractSymbol className) {

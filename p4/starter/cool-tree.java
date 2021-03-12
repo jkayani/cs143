@@ -1118,7 +1118,7 @@ class typcase extends Expression {
       * */
     public void code(PrintStream s) {}
     public void code(PrintStream s, AbstractSymbol containingClassName) {
-        String here = String.format("%s_case%d", containingClassName, lineNumber);
+        String here = String.format("%s_case_%d_%d", containingClassName, lineNumber, hashCode());
 
         // Evaulate case expression 
         expr.code(s, containingClassName);
@@ -1154,17 +1154,41 @@ class typcase extends Expression {
             // if $t3 == $t4
             CoolGen.emitPadded(new String[] {
                 "lw $t4 " + String.format(CoolGen.PROTOBJ, b.type_decl),
-                "beq $t3 $t4 " + String.format("%s_%d", here, i)
+                "beq $t3 $t4 " + String.format("%s_%s", here, b.type_decl)
             }, s);
         }
 
-        // No matching case, emit abort 
-        CoolGen.emitPadded("j " + CoolGen.NO_MATCHING_CASE, s);
+        // It's possible that none of the classtags of the branches of the case
+        // are exact matches, so we resort to compile type knowledge to pick the closest
+        // one 
+        AbstractSymbol target = expr.get_type();
+        if (target.equals(TreeConstants.SELF_TYPE)) {
+            target = containingClassName;
+        }
+        List<AbstractSymbol> candidates = new ArrayList<AbstractSymbol>();
+        boolean found = false;
+
+        // First, we compile a list of candidate branches
+        for (int i = 0; i < cases.getLength(); i++) {
+            branch b = (branch) cases.getNth(i);
+            if (b.type_decl.equals(target) || CoolGen.map.isAncestor(b.type_decl, target)) {
+                candidates.add(b.type_decl);
+                found = true;
+            }
+        }
+        // Second, we choose the closest one
+        if (found) {
+            AbstractSymbol chosen = CoolGen.map.findClosestAncestor(target, candidates);
+            CoolGen.emitPadded("j " + String.format("%s_%s", here, chosen), s);
+        } else {
+            // No matching case, emit abort 
+            CoolGen.emitPadded("j " + CoolGen.NO_MATCHING_CASE, s);
+        }
 
         // For each branch, generate a mini-routine
         for (int i = 0; i < cases.getLength(); i++) {
             branch b = (branch) cases.getNth(i);
-            CoolGen.emitLabel(String.format("%s_%d", here, i), s);
+            CoolGen.emitLabel(String.format("%s_%s", here, b.type_decl), s);
 
             // Add the symbol this branch creates to table
             CoolGen.newObjectScope(containingClassName);
