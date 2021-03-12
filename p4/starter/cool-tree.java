@@ -289,21 +289,12 @@ class programc extends Program {
       * */
     public void cgen(PrintStream s) 
     {
-        // spim wants comments to start with '#'
-        // s.print("# start of generated code\n");
-
         CoolMap c = new CoolMap(classes);
         c.codeGenInit();
-
-        // System.out.println(c.classGraph);
-        // System.out.println(c.programSymbols);
-        // System.out.println(c.classtags);
 
         CoolGen g = new CoolGen(c, s);
         g.layoutStaticData();
         g.layoutCode();
-
-        // s.print("\n# end of generated code\n");
     }
 
 }
@@ -1159,7 +1150,7 @@ class typcase extends Expression {
         }
 
         // It's possible that none of the classtags of the branches of the case
-        // are exact matches, so we resort to compile type knowledge to pick the closest
+        // are exact matches, so we resort to compile time knowledge to pick the closest
         // one 
         AbstractSymbol target = expr.get_type();
         if (target.equals(TreeConstants.SELF_TYPE)) {
@@ -2366,7 +2357,6 @@ class new_ extends Expression {
                 String.format("beq $t1 $zero %s_epilogue", here)
             }, s);
 
-            // CoolGen.emitRegisterPreserve(s);
             CoolGen.emitPadded(new String[] {
                 "jalr $t1"
             }, s);

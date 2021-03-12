@@ -13,6 +13,7 @@ public class CoolGen {
   private boolean inLabel = false;
   private int INT_CLASS_TAG = 0; private int STR_CLASS_TAG = 0;
 
+  /* Handy strings for MIPS assembly generation */
   public static final String GLOBAL = ".globl";
   public static final String WORD = ".word";
   public static final String ASCIIZ = ".asciiz";
@@ -26,6 +27,7 @@ public class CoolGen {
   public static final String NULL_CASE = "_case_abort2";
   public static final String NULL_DISPATCH = "_dispatch_abort";
   public static final String EQ_TEST = "equality_test";
+
   public static boolean GC_ENABLED = false;
   public static boolean GC_DEBUG = false;
 
@@ -92,6 +94,8 @@ public class CoolGen {
       CoolGen.pop("$s1"),
       CoolGen.pop("$fp"),
       CoolGen.pop("$ra"),
+      // Notice: $a0 is not popped. This is left for the caller since they may need
+      // to go through another register to not lose work (e.g results of method call in $a0)
     }, out);
   }
   public static void emitObjectCopy(String className, PrintStream out) {
@@ -190,7 +194,7 @@ public class CoolGen {
     CoolMap.ClassTable symbols = map.programSymbols.get(className);
     CoolMap.ObjectData o = (CoolMap.ObjectData) symbols.objects.lookup(symName);
 
-    // Assuming that current self is always $a0, args are from $fp, and locals are from $s1
+    // Assuming that current self is always $a0, args are from $fp, and locals are from $s3
     Object[] res = new Object[]{ "$a0", 0 };
     if (symName.equals(TreeConstants.self)) {
       res[1] = 0;
@@ -205,6 +209,7 @@ public class CoolGen {
     else {
       switch (o.sym) {
         case LOCAL: {
+          // locals start at $s3 and are 1 word (4 bytes) apart
           res[0] = "$s3";
           res[1] = -4 * o.offset;
           break;
@@ -317,15 +322,6 @@ public class CoolGen {
     }
   }
   private void emitDefault(AbstractSymbol type, AbstractSymbol attrName) {
-    /*
-     Assuming a copy-on-write setup where for default
-     assignment to below builtin types, we simply point to 
-     the prototype (since they have the right defaults)
-
-     Then when it's time to actually assign
-     an expression to the attribute, we generate code to create 
-     an appropriate object and point to that
-    */
     switch (type.toString()) {
       case "Int": {
         emit(WORD, String.format(PROTOBJ, "Int"));
